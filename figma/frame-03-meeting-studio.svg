@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+<rect width="1440" height="900" fill="#f4f7f7"/>
+<rect width="1440" height="82" fill="#0d293c"/>
+<text x="60" y="52" font-size="27" fill="white" font-family="Arial" font-weight="bold">throughline.</text>
+<text x="60" y="144" font-size="31" fill="#193348" font-family="Arial" font-weight="bold">Turn the decision into a meeting</text>
+<text x="60" y="187" font-size="15" fill="#647d86" font-family="Arial">03 · Meeting Studio · Figma-importable product concept · fictional data</text>
+<rect x="60" y="222" width="880" height="624" rx="18" fill="white" stroke="#dce5e7"/>
+<rect x="965" y="222" width="405" height="624" rx="18" fill="white" stroke="#dce5e7"/>
+<text x="995" y="267" font-size="21" fill="#193348" font-family="Arial" font-weight="bold">Decision Thread</text>
+<rect x="87" y="255" width="826" height="121" rx="12" fill="#eff7f6" stroke="#dce5e7"/>
+<text x="111" y="294" font-size="19" fill="#193348" font-family="Arial" font-weight="bold">Selected instructional focus</text>
+<text x="111" y="332" font-size="16" fill="#54717c" font-family="Arial">Explain equivalent fractions with models and partner discussion.</text>
+<circle cx="1009" cy="290" r="12" fill="#086d70"/>
+<text x="1005" y="296" font-size="14" fill="white" font-family="Arial">1</text>
+<text x="1034" y="296" font-size="15" fill="#193348" font-family="Arial">Evidence</text>
+<rect x="87" y="397" width="826" height="121" rx="12" fill="#f7fafb" stroke="#dce5e7"/>
+<text x="111" y="436" font-size="19" fill="#193348" font-family="Arial" font-weight="bold">Editable 50-minute PLC agenda</text>
+<text x="111" y="474" font-size="16" fill="#54717c" font-family="Arial">5 + 10 + 10 + 15 + 5 + 5 minutes</text>
+<circle cx="1009" cy="417" r="12" fill="#086d70"/>
+<text x="1005" y="423" font-size="14" fill="white" font-family="Arial">2</text>
+<text x="1034" y="423" font-size="15" fill="#193348" font-family="Arial">Educator interpretation</text>
+<rect x="87" y="539" width="826" height="121" rx="12" fill="#edf6fa" stroke="#dce5e7"/>
+<text x="111" y="578" font-size="19" fill="#193348" font-family="Arial" font-weight="bold">Teaching action</text>
+<text x="111" y="616" font-size="16" fill="#54717c" font-family="Arial">Teachers try partner explanation routine over two lessons.</text>
+<circle cx="1009" cy="544" r="12" fill="#086d70"/>
+<text x="1005" y="550" font-size="14" fill="white" font-family="Arial">3</text>
+<text x="1034" y="550" font-size="15" fill="#193348" font-family="Arial">Focus / action</text>
+<rect x="87" y="681" width="826" height="121" rx="12" fill="#fff7e8" stroke="#dce5e7"/>
+<text x="111" y="720" font-size="19" fill="#193348" font-family="Arial" font-weight="bold">Evidence to check next</text>
+<text x="111" y="758" font-size="16" fill="#54717c" font-family="Arial">Implementation check and comparable student cool-downs.</text>
+<circle cx="1009" cy="671" r="12" fill="#086d70"/>
+<text x="1005" y="677" font-size="14" fill="white" font-family="Arial">4</text>
+<text x="1034" y="677" font-size="15" fill="#193348" font-family="Arial">Follow-up</text>
+<text x="995" y="806" font-size="13" fill="#647d86" font-family="Arial">Changing evidence or focus requires review.</text>
+</svg>

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.agnostic-loop/
+.vercel/
+coverage/
+*.tsbuildinfo
+.env*
+!.env.example
