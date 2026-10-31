@@ -51,7 +51,17 @@ This repository includes the local backend, deployment configuration, and review
 
 The interface is an evidence workbook: a numbered horizontal workflow, counts on a shared scale, cited student responses, a ruled agenda, and an open Decision Thread. Ink and cobalt distinguish source material, editable work, and decisions. Field-specific errors, explained stage locks, full-text source readers, keyboard-safe dialogs, and responsive layouts preserve the planning model. IBM Plex Sans is hosted locally with its original SIL Open Font License; there are no external font requests. The earlier Inter assets remain available with their license.
 
-Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, reset, and delete. **Guide** explains the fictional/scripted demonstration and contains presenter reset tools. Unsaved edits prompt before a browser refresh. On a stale workspace or failed operation, **Reload saved data** restores durable data after confirmation when needed.
+Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, reset, and delete. **Guide** offers a replayable walkthrough, three fictional practice cases with explanatory feedback, a glossary, and prototype/presenter information. **Help with this step** opens the matching walkthrough section. The introduction is dismissible; learning is optional and never approves or fills a plan. Unsaved edits prompt before a browser refresh. On a stale workspace or failed operation, **Reload saved data** restores durable data after confirmation when needed.
+
+## Accessibility, equity, and learning support
+
+**Reading** provides 100/125/150% text and expanded spacing, independently of PLC decisions. Keyboard and dialog focus, descriptive evidence controls, mobile labels and field instructions have been reviewed. Reduced-motion and forced-color rules are included; this is not an accessibility certification.
+
+Interpretation offers questions about strengths, access, language and missing perspectives. An optional **Access & participation plan** carries into the approved meeting materials, participant handout and follow-up. Editing it requires plan approval again. Existing saved cycles keep their approvals; database schema 1 is read without rewriting it, and the next successful edit writes schema 2 under the same storage key so older clients cannot silently discard the new notes.
+
+Learning progress records only reviewed/attempted topics and navigation preferences in a separate browser-local record. It is not a proficiency score or a personnel record. Corrupt, unsupported, denied or full storage does not silently overwrite an existing record; unsaved learning choices remain available for the current page session. No live tutor, external analytics, automatic translation or student uploads were added.
+
+The research distinguishes published guidance from product hypotheses. See [accessibility and equity research](docs/accessibility-equity/equity-research.md), [accessibility review](docs/accessibility-equity/accessibility-audit.md), and [learning research and plan](docs/onboarding/research.md). These features are informed by Leading Educators, W3C/WAI, CAST and professional-learning research; they are not endorsed by Leading Educators and have not been validated in an educator study.
 
 Design research and agnostic-loop review records are in `docs/design-pass/`. The exact post-redesign hosting receipt is recorded separately in `docs/design-pass/deployment.md` after local acceptance.
 

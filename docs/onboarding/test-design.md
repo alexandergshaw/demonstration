@@ -1,0 +1,5 @@
+# Behavioral oracle
+
+Unit-test bounded valid/default progress, malformed and future-version records, denied reads/quota writes and existing-byte preservation; if a separate history reset is provided, it affects only the learning key. Test lesson/review/attempt updates for range/enum/type correctness, no phantom proficiency, and feedback for every practice choice. Rendering and learning actions must not mutate an approved cycle or reading preferences.
+
+Browser: dismiss invitation, open/reopen/resume, contextual step lesson, direct/Next/Previous lesson navigation with focus, all three practice topics and changed-choice feedback, glossary/About, close/Escape return, and replay from the first lesson without clearing reviewed history. If a separate learning-history reset is provided, verify that it affects only learning metadata. Compare actual cycle text/approvals and reading settings before/after, including cycle switch and reload. Inspect 320/390 with 150%+spacious settings and keyboard. Confirm visiting a later lesson does not unlock a later planning stage. Gates run once per final source candidate; native screen-reader/OS/print limits are explicit.

@@ -26,6 +26,16 @@ Compare preparation time, educator ability to explain decisions, evidence tracea
 
 Multi-grade comparisons, real student record integrations, production security, large dashboards, AI-authored slides or instructional conclusions. Privacy, role permissions, evidence validity, and accessibility require real district validation.
 
+## Research-informed access and learning
+
+The October 31 accessibility/equity and onboarding passes use public Leading Educators positions as evidence for product hypotheses, with W3C/WAI, CAST and professional-learning guidance supplying complementary design principles. They do not represent a feature list approved by LE. Full source matrices, assumptions, alternatives and acceptance records are in `accessibility-equity/` and `onboarding/`.
+
+Reading preferences improve access to the workbook without revising a cycle. The optional access/participation plan connects consideration of strengths, language and missing perspectives to an educator-authored action and meeting materials. No student identity is inferred from a quotation, no subgroup data is invented, and no score certifies equity. A backward-compatible database migration protects this new text from older app clients.
+
+Onboarding combines navigation guidance with practice in the judgments this task requires. The walkthrough is optional, replayable and available directly from each step; the practice cases explain aggregate overlap, observation date/scope and distinct implementation/learning checks. A glossary supports unfamiliar terms. Learning metadata is local and separate from instructional approvals. Reviewing content means engagement with the guide, not demonstrated proficiency. Explicit navigation back into the workbook still obeys its existing stage gates.
+
+The next validation step is observation with educators across data/AI comfort and access needs: can they locate sources, explain uncertainty, author a facilitation activity and return after an interruption? Completion counts and untested time-saving claims are insufficient evidence of impact. Full assistive-technology testing, multilingual localization and individual accommodations require further co-design and review.
+
 ## Requirements repair
 
 The pilot serves a single-grade math PLC leader examining student work, including leaders who want guided steps for data or AI. It targets 20–40 minutes of preparation for a 50-minute meeting; that is a hypothesis, not a measured outcome.

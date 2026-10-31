@@ -11,6 +11,8 @@ import { agendaHeadings, agendaHints, exportMeetingNotes } from './meetingMateri
 import { followUpSourceBlocks, taskBlocks } from './lessonContext';
 import { ReadingSettings, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
 import { EquityLens, AccessParticipation } from './components/EquitySupport';
+import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
+import { isLessonId } from './learning';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -149,11 +151,12 @@ function DecisionThread({ state: s }: { state: PlanState }) {
     {expanded !== null && items[expanded].done && <Modal title={items[expanded].label} onClose={() => setExpanded(null)}><p className="full-decision">{items[expanded].value}</p><div className="modal-actions"><button className="btn secondary" data-autofocus onClick={() => setExpanded(null)}>Close</button></div></Modal>}
   </aside>;
 }
-function Planner({ workspace, reading }: { workspace: ReadyWorkspace; reading: ReadingController }) {
+function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; reading: ReadingController; learning: LearningController }) {
   const { state, snapshot, notice, setNotice, saveError } = workspace;
   const [error, setError] = useState(''), [errorField, setErrorField] = useState('');
   const [resetOpen, setResetOpen] = useState(false), [reloadOpen, setReloadOpen] = useState(false), [freshOpen, setFreshOpen] = useState(false), [guideOpen, setGuideOpen] = useState(false);
   const [lockNotice, setLockNotice] = useState('');
+  const [guideEntry, setGuideEntry] = useState<{ view: 'home' | 'walkthrough'; step?: number }>({ view: 'home' });
   const [kitOpen, setKitOpen] = useState(false);
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
   const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
@@ -164,6 +167,8 @@ function Planner({ workspace, reading }: { workspace: ReadyWorkspace; reading: R
     window.addEventListener('beforeunload', protectDraft);
     return () => window.removeEventListener('beforeunload', protectDraft);
   }, [workspace.dirty]);
+  const openGuide = (step?: number) => { if (isLessonId(step)) learning.dispatch({ type: 'visitLesson', lesson: step }); setGuideEntry(step === undefined ? { view: 'home' } : { view: 'walkthrough', step }); setGuideOpen(true); };
+  const canEnterStage = (step: number) => Number.isInteger(step) && step >= 0 && step < 4 && (step < 2 || (step === 2 ? focus : plan));
   const act: Dispatch = action => { setError(''); setErrorField(''); setLockNotice(''); workspace.dispatch(action); };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
   const requestReload = () => workspace.dirty ? setReloadOpen(true) : reloadSaved();
@@ -188,7 +193,7 @@ function Planner({ workspace, reading }: { workspace: ReadyWorkspace; reading: R
   const savedLabel = workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
-    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><div className="topbar-context"><span>PLC workbook</span><strong>{snapshot.reference.workspace.name}</strong></div><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><span className="demo-badge">Fictional demo</span><ReadingSettings reading={reading} /><button className="guide-button" aria-label="Open guide" onClick={() => setGuideOpen(true)}><Icon name="info" size={16} /><span>Guide</span></button></div></header>
+    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><div className="topbar-context"><span>PLC workbook</span><strong>{snapshot.reference.workspace.name}</strong></div><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><span className="demo-badge">Fictional demo</span><ReadingSettings reading={reading} /><button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}><Icon name="info" size={16} /><span>Guide</span></button></div></header>
     <div className="app-shell"><div className="workflow-rail">
       <nav className="path" aria-label="Planning stages">{stages.map((stage, i) => {
         const locked = (i === 2 && !focus) || (i === 3 && !plan);
@@ -199,7 +204,9 @@ function Planner({ workspace, reading }: { workspace: ReadyWorkspace; reading: R
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
       <CycleManager workspace={workspace} onReset={() => setResetOpen(true)} />
-      <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</header>
+      <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>
+        {state.step === 0 && !learning.progress.welcomeDismissed && <section className="learning-invitation" aria-label="Getting started"><div><h2>New to this workbook?</h2><p>Explore the workflow, practice with fictional evidence, or look up a term. You choose where to start.</p></div><div className="button-group"><button className="btn secondary compact" onClick={() => openGuide()}>Explore the guide</button><button className="textlink" onClick={() => learning.dispatch({ type: 'dismissWelcome' })}>Dismiss introduction</button></div></section>}
+        {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
         {workspace.externalChanged && !saveError && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>Another tab changed this workspace. Reload to see its saved cycles.</span><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div>}
@@ -219,7 +226,11 @@ function Planner({ workspace, reading }: { workspace: ReadyWorkspace; reading: R
     {resetOpen && <ConfirmationDialog title="Reset this cycle?" confirmLabel="Reset cycle" error={workspace.operationError} onClose={() => setResetOpen(false)} onConfirm={() => { if (workspace.resetCycle(snapshot.activeCycleId)) { setResetOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } }}><p>This clears this cycle's draft, approvals, and reflection. Other saved cycles stay unchanged.</p></ConfirmationDialog>}
     {reloadOpen && <ConfirmationDialog title="Reload saved data?" confirmLabel="Reload saved data" error={workspace.saveError || workspace.operationError} onClose={() => setReloadOpen(false)} onConfirm={reloadSaved}><p>This replaces unsaved edits on this page with the latest saved workspace. Copy any work you want to keep before continuing.</p></ConfirmationDialog>}
     {freshOpen && <ConfirmationDialog title="Start a fresh demo?" confirmLabel="Reset all cycles" error={workspace.operationError} onClose={() => setFreshOpen(false)} onConfirm={() => { if (workspace.resetDatabase()) setFreshOpen(false); }}><p>This removes all saved PLC cycles from this browser and starts one fresh cycle.</p></ConfirmationDialog>}
-    {guideOpen && <Modal title="A connected planning cycle" onClose={() => setGuideOpen(false)}><p className="guide-intro">Start with the evidence. End with a teaching decision you can revisit.</p><ol className="guide-steps"><li><strong>Inspect the evidence.</strong><span>Compare scores with student work, dates, and source scope.</span></li><li><strong>Own the interpretation.</strong><span>Consider a prewritten challenge, then confirm your focus.</span></li><li><strong>Make a practical plan.</strong><span>Write activity directions, agree on an action and two follow-up checks, then approve and open your meeting kit.</span></li><li><strong>Revisit what happened.</strong><span>Separate implementation from learning and record your reflection.</span></li></ol><section className="pilot-notes"><h3>Who this pilot serves</h3><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h3>Assumptions to test</h3><p>Aim for 20–40 minutes of preparation for a 50-minute meeting; this is a design target, not a measured result. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Detailed data stays one click away while selected excerpts remain visible. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice><div className="guide-reset"><strong>Presenter tools</strong><p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></div><div className="modal-actions"><button className="btn" data-autofocus onClick={() => setGuideOpen(false)}>Got it</button></div></Modal>}
+    {guideOpen && <LearningGuide learning={learning} currentStep={state.step} canEnter={canEnterStage}
+      onNavigate={step => { if (!canEnterStage(step)) return; setGuideOpen(false); act({ type: 'go', step }); window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }); }}
+      onClose={() => setGuideOpen(false)} initialView={guideEntry.view} initialStep={guideEntry.step}
+      about={<><section className="pilot-notes"><h3>Who this pilot serves</h3><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h3>Assumptions to test</h3><p>Aim for 20–40 minutes of preparation for a 50-minute meeting; this is a design target, not a measured result. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Detailed data stays one click away while selected excerpts remain visible. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice><div className="guide-reset"><strong>Presenter tools</strong><p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></div></>} />}
+
   </FieldErrorProvider>;
 }
 function Startup({ workspace, reading }: { workspace: WorkspaceController; reading: ReadingController }) {
@@ -232,6 +243,7 @@ function Startup({ workspace, reading }: { workspace: WorkspaceController; readi
 export default function App() {
   const workspace = useWorkspace();
   const reading = useReadingPreferences();
+  const learning = useLearningProgress();
   if (!workspace.snapshot || !workspace.state) return <Startup workspace={workspace} reading={reading} />;
-  return <ReferenceContext.Provider value={workspace.snapshot.reference}><Planner reading={reading} key={workspace.snapshot.activeCycleId} workspace={{ ...workspace, snapshot: workspace.snapshot, state: workspace.state }} /></ReferenceContext.Provider>;
+  return <ReferenceContext.Provider value={workspace.snapshot.reference}><Planner learning={learning} reading={reading} key={workspace.snapshot.activeCycleId} workspace={{ ...workspace, snapshot: workspace.snapshot, state: workspace.state }} /></ReferenceContext.Provider>;
 }
