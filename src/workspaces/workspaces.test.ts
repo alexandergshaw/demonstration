@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { referenceForVersion } from '../data/evidenceSnapshots';
 import { createReferenceData } from '../data/seed';
-import { hasPlan, hasReflection, initialState, reducer, type Action, type EvidenceVersion, type PlanState } from '../model';
+import { hasPlan, hasReflection, initialState, planError, reducer, type Action, type EvidenceVersion, type PlanState } from '../model';
 import { EvidenceWorkspace } from './EvidenceWorkspace';
 import { PlanWorkspace } from './PlanWorkspace';
 import { ReasoningWorkspace } from './ReasoningWorkspace';
@@ -131,13 +131,13 @@ describe('workspace defaults keep one decision in view', () => {
     expect(options.dispatch).not.toHaveBeenCalled();
   });
 
-  it('starts Plan with only activity four editable, and leaves checks and approval behind deliberate actions', () => {
+  it('starts Plan with only activity one editable, and leaves checks and approval behind deliberate actions', () => {
     const state = planned();
     const before = structuredClone(state);
     const options = props(state);
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
     expect(markup.match(/<textarea\b[^>]*id="agenda-\d"/g)).toHaveLength(1);
-    expect(markup).toContain('id="agenda-3"');
+    expect(markup).toContain('id="agenda-0"');
     expect(markup.match(/class="pw-agenda-choice"/g)).toHaveLength(6);
     expect(markup).toContain(state.focus);
     expect(markup.indexOf(state.focus)).toBeLessThan(markup.indexOf('id="pw-move-heading"'));
@@ -151,7 +151,7 @@ describe('workspace defaults keep one decision in view', () => {
     expect(markup).not.toContain('<dialog');
     expect(markup).not.toContain('Approve meeting plan');
     expect(markup).toContain('Review meeting plan');
-    expect(markup).toMatch(/<details class="planning-disclosure rehearsal-guide">/);
+    expect(markup).not.toContain('class="planning-disclosure rehearsal-guide"');
     expect(hasPlan(state)).toBe(false);
     expect(state).toEqual(before);
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -164,7 +164,7 @@ describe('workspace defaults keep one decision in view', () => {
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
     expect(markup).toMatch(/<textarea\b[^>]*id="action"[^>]*><\/textarea>/);
     expect(markup).toContain('id="owner"');
-    expect(markup).toContain('id="agenda-3"');
+    expect(markup).toContain('id="agenda-0"');
     expect(markup).not.toContain('id="implementation-check"');
     expect(state.action).toBe('');
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -196,6 +196,153 @@ describe('workspace defaults keep one decision in view', () => {
       expect(coaching).toBeDefined();
       expect(coaching).toMatch(/<details class="step-coach-help">[\s\S]*?<\/summary>[\s\S]*?class="step-coach-question"/);
     }
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+});
+
+describe('guidance points to required work without completing it', () => {
+  it('offers a task-and-scoring check while keeping direct evidence views and interpretation available', () => {
+    const options = props(initialState());
+    const before = structuredClone(options.state);
+    const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, options));
+    expect(markup).toContain('Check task &amp; scoring');
+    expect(markup).toContain('Before explaining the gap');
+    for (const label of ['Results', 'By class', 'Task &amp; sources', 'Interpret the evidence']) expect(markup).toContain(label);
+    expect(markup).toContain('Selection is optional.');
+    expect(markup.indexOf('>Results</button>')).toBeLessThan(markup.indexOf('>Task &amp; sources</button>'));
+    expect(markup.indexOf('>Task &amp; sources</button>')).toBeLessThan(markup.indexOf('>By class</button>'));
+    expect(markup).not.toContain('disabled=');
+    expect(options.state).toEqual(before);
+    expect(options.dispatch).not.toHaveBeenCalled();
+  });
+
+  it.each<{ changes: Partial<PlanState>; target: string }>([
+    { changes: { focusStamp: null, action: '' }, target: 'Reconfirm the focus' },
+    { changes: { agenda: planned().agenda.map((entry, index) => index === 2 ? '' : entry), action: '' }, target: 'Write activity directions' },
+    { changes: { action: '', owner: '' }, target: 'Describe the teaching move' },
+    { changes: { owner: '', implementationCheck: '' }, target: 'Name who will try it' },
+    { changes: { implementationCheck: '', learningCheck: '' }, target: 'Write the implementation check' },
+    { changes: { learningCheck: '', collectionDate: '2026-02-30' }, target: 'Write the student learning check' },
+    { changes: { collectionDate: '2026-02-30', reviewDate: 'invalid' }, target: 'Correct the collection date' },
+    { changes: { reviewDate: 'invalid' }, target: 'Correct the review date' },
+    { changes: { collectionDate: '2026-11-05', reviewDate: '2026-11-04' }, target: 'Correct the review date' },
+    { changes: { consent: false }, target: 'Review meeting plan' },
+  ])('suggests $target in validation order without approving the plan', ({ changes, target }) => {
+    const options = props({ ...planned(), ...changes });
+    const before = structuredClone(options.state);
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    const footer = markup.match(/<footer class="pw-footer">([\s\S]*?)<\/footer>/)?.[1];
+    expect(footer).toContain(`class="btn">${target}`);
+    const error = planError({ ...options.state, consent: true });
+    if (error) expect(footer).toContain(error);
+    expect(footer).toContain('Review meeting plan');
+    expect(options.state).toEqual(before);
+    expect(options.state.consent).toBe(false);
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it('keeps starter provenance visible and offers adjacent activities without claiming review', () => {
+    const options = props(planned());
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    expect(markup.match(/<span class="pw-agenda-summary">Starter text · /g)).toHaveLength(6);
+    expect(markup).toContain('Activity 1 of 6');
+    expect(markup).not.toContain('Previous activity');
+    expect(markup).toContain('Next activity');
+    expect(markup).toContain('Review all six before approving your plan.');
+    expect(markup).not.toContain('6 of 6 complete');
+    const edited = props({ ...options.state, agenda: options.state.agenda.map((entry, index) => index === 0 ? 'Connect the learning goal to the chosen focus and record one question to explore.' : entry) });
+    const editedMarkup = renderToStaticMarkup(createElement(PlanWorkspace, edited));
+    expect(editedMarkup.match(/<span class="pw-agenda-summary">Starter text · /g)).toHaveLength(5);
+    expect(editedMarkup).not.toContain('<p class="pw-starter-note">');
+    expect(options.submit).not.toHaveBeenCalled();
+    expect(edited.submit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['', 'Write your interpretation'],
+    ['I notice a gap.', 'Add detail to your interpretation'],
+    ['The assessment shows more correct choices than adequate explanations.', 'Test an alternative'],
+  ])('keeps Notice on its required writing until it can be tested: %s', (interpretation, label) => {
+    const options = props({ ...initialState(), interpretation });
+    const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
+    const footer = markup.match(/<footer class="reasoning-footer">([\s\S]*?)<\/footer>/)?.[1];
+    expect(footer).toContain(`class="btn">${label}`);
+    expect(markup).toContain('aria-label="Reasoning sequence"');
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['', 'Write your teaching focus'],
+    ['Explain fractions.', 'Add detail to your focus'],
+    ['Focus on explaining equivalent fractions using equal amounts of the same whole.', 'Confirm focus &amp; continue'],
+  ])('asks for the focus before offering confirmation: %s', (focus, label) => {
+    const options = props({ ...focused(), focus });
+    const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
+    const footer = markup.match(/<footer class="reasoning-footer">([\s\S]*?)<\/footer>/)?.[1];
+    expect(footer).toContain(`class="btn">${label}`);
+    expect(visibleReasoningPanel(markup)).toContain('id="focus"');
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it('opens the first unfinished activity with accessible context and keeps its draft intact', () => {
+    const state = { ...planned(), agenda: planned().agenda.map((entry, index) => index === 3 ? 'Ask' : entry) };
+    const options = props(state);
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    expect(markup).toContain('id="agenda-3"');
+    expect(markup).toContain('Activity 4 of 6:');
+    expect(markup).toContain('aria-describedby="agenda-3-hint agenda-3-limit agenda-3-requirement"');
+    expect(markup).toContain('id="agenda-3-requirement">Required · at least 5 characters');
+    expect(markup).toContain('class="btn secondary compact">Write activity directions');
+    expect(markup).toContain('Previous activity');
+    expect(markup).toContain('class="planning-disclosure rehearsal-guide"');
+    expect(state.agenda[3]).toBe('Ask');
+    expect(options.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('shows short teaching-move and owner requirements before an approval attempt', () => {
+    const options = props({ ...planned(), action: 'Explain', owner: 'Me' });
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    expect(markup).toContain('id="action-requirement">Required · at least 25 characters');
+    expect(markup).toContain('id="owner-requirement">Required · at least 3 characters');
+    expect(markup).toContain('aria-describedby="action-hint action-limit action-requirement"');
+    expect(markup).toContain('class="textlink pw-section-next">Describe the teaching move');
+    expect(markup).not.toContain('Next: shape the meeting activities');
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it('keeps an incomplete learning check in its editor with the requirement beside it', () => {
+    const options = { ...props({ ...planned(), learningCheck: 'Work' }), initialCheckEditor: 'learning' as const };
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    expect(markup).toContain('id="learning-check-requirement">Required · at least 15 characters');
+    expect(markup).toContain('class="btn secondary compact">Write the student learning check');
+    expect(markup).not.toContain('Next: review the whole plan');
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it('routes an incomplete retained interpretation back to writing without discarding the focus', () => {
+    const options = props({ ...focused(), interpretation: 'I notice' });
+    const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
+    expect(visibleReasoningPanel(markup)).toContain(options.state.focus);
+    expect(markup).toContain('Write interpretation first');
+    expect(markup).toContain('using at least 30 characters');
+    expect(options.submit).not.toHaveBeenCalled();
+    expect(options.dispatch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['', '', 'Report implementation first'],
+    ['yes', '', 'Write your next step'],
+    ['partial', 'Need more work.', 'Add detail to your next step'],
+    ['no', 'We need a new opportunity to try the move. The team will agree a date at the next meeting.', 'Record next step'],
+  ] as const)('directs reflection toward its next required control: %s / %s', (implementation, reflection, action) => {
+    const options = props({ ...planned(), implementation, reflection });
+    const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
+    expect(markup).toContain(`class="btn">${action}</button>`);
+    expect(markup).toContain('id="reflection-requirement">Required · at least 30 characters');
+    expect(markup).toContain('no collected follow-up dataset');
     expect(options.dispatch).not.toHaveBeenCalled();
     expect(options.submit).not.toHaveBeenCalled();
   });

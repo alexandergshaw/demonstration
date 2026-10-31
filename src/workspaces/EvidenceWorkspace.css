@@ -105,6 +105,27 @@
   padding-top: 1.25rem;
 }
 
+.evidence-workspace .evidence-next-inspection {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.evidence-workspace .evidence-next-inspection p {
+  margin: 0 0 .4rem;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: var(--text-support);
+  line-height: 1.6;
+}
+
+.evidence-workspace .evidence-next-inspection .textlink {
+  justify-content: flex-start;
+  text-align: left;
+  max-width: 100%;
+  min-height: 2.75rem;
+}
+
 .evidence-workspace .evidence-chart {
   margin: 1rem 0 0;
 }

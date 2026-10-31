@@ -64,6 +64,7 @@
 .reasoning-footer>.textlink{text-align:left}
 .reasoning-footer>.btn{max-width:100%}
 .reasoning-footer>.reasoning-keep-interpretation{margin-left:auto;text-align:left}
+.reasoning-next-requirement{flex-basis:100%;margin:0;font-size:var(--text-support);line-height:1.65;color:var(--muted);max-width:60ch}
 .reasoning-mobile-source{display:none}
 .reasoning-source-modal{max-width:620px}
 .reasoning-source-modal>.btn{margin-top:20px}

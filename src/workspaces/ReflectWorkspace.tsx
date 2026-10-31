@@ -15,6 +15,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [questionOpen, setQuestionOpen] = useState(() => Boolean(s.nextCycleQuestion.trim()));
   const recorded = hasReflection(s);
+  const nextRequiredControl = !s.implementation ? 'implementation-yes' : s.reflection.trim().length < 30 ? 'reflection' : null;
   const implementationError = useFieldError('implementation-yes', 'implementation-explanation');
   useEffect(() => {
     if (!errorField) return;
@@ -35,6 +36,11 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
     : s.implementation === 'yes'
     ? 'What student work do you need before judging the effect of this move?'
     : 'What was tried, and what can the available evidence support?';
+  function focusControl(id: string) {
+    const control = document.getElementById(id);
+    control?.focus({ preventScroll: true });
+    control?.scrollIntoView({ block: 'nearest' });
+  }
   return <div className="reflect-workspace">
     <section className="reflect-action" aria-labelledby="reflect-action-title">
       <p className="context-label" id="reflect-action-title">Agreed teaching move</p>
@@ -56,12 +62,13 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         </fieldset>
         <p className="caption" id="implementation-explanation">{implementationMessage}</p>
         <FieldError id="implementation-yes" />
+        {s.implementation && <button type="button" className="textlink reflect-next-action" onClick={() => focusControl('reflection')}>Next: write the supported next step</button>}
       </section>
       <section className="reflect-empty" aria-labelledby="follow-up-empty-title">
         <p className="context-label">Learning evidence</p>
         <h2 id="follow-up-empty-title">Follow-up evidence is not available yet.</h2>
         <p>This cycle has planned checks, but no collected follow-up dataset. Planned dates and example results do not establish an outcome.</p>
-        <button className="textlink" aria-expanded={collectionOpen} aria-controls="reflect-collection" onClick={() => setCollectionOpen(!collectionOpen)}>Review what to collect</button>
+        <button className="textlink" aria-expanded={collectionOpen} aria-controls="reflect-collection" onClick={() => setCollectionOpen(!collectionOpen)}>{collectionOpen ? 'Hide planned checks' : 'Review planned checks'}</button>
       </section>
     </div>
     {collectionOpen && <section className="reflect-collection" id="reflect-collection" aria-label="Planned evidence collection">
@@ -75,6 +82,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       </dl>
       {onEditCollection && <div className="reflect-collection-action"><button className="btn secondary" onClick={onEditCollection}>Update collection plan</button><p className="caption">Changing planned checks or dates requires plan approval again. Your reflection draft stays available.</p></div>}
       {s.accessParticipation.trim() && <p className="caption">Access & participation plan: {s.accessParticipation}</p>}
+      <button type="button" className="textlink reflect-collection-continue" onClick={() => focusControl(s.implementation ? 'reflection' : 'implementation-yes')}>{s.implementation ? 'Continue to your next step' : 'First, report whether the move was tried'}</button>
     </section>}
     <div className="reflect-next-step">
       <StepCoach question={reflectionQuestion} ready="Can you name the next action, who will take it, and when the team will revisit it?">
@@ -86,7 +94,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         <p>Before comparing results, inspect the dated tasks, rubric, response coverage and teaching conditions. If these differ, describe what the current work shows and limit claims about change.</p>
         <p>Needing more evidence is a valid decision. Make it actionable by naming what to collect, who will bring it and the next review point.</p>
       </StepCoach>
-      <TextArea id="reflection" heading label={reflectionQuestion}
+      <TextArea id="reflection" heading label={reflectionQuestion} requirement="Required · at least 30 characters"
         hint="Record the supported conclusion or implementation barrier, then name the next action, owner and review point in your own words."
         value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })}
         placeholder={s.implementation === 'no' ? 'The move was not tried because… Next, [who] will… We will revisit this on…' : 'We can say… We still need… [Who] will collect… We will revisit this on…'} />
@@ -99,7 +107,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
     <div className="workspace-stage-footer">
       <button className="textlink" onClick={openExamples}>Explore a worked example</button>
       <div className="reflect-save"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>
-        <button className="btn" onClick={() => submit('reflection')}>{recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
+        <button className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
     </div>
   </div>;
 }

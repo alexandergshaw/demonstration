@@ -105,6 +105,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
   const selectedSource = source === 'task' || source === 'assessment' || state.selected.includes(source) ? source : 'assessment';
   const challenge = reference.challenges.find(item => item.id === state.lens) ?? reference.challenges[0];
   const interpretationReady = state.interpretation.trim().length >= 30;
+  const focusReady = state.focus.trim().length >= 25;
+  const missingFocusStep = !interpretationReady ? 'notice' : !state.challenged ? 'test' : null;
 
   // Reveal an invalid field first, then focus it after the newly visible panel commits.
   useEffect(() => {
@@ -162,7 +164,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>Start with the learning goal and the original task. Name the source behind your claim, including the understanding already visible in the work.</p>
           <p>Could wording, language, format or opportunities to respond be hiding understanding? Consider whose work or perspective is missing, and how students could explain the same idea in another way.</p>
         </StepCoach>
-        <TextArea id="interpretation" heading label="What do you notice?"
+        <TextArea id="interpretation" heading label="What do you notice?" requirement="Required · at least 30 characters"
           hint="Name the source. Separate what you observe from your explanation, and keep uncertainty visible."
           value={state.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })}
           placeholder="I notice… The work suggests… I’m still unsure about…" />
@@ -188,7 +190,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <button className="btn secondary" onClick={() => setSourceOpen(true)}><Icon name="evidence" size={16} />Inspect source</button>
         </div>
         <p id="reasoning-challenge-help" className="reasoning-panel-help">If you keep your interpretation, carry the alternative and remaining uncertainty into your focus.</p>
-        {!interpretationReady && <p className="reasoning-panel-help">Write at least 30 characters in your interpretation before recording how you considered this alternative.</p>}
+        {!interpretationReady && <p className="reasoning-panel-help">Write your interpretation first so you can compare it with this alternative. Use at least 30 characters.</p>}
         <FieldError id="challenge" />
       </section>
 
@@ -202,7 +204,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>Choose one teaching focus connected to the learning goal. Explain why it is worth investigating without turning a small sample or an older observation into proof.</p>
           <p>Use the focus below to connect the evidence, the alternative you considered and the next thing to check. A few precise sentences are enough.</p>
         </StepCoach>
-        <TextArea id="focus" heading label="Choose one teaching focus"
+        <TextArea id="focus" heading label="Choose one teaching focus" requirement="Required · at least 25 characters"
           hint="Connect one teaching focus to its evidence, the alternative you considered, and what would change your mind."
           value={state.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })}
           placeholder="Focus on… The work shows… Another explanation is… I would reconsider if…" />
@@ -211,10 +213,16 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       </section>
 
       <footer className="reasoning-footer">
+        {beat === 'notice' && <p className="reasoning-next-requirement">{interpretationReady
+          ? 'Next, compare your interpretation with another explanation before choosing a focus.'
+          : 'Start with your observation and possible explanation. Use at least 30 characters, then test another explanation.'}</p>}
+        {beat === 'choose' && missingFocusStep && <p className="reasoning-next-requirement">{missingFocusStep === 'notice'
+          ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.'
+          : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p>}
         {beat !== 'test' && <button className="textlink" onClick={() => beat === 'notice' ? dispatch({ type: 'go', step: 0 }) : goToBeat('test')}>{beat === 'notice' ? 'Review evidence' : 'Revisit alternative'}</button>}
-        {beat === 'notice' ? <button className="btn" onClick={() => goToBeat('test')}>Test an alternative<Icon name="arrow" size={17} /></button>
-          : beat === 'test' ? <button id="challenge" className="btn reasoning-keep-interpretation" disabled={!interpretationReady} aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={considerQuestion}>Keep interpretation & explain uncertainty<Icon name="arrow" size={17} /></button>
-          : <button className="btn" onClick={() => submit('focus')}>Confirm focus & continue<Icon name="arrow" size={17} /></button>}
+        {beat === 'notice' ? <button className="btn" onClick={() => goToBeat(interpretationReady ? 'test' : 'notice')}>{interpretationReady ? 'Test an alternative' : state.interpretation.trim() ? 'Add detail to your interpretation' : 'Write your interpretation'}<Icon name="arrow" size={17} /></button>
+          : beat === 'test' ? <button id="challenge" className="btn reasoning-keep-interpretation" aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={() => interpretationReady ? considerQuestion() : goToBeat('notice')}>{interpretationReady ? 'Keep interpretation & explain uncertainty' : 'Write interpretation first'}<Icon name="arrow" size={17} /></button>
+          : <button className="btn" onClick={() => missingFocusStep ? goToBeat(missingFocusStep) : !focusReady ? goToBeat('choose') : submit('focus')}>{missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue'}<Icon name="arrow" size={17} /></button>}
       </footer>
     </div>
     {sourceOpen && <Modal title="Selected evidence & original task" onClose={() => setSourceOpen(false)}><div className="reasoning-source-modal"><SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} /><button className="btn secondary" onClick={() => setSourceOpen(false)}>Return to my writing</button></div></Modal>}
