@@ -1,6 +1,6 @@
 # Throughline | PLC Planning Partner
 
-A React/TypeScript implementation of the supplied Throughline design package with a localStorage mock backend. The four-stage workspace connects fictional evidence, educator reasoning, an editable PLC meeting, and follow-up reflection. All student data is fictional; thinking-partner prompts are scripted. No account, API key, external database, or live AI connection is required.
+A React/TypeScript implementation of the supplied Throughline design package with a localStorage mock backend. The four-stage workspace connects fictional evidence, educator reasoning, an editable PLC meeting, and follow-up reflection. The lesson, task, rubric and all student data are fictional; thinking-partner prompts are scripted. No account, API key, external database, or live AI connection is required.
 
 ## Run locally
 
@@ -13,7 +13,7 @@ npm run dev
 
 Open the localhost URL printed by Vite. The app stores its reference data and named PLC cycles in this browser. You can create, rename, duplicate as draft, switch, and delete cycles. Reset cycle clears only the current plan; presenter tools include a confirmed reset of all cycles. Existing single-draft saves migrate automatically.
 
-If saving fails, your unsaved work remains visible and the app offers retry/reload controls. Data is local to the browser and site URL. Export an approved plan when you need a portable text copy.
+If saving fails, your unsaved work remains visible and the app offers retry/reload controls. Data is local to the browser and site URL. Open Meeting kit after approval for presentation sections, a source packet and a participant activity handout. Download the self-contained HTML to present offline or print/save as PDF, or download a text plan with source excerpts.
 
 ## Check and build
 
@@ -24,14 +24,14 @@ npm run build
 npm run preview
 ```
 
-App tests: 69 model cases plus 82 independent repository cases. The manual loop suite has 85 passing tests and two Windows symlink-capability skips. See `docs/dev-loop/local-backend/` for the current review records; original implementation records remain in `docs/dev-loop/`. Runtime receipts are retained locally under the ignored `.agnostic-loop/` directory.
+App tests cover the planning model, local repository, and approval-gated meeting materials. The manual loop suite has 85 passing tests and two Windows symlink-capability skips. See `docs/dev-loop/local-backend/` for the current review records; original implementation records remain in `docs/dev-loop/`. Runtime receipts are retained locally under the ignored `.agnostic-loop/` directory.
 
 ## Workflow
 
 1. Inspect the October 28 results and optionally select student responses or the older classroom observation.
 2. Write an interpretation, consider a scripted challenge, and confirm one instructional focus.
-3. Edit the six-part, 50-minute agenda; specify an action, owner, and separate implementation and learning checks; then explicitly approve.
-4. Record implementation, inspect fictional next-cycle evidence, save a reflection, and export the approved plan.
+3. Write facilitation and activity directions in the six-part, 50-minute agenda; specify an action, owner, and separate implementation and learning checks; then explicitly approve.
+4. Record implementation, inspect fictional next-cycle evidence, save a reflection, and open the approved meeting kit.
 
 Upstream changes revoke affected approvals and recorded reflection while preserving draft content. Each saved cycle keeps its own state. Duplicated cycles require fresh educator decisions.
 
@@ -58,3 +58,7 @@ Design research and agnostic-loop review records are in `docs/design-pass/`. The
 ## Repository delivery preference
 
 After completed repository changes pass the appropriate checks, commit and push the active branch unless the user explicitly asks to keep the work local.
+
+## Requirements audit
+
+The deployed flow was audited against the performance-task brief. Source inspection now carries the original fictional task/rubric, class counts and selected quotations into interpretation and meeting preparation. The meeting kit assembles exact approved educator decisions into six presentation sections and an activity handout; it does not generate instructional decisions. The Guide exposes the pilot target, assumptions and deferred workflows. Audit and independent acceptance records are in `docs/requirements-pass/`.

@@ -1,0 +1,53 @@
+import { exportPlan, hasPlan, minutes, type PlanState } from './model';
+import type { ReferenceData } from './data/seed';
+import { selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
+
+export const agendaHeadings = ['Connect to the goal', 'Examine student work', 'Test the interpretation', 'Design one teaching change', 'Plan implementation', 'Choose the next evidence'];
+export const agendaHints = [
+  'How will the team connect the learning goal to your confirmed focus?',
+  'Give participants directions: which work to inspect, what to discuss, and what to record.',
+  'How will the team test an alternative explanation before deciding?',
+  'Describe how participants will design or rehearse the teaching action and what they will produce.',
+  'Agree who will try the action, when, and how implementation will be checked.',
+  'Specify what comparable student work to collect and when the PLC will revisit it.',
+];
+export interface MeetingPage { title: string; label: string; blocks: MaterialBlock[] }
+export function buildMeetingKit(state: PlanState, reference: ReferenceData): MeetingPage[] {
+  if (!hasPlan(state)) throw new Error('Approve the current plan before opening meeting materials.');
+  const challenge = reference.challenges.find(item => item.id === state.lens);
+  const selectedWork = reference.responses.filter(response => state.selected.includes(response.id));
+  const content: MaterialBlock[][] = [
+    [{ heading: 'Our instructional focus', text: state.focus }, { heading: 'Leader interpretation', text: state.interpretation }, { heading: 'Confidence', text: state.confidence }],
+    [{ heading: 'Current evidence · ' + reference.assessment.date, text: `${reference.assessment.correct}/${reference.assessment.total} correct fractions; ${reference.assessment.explanations}/${reference.assessment.total} adequate explanations. Full task, rubric and class counts are in the source packet.` }, ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' }))],
+    [{ heading: 'Alternative considered · scripted question', text: challenge?.prompt ?? '' }, { heading: 'Leader-shaped focus after considering the challenge', text: state.focus }, { heading: 'Discussion prompt', text: 'Which evidence supports this interpretation? What else could explain the pattern, and what remains uncertain?' }],
+    [{ heading: 'Teaching action to develop', text: state.action }, { heading: 'Activity output', text: 'Use the activity handout to record the teaching move, its connection to the evidence, and what you would look for next.' }],
+    [{ heading: 'Who will try it', text: state.owner }, { heading: 'Teaching action', text: state.action }, { heading: 'Check that teaching changed', text: state.implementationCheck }],
+    [{ heading: 'Check student learning', text: state.learningCheck }, { heading: 'Check implementation', text: state.implementationCheck }, { heading: 'Before concluding', text: 'Compare task, rubric, cohort, missing responses and implementation. Improvement alone does not establish causality.' }],
+  ];
+  return [
+    ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: 'Facilitation directions · reviewed by the leader', text: state.agenda[index] }, ...content[index]] })),
+    { title: 'Source packet', label: 'Reference handout · fictional evidence', blocks: [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)] },
+    { title: 'Evidence-to-action activity', label: 'Participant handout · write in during the PLC', blocks: [
+      { heading: 'Instructional focus', text: state.focus },
+      { heading: '1 · Examine the evidence', text: state.agenda[1] },
+      ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' })),
+      { heading: 'Evidence to cite', text: 'Use the accompanying source packet for the original task, scoring criteria and class counts. Name the source and distinguish what you observe from your explanation.' },
+      { heading: '2 · Design or rehearse the change', text: state.agenda[3] },
+      { heading: 'Teaching action to develop', text: state.action },
+      { heading: 'Team notes · complete together', text: 'Evidence we noticed:\n\nAlternative explanation to test:\n\nTeaching move or rehearsal notes:\n\nWhat we will collect, who will collect it, and when we will revisit it:\n\n' },
+      { heading: 'Agreed follow-up', text: 'Implementation: ' + state.implementationCheck + '\nLearning: ' + state.learningCheck },
+    ] },
+  ];
+}
+export function exportMeetingNotes(state: PlanState, reference: ReferenceData): string {
+  return exportPlan(state, reference.labels) + '\n\nSOURCE PACKET\n\n' + [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)].map(block => block.heading + '\n' + block.text).join('\n\n');
+}
+// Every dynamic string is text, including headings. The portable document has no scripts or external requests.
+const escapeHtml = (text: string) => text.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]!));
+export function exportMeetingHtml(state: PlanState, reference: ReferenceData): string {
+  const pages = buildMeetingKit(state, reference);
+  const sections = pages.map((page, index) => `<section class="sheet" id="page-${index}"><p class="eyebrow">${escapeHtml(page.label)}</p><h2>${escapeHtml(page.title)}</h2>${page.blocks.map(block => `<div class="block"><h3>${escapeHtml(block.heading)}</h3><p>${escapeHtml(block.text)}</p></div>`).join('')}<footer>Throughline · Fictional demonstration · Educator-approved plan · ${index + 1}/${pages.length}</footer></section>`).join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>Throughline · PLC meeting kit</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:#202b27;background:#eef2ed;font:18px/1.65 system-ui,sans-serif}header,nav,.sheet{max-width:1040px;margin:24px auto;padding:32px}header{padding-bottom:0}h1,h2,h3,p{margin:0}h1{font-size:32px}h2{font-size:32px;line-height:1.2;letter-spacing:-.03em;margin:8px 0 24px}h3{font-size:14px;color:#186b56;margin-bottom:6px}p{white-space:pre-wrap;overflow-wrap:anywhere}.eyebrow,footer,header p{font-size:13px;color:#59675f}.sheet{background:#fff;border:1px solid #dfe4df;border-radius:10px;min-height:70vh;scroll-margin-top:20px}.block{margin:22px 0}.block p{font-size:18px}footer{border-top:1px solid #dfe4df;padding-top:18px;margin-top:32px}nav{display:flex;flex-wrap:wrap;gap:12px;padding-top:0;padding-bottom:0}nav a{color:#13513f;font-size:14px;padding:8px;border:1px solid #84948a;border-radius:4px}a:focus-visible{outline:3px solid #186b56;outline-offset:3px}@media(max-width:600px){header,nav,.sheet{margin:12px;padding:20px}.sheet{min-height:0}h2{font-size:27px}.block p{font-size:16px}}@media print{@page{size:auto;margin:18mm}body{background:#fff;font-size:11pt}header,nav{display:none}.sheet{border:0;border-radius:0;min-height:0;margin:0;padding:0;break-before:page}.sheet:first-of-type{break-before:auto}h2{font-size:23pt}h3{break-after:avoid}.block{margin:14pt 0}.block p{font-size:11pt;orphans:3;widows:3}footer{font-size:9pt;margin-top:20pt}}
+</style></head><body><header><h1>${escapeHtml(reference.workspace.name)} · Meeting kit</h1><p>50-minute PLC · Six presentation sections, source packet and activity handout. Open this file in a browser; use its Print command to print or save a PDF. This is a snapshot of the approved plan; later edits in Throughline require a new export.</p><p>All evidence is fictional. Directions and decisions are reviewed by the educator. Discussion prompts and the handout structure are fixed scaffolds, not live AI.</p></header><nav aria-label="Meeting sections">${pages.map((page, index) => `<a href="#page-${index}">${index + 1}. ${escapeHtml(page.title)}</a>`).join('')}</nav><main>${sections}</main></body></html>`;
+}

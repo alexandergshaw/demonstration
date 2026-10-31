@@ -1,0 +1,7 @@
+# Execution plan
+
+1. Record this evidence-backed scope and the criteria/design/test oracle. Independent requirements_reviewer reviews exact planning bytes in one concise pass; related artifact verdicts may be imported through truthful serialized admissions.
+2. Admit root for the exact source/doc paths. Implement lesson context and source inspection, existing-field facilitation directions, safe approved meeting kit, rationale and matching docs. Author meaningful kit tests; preserve existing test files and persisted layers. Report actual implementation and checks without claiming unrun gates.
+3. Freeze source. Independent UX reviews the actual repaired workflow and exact kit; requirements_reviewer checks brief alignment and code/test boundaries as attributed evidence. Bundle concrete issues into one substantive implementation round, repair only real findings, and recheck the exact candidate within the two-round limit.
+4. An independent verifier runs the final registered app-tests, loop-tests and build once on frozen source, checks source integrity and writes actual coverage/limits. A different actor accepts the verification, whole-change and final local handoff. Teardown owned QA tabs/processes; preserve unrelated user state.
+5. Root commits and pushes the accepted changes, deploys production and verifies the actual hosted repair. Record commit/remote/deployment/asset and production behavior evidence in docs/requirements-pass/delivery.md. This release phase is authorized and required; local handoff is not a substitute for it.

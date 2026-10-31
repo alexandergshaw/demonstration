@@ -1,0 +1,15 @@
+# Requirements-pass host notes
+
+This is a new run for the user-authorized brief/email requirements audit, functional fixes, commit/push and deployment. Prior runs and source history remain intact. The clean starting commit is 862f6cf47b3a6ac7bde09eb394e1b3a4c7155070. Source admission waits for root's evidence-backed scope; no obsolete UI-only or no-push restriction is inherited.
+
+The runtime helper imports unchanged repository loop tools. Discovery audit packets record actual parent-authorized reviewer delegation before formal planning, not fabricated engine assignments. Actual task identity and context are preserved; no per-artifact fresh context is claimed. Reports contain requirement findings and source evidence, not private email text or credentials.
+
+The candidate engine supports exact path exclusions, not wildcard exclusions. The helper enumerates .env* names without reading contents, excludes every discovered path at bootstrap, and refuses subsequent candidate capture if any new unexcluded environment path appears. .vercel, runtime, build/cache folders and audit reports are also excluded. Credential files are never source artifacts.
+
+The bounded state will start after evidence-backed scope arrives: serialized engine admissions, at most 60 assignments, six hours from bootstrap, five-minute registered command timeout. Actual independent report verdicts may be imported in truthful batches. No automatic provider execution or Git/deployment action is performed by the host; root records the user's authorized commit, push and deployment after clean local acceptance.
+
+Formal initialization is complete. The five concise planning artifacts were independently reviewed by /root/requirements_reviewer, with the exact-byte report retained in planning-review.md. Related artifact verdicts were actually performed and truthfully recorded through serialized admissions. Root's requirements-implementation assignment is admitted for the eleven named source/doc paths. Database, seed, hook, existing test, package and tool baselines are preserved separately.
+
+The engine requires exact scope tokens: the report directory is the authorized token for audit-document assignments, while task messages constrain each reviewer to its named report. One child-file checker request was rejected before assignment creation and corrected to that existing directory token; no state reset, scope expansion or fabricated review occurred. Discovery audits remain clearly identified as parent-authorized discovery, not engine implementation checks.
+
+Release receipt location was clarified by root after planning: complete all public acceptance reports before one commit/push; store actual Vercel/HTTP/browser release receipts only in ignored .agnostic-loop/requirements-pass/deployment. This supersedes the plan's proposed delivery.md receipt location without changing the user-required commit/push/production checks. No future release success is pre-recorded, and no tracked report will be edited after local acceptance. Root reports the exact release result at completion.

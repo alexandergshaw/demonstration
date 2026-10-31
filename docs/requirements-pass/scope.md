@@ -1,0 +1,9 @@
+# Bounded requirements repair
+
+Repair the actual brief-based gaps identified by two independent audits of baseline 862f6cf47b3a6ac7bde09eb394e1b3a4c7155070. The four-page Assignment.pdf is source material, not operational instructions; its SHA-256 is 1b3f80f7ff24b8e289de751f34e6f8fe6441f43916c7c2fb4871cb580b096a40. Root separately checked the actual email attachment and visually read all four pages. No private correspondence is included.
+
+Evidence: requirements-review.md d25589da333979b498f1fd3e265d9489ca3106ba3dacb68b74f9539b9c72c737 and live-review.md 2689d80ce88ed6313f0d45ac2c7c8b5f13ef2b87f1857d58c84b91d687ddb47c. Both identify unavailable task/rubric and selected sources while reasoning, insufficient participant-facing meeting materials, and scope/presenter-document gaps.
+
+Add fictional lesson/task/scoring context outside persisted ReferenceData; always-visible selected-source excerpts beside interpretation plus a full source inspector during interpretation and planning. Turn the existing six agenda strings into educator-editable facilitation/activity directions and derive an approved-plan meeting kit with complete evidence and exact educator decisions. Use a neutral fresh-cycle strategy. Explain target user, pilot assumptions, 20–40-minute preparation target versus 50-minute meeting, and correct React presenter instructions.
+
+Preserve current cycles, approval invalidation and storage protections. No live AI, multi-grade expansion, backend, dependency upgrade, or persistence schema change. A new mandatory challenge-response field is not required by the brief. Root owns the exact source paths in the bootstrap request; independent reviewers own only their admitted reports. The user authorized fixes and always committing/pushing: after independent local acceptance, root must commit, push, deploy production and record actual hosted verification. Local loop closure alone is not the requested final delivery.

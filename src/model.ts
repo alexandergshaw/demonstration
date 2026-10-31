@@ -12,7 +12,7 @@ export type Lens = 'wording' | 'meaning' | 'variation';
 export const minutes = [5, 10, 10, 15, 5, 5];
 export const initialAgenda = [
   'Reaffirm the instructional goal', 'Examine student explanations',
-  'Discuss patterns and alternative explanations', 'Design a partner-discussion routine',
+  'Discuss patterns and alternative explanations', 'Design one teaching change grounded in the evidence',
   'Agree on classroom implementation', 'Choose follow-up evidence',
 ];
 export interface PlanState {
