@@ -119,12 +119,12 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       })}</nav>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
-      <div className="page"><header className="intro"><div>
-        <p className="flow-phase">{introduceFlow ? 'Throughline · PLC planning partner' : orientation.phase}</p>
-        <h1 ref={title} tabIndex={-1}>{introduceFlow ? 'Turn student work into a teaching move.' : meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1>
-        <p>{introduceFlow ? 'Build a meeting your team can use, then return to decide what to check next.' : orientation.purpose}</p>
-        {!introduceFlow && <p className="flow-outcome"><span>You’ll take forward</span>{orientation.outcome}</p>}
-      </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>
+      <div className="page">{!introduceFlow && <header className="intro"><div>
+        <p className="flow-phase">{orientation.phase}</p>
+        <h1 ref={title} tabIndex={-1}>{meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1>
+        <p>{orientation.purpose}</p>
+        <p className="flow-outcome"><span>You’ll take forward</span>{orientation.outcome}</p>
+      </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
@@ -134,7 +134,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         <main id="workspace" className="main focused-workspace" tabIndex={-1}>
           {state.review && <div role="status"><Notice tone="warning"><strong>Review required.</strong> A source or decision changed. Your drafts are preserved; reconfirm the affected decisions.</Notice></div>}
           {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => { setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(errorField)); }}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
-          {introduceFlow && <FlowIntroduction onContinue={beginFlow} />}
+          {introduceFlow && <FlowIntroduction headingLevel="h1" headingRef={title} onContinue={beginFlow} />}
           {state.step === 0 && <EvidenceWorkspace state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
           {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}

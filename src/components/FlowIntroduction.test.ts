@@ -6,16 +6,27 @@ import { FlowIntroduction } from './FlowIntroduction';
 const escapedText = (value: string) => renderToStaticMarkup(createElement('span', null, value)).slice(6, -7);
 
 describe('first-use purpose and structural preview', () => {
-  it('leaves the kit preview closed and the introduction associated with its heading', () => {
+  it.each(['h1', 'h2'] as const)('exposes the purpose and outcomes before the closed preview with a %s heading', headingLevel => {
     const onContinue = vi.fn();
-    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue }));
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue, headingLevel }));
     const labelId = markup.match(/^<section\b[^>]*aria-labelledby="([^"]+)"/)?.[1];
     expect(labelId).toBeDefined();
-    expect(markup).toContain(`<h2 class="flow-introduction-title" id="${labelId}">`);
+    expect(markup).toContain(`<${headingLevel} class="flow-introduction-title" id="${labelId}">`);
     const details = markup.match(/<details\b([^>]*)>/);
     expect(details).not.toBeNull();
     expect(details![1]).not.toMatch(/\bopen(?:\s|=|$)/);
     expect(markup).toContain('professional learning community (PLC)');
+    const visibleOpening = markup.split('<details')[0];
+    expect(visibleOpening).toContain('Help your team decide what to teach differently.');
+    expect(visibleOpening).toContain('teacher-team leaders');
+    expect(visibleOpening).toContain('Start with the evidence');
+    expect(visibleOpening).toContain('The evidence is already here.');
+    for (const outcome of ['Evidence you can point to', 'One teaching change to try', 'A way to check what happened']) {
+      expect(visibleOpening).toContain(`<dt>${outcome}</dt>`);
+    }
+    expect(visibleOpening).toContain(`aria-labelledby="${labelId}-destination"`);
+    expect(visibleOpening).toContain(`id="${labelId}-destination"`);
+    expect(visibleOpening).toContain('You interpret, choose and approve.');
     expect(markup).toMatch(/Structure preview[^<]+(?:approved|approval)/);
     expect(onContinue).not.toHaveBeenCalled();
   });
@@ -67,10 +78,10 @@ describe('first-use purpose and structural preview', () => {
   it('keeps classroom work between preparation and reflection and states the demonstration boundary', () => {
     const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue: vi.fn() }));
     const phases = [...markup.matchAll(/class="flow-phase-title">([^<]+)<\/h[34]>/g)].map(match => match[1]);
-    expect(phases).toEqual(['Prepare here', 'With your team', 'Return to Reflect']);
+    expect(phases).toEqual(['Prepare here', 'Meet and try the move', 'Return to Reflect']);
     expect(markup).toMatch(/(?:try|tries) the move/);
     expect(markup).toContain('Report implementation');
-    expect(markup).toContain('examine evidence');
+    expect(markup).toContain('examine new evidence');
     expect(markup).toContain('choose a next step');
     for (const boundary of ['Fictional Grade 4 math', 'Scripted prompts', 'no live AI', 'Saves only in this browser']) expect(markup).toContain(boundary);
   });
