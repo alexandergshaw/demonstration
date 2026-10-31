@@ -33,10 +33,11 @@ export function selectedSourceBlocks(reference: ReferenceData, selected: Evidenc
 
 // The fixture supplies a count, not a documented second assessment or an action forecast.
 // Share the same limits on screen and with a recorded reflection's text export.
-export function followUpSourceBlocks(reference: ReferenceData): MaterialBlock[] {
-  const { assessment } = reference;
+export const incompleteFollowUpComparison = { date: 'Oct 28', total: 120, explanations: 46, followUp: 56 } as const;
+export function followUpSourceBlocks(): MaterialBlock[] {
+  const assessment = incompleteFollowUpComparison;
   return [
-    { heading: 'Fixed fictional comparison', text: `Initial: ${assessment.explanations}/${assessment.total} adequate explanations (${assessment.date}). Follow-up illustration: ${assessment.followUp}/${assessment.total}. This example stays the same for every teaching action and implementation choice; it is not a prediction or an observed outcome of your plan.` },
+    { heading: 'Fixed fictional comparison · Separate Oct 28 case', text: `Initial: ${assessment.explanations}/${assessment.total} adequate explanations (${assessment.date}). Follow-up illustration: ${assessment.followUp}/${assessment.total}. This incomplete-evidence case stays the same for every teaching action, evidence snapshot and implementation choice; it is not a prediction or an observed outcome of your plan.` },
     { heading: 'Collection date and follow-up task · not supplied', text: 'No follow-up collection date or question is supplied. The initial task is available as a baseline only; an equivalent follow-up task and comparable difficulty have not been established.' },
     { heading: 'Follow-up scoring · unverified', text: 'The illustration labels this count as adequate explanations. No follow-up scoring rubric or scoring record is supplied, so use of the same criteria as the initial task is unverified.' },
     { heading: 'Cohort and response coverage · unknown', text: `The follow-up denominator is ${assessment.total} responses in the illustration. There is no matched student roster, expected response total or missing-response count. Equal denominators do not establish the same students or complete coverage.` },

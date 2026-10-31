@@ -1,0 +1,33 @@
+/** A self-contained invented case. It never supplies results for an educator's saved plan. */
+export const workedFollowUp = {
+  title: 'From a teaching move to the next evidence',
+  boundary: 'Separate fictional case · Every record below is invented. These are not outcomes of your plan or results from an educator study.',
+  baseline: { date: '2026-10-28', label: 'Oct 28', expected: 120, responses: 120, correct: 89, adequate: 46 },
+  followUp: { date: '2026-11-04', label: 'Nov 4', expected: 120, responses: 120, correct: 101, adequate: 76 },
+  reasoning: '89 students chose an equivalent fraction, but only 46 explained equal amounts of the same whole. The procedural example makes me wonder whether students can connect the rule to a model. I will test that idea rather than infer a grade-wide teaching problem from September’s one-classroom observation. Wording or scoring could also contribute.',
+  action: 'In three lessons, ask students to represent equivalent fractions on equal-length strips, explain to a partner why the amount stays the same, then revise their own explanation. Teachers ask “What changed, and what stayed the same?” before supplying an explanation.',
+  owner: 'Four Grade 4 teachers · Oct 30, Nov 2 and Nov 3',
+  plannedCheck: 'Collect an independent explanation on Nov 4 using the same conceptual criteria. Review class patterns and the matched work of students whose reasoning changed. Keep the routine if work shows more explanations of equal amounts; revise the support if students only repeat a rule or the routine was not fully tried.',
+  classes: [
+    { name: 'A', students: 30, baselineCorrect: 23, baselineAdequate: 12, followUpCorrect: 26, followUpAdequate: 21, fullRoutines: 3, plannedRoutines: 3, implementation: 'Dated lesson records and student revisions; leader spot-check on Nov 3.' },
+    { name: 'B', students: 30, baselineCorrect: 22, baselineAdequate: 10, followUpCorrect: 25, followUpAdequate: 20, fullRoutines: 3, plannedRoutines: 3, implementation: 'Teacher log and dated student revisions; no independent classroom observation.' },
+    { name: 'C', students: 30, baselineCorrect: 24, baselineAdequate: 13, followUpCorrect: 27, followUpAdequate: 22, fullRoutines: 3, plannedRoutines: 3, implementation: 'Dated lesson records and student revisions; leader spot-check on Nov 3.' },
+    { name: 'D', students: 30, baselineCorrect: 20, baselineAdequate: 11, followUpCorrect: 23, followUpAdequate: 13, fullRoutines: 1, plannedRoutines: 3, implementation: 'Teacher log records the partner explanation and individual revision omitted in two lessons because of time.' },
+  ],
+  implementationLimit: 'Logs and work artifacts support the implementation account; two brief spot-checks do not verify every lesson. Class D tried the full routine once. The class comparison cannot isolate the effect of implementation from other differences.',
+  baselineTask: 'Which fraction is equivalent to 1/2: 2/4, 1/4, or 2/3? Explain why your choice represents the same amount as 1/2. You may use words or a drawing.',
+  followUpTask: 'Which fraction is equivalent to 2/3: 4/6, 2/6, or 3/4? Explain why your choice represents the same amount as 2/3. You may use words or a drawing.',
+  rubric: 'Score the fraction choice separately. An adequate explanation uses words or a labeled drawing to connect equal amounts of the same whole and show that splitting each original part into two changes the number of parts without changing the amount. A doubling rule alone is insufficient.',
+  scoring: 'Teachers use this shared rubric for both sets. On Nov 5, the leader and a second teacher independently review 12 explanations from each date, discuss disagreements and apply the agreed criteria to the full sets. This is a fictional moderation record, not a reliability study.',
+  coverage: 'The fictional matched roster contains the same 120 students on both dates: 30 per class, 120 expected and 120 responses each time, with no missing responses. Both tasks are completed independently in 10 minutes, with the same access supports and no partner help during the assessment.',
+  comparabilityLimit: 'Both tasks target equivalent fractions and use the same rubric and conditions. The fractions differ, so equal task difficulty is an assumption. Other instruction and practice also occurred; these records do not establish causality.',
+  sample: {
+    label: 'One matched student example · Class B · Illustrative, not representative',
+    before: '1/2 and 2/4 are equal because I doubled both numbers.',
+    after: 'My strips are the same length. I split each third into two equal pieces. The two shaded thirds become four shaded sixths, so the shaded amount stays the same.',
+    interpretation: 'The second explanation connects partitioning to an unchanged amount. That is stronger evidence for this student’s reasoning than a correct choice alone. One example does not explain the aggregate change.',
+  },
+  judgment: 'Adequate explanations increased from 46 to 76 among the same 120 students. Together with the matched work, that supports continuing to investigate the routine. I cannot attribute the increase to the routine alone. Class D’s smaller change and partial implementation are a reason to ask what happened, not to judge the teacher or claim a causal comparison.',
+  decision: 'Keep the explanation-and-revision routine for another cycle. Help Class D protect time for the partner explanation and individual revision, and check that the move is actually tried. In every class, examine students who still give only a rule and adapt the teacher question to their reasoning.',
+  nextCheck: 'Nov 11 · Collect an independently completed equivalent-fraction task using different fractions and the same rubric. Preserve the matched roster and report missing responses. Review fresh routine records alongside the work. If explanations remain procedural despite documented use, revise the prompt or model rather than simply repeating the routine.',
+} as const;

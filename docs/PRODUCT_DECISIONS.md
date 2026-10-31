@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Selected source excerpts, an on-demand source reader and Decision Thread | Chat-first scrollback | Educators need to inspect sources while interpreting results |
 | Educator's interpretation before AI challenge | AI-authored diagnosis | Supports the brief's “do with, never do for” instruction |
-| Selected evidence plus sample responses | Exhaustive dashboard | Balances 20–40 minute preparation with understanding |
+| Selected evidence plus sample responses | Exhaustive dashboard | Targets a 20-minute preparation window while retaining source inspection |
 | Observation date and scope shown | Treat observations as current proof | Observations happen approximately quarterly |
 | One grade in pilot | Full multi-grade analysis | Proves the complete workflow first |
 | Reapproval after edits | Silent reuse of approved plan | Maintains clear educator ownership |
@@ -38,9 +38,9 @@ The next validation step is observation with educators across data/AI comfort an
 
 ## Requirements repair
 
-The pilot serves a single-grade math PLC leader examining student work, including leaders who want guided steps for data or AI. It targets 20–40 minutes of preparation for a 50-minute meeting; that is a hypothesis, not a measured outcome.
+The pilot serves a single-grade math PLC leader examining student work, including leaders who want guided steps for data or AI. It targets preparation within 20 minutes for a 50-minute meeting; that target has not been validated with educators.
 
-The lesson context, original fraction prompt and scoring criteria are explicit prototype assumptions. They were not supplied by the district or the assignment. They clarify the fictional aggregate counts without inventing matched student records. The sample responses are illustrative, not representative. The source reader returns the leader to the same draft and focus; selected source labels remain visible during interpretation, with full quotations in an adjacent disclosure. Simultaneous editing beside a permanently expanded dataset is deferred in favor of a smaller working surface.
+The lesson context, original fraction prompt and scoring criteria are explicit prototype assumptions. They were not supplied by the district or the assignment. They clarify the fictional aggregate counts without inventing matched student records. The sample responses are illustrative, not representative. The source reader returns the leader to the same draft and focus; selected source labels remain visible during interpretation, with full quotations in an adjacent disclosure. The subsequent core-decisions pass adds a persistent selected-source view beside drafting and a compact evidence view on smaller screens.
 
 The six existing agenda fields now support multiline facilitation directions. After the educator approves the plan, Throughline assembles six presentation sections, a complete selected-source packet and an evidence-to-action activity handout. Directions, focus, teaching action and checks come from the approved plan; fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. The downloaded HTML works offline and can be printed or saved as PDF through the browser. Editing any plan field revokes access until reapproval. Existing saved plans and the versioned local database remain compatible.
 
@@ -65,3 +65,13 @@ Guide → About contains a proposed small formative comparison with the existing
 Use distinct type roles for page, section, task, body, support and metadata. Instructional directions stay at readable body/support sizes on mobile; spacing and headings separate decisions from source context. Interpretation follows interpret → test an alternative → choose a focus. Meeting preparation follows teaching action → evidence and participation → agenda. Optional access notes and collection planning share a supporting area, with existing notes exposed on entry. Full source text and errors remain reachable through native controls.
 
 The Decision Thread leads with the next action and distinguishes captured decisions from compact pending entries. About explains purpose and limits before its optional evaluation proposal, followed by presenter controls. The live proposal uses stacked questions instead of a wide table. Downloaded meeting-kit section labels use the same readable hierarchy. These changes leave the model, approval requirements and stored records unchanged.
+
+## Core-decisions implementation
+
+The working surface keeps evidence beside interpretation and planning. The right-hand evidence view supports source switching without a modal; its compact counterpart preserves the writing position. Decision history is secondary and expandable during drafting. Suggested interpretations follow, rather than precede, inspection of the original response. There is still no live conversation or generated-chart runtime: this demonstrates a workflow-first alternative with contextual scripted support.
+
+A cycle uses a fixed dated evidence version. An incoming fictional collection creates a choice, not a silent replacement: keep the current snapshot or create a revised draft. The original cycle remains intact. A revision resets selected student work because October 29 examples are different responses, clears approvals and follow-up, and retains authored writing to reconsider. Date, scope, missing responses and repeated-task limitations remain explicit. Newer results never turn the September observation into current teaching evidence.
+
+Two separate follow-up cases serve distinct purposes. The incomplete case demonstrates withholding judgment when comparability is unknown. The complete worked case demonstrates an evidence-informed decision to keep and revise a particular teaching routine, while acknowledging implementation and causal limits. Both are fictional teaching examples, not outcomes attached to the active plan.
+
+The next validation task is a 20-minute preparation session followed by a short explanation in the leader's own words. Automated tests cannot establish speed, ownership or instructional quality; see CORE_DECISIONS_VERIFICATION.md.

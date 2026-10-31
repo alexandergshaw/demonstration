@@ -40,6 +40,68 @@ function completed(): PlanState {
   );
 }
 
+describe('dated evidence and incoming results', () => {
+  it('does not revoke an approved snapshot when new results arrive or the leader keeps it', () => {
+    const original = completed();
+    const available = reducer(original, { type: 'simulate-evidence-update' });
+    expect(available.evidenceVersion).toBe('oct28');
+    expect(available.updateAvailable).toBe(true);
+    expect(available.updateReviewed).toBe(false);
+    expect(hasReflection(available)).toBe(true);
+    expect(available.focusStamp).toBe(original.focusStamp);
+    expect(available.planStamp).toBe(original.planStamp);
+    const kept = reducer(available, { type: 'keep-current-evidence' });
+    expect(kept.updateReviewed).toBe(true);
+    expect(hasReflection(kept)).toBe(true);
+    expect(parseStoredState(kept)).toEqual({ state: kept, stale: false });
+    expect(reducer(kept, { type: 'simulate-evidence-update' })).toBe(kept);
+  });
+
+  it('cannot acknowledge an unavailable update or create another update on the latest snapshot', () => {
+    const original = completed();
+    expect(reducer(original, { type: 'keep-current-evidence' })).toBe(original);
+    const latest = { ...initialState(), evidenceVersion: 'oct29' as const };
+    expect(reducer(latest, { type: 'simulate-evidence-update' })).toBe(latest);
+  });
+
+  it('invalidates old approval stamps if the evidence version changes underneath them', () => {
+    const original = completed();
+    const restored = parseStoredState({ ...original, evidenceVersion: 'oct29' });
+    expect(restored.stale).toBe(true);
+    expect(hasFocus(restored.state)).toBe(false);
+    expect(hasPlan(restored.state)).toBe(false);
+    expect(hasReflection(restored.state)).toBe(false);
+    expect(restored.state.action).toBe(original.action);
+    expect(restored.state.review).toBe(true);
+  });
+
+  it('preserves new-version approvals through reload and detects reverting to the old evidence', () => {
+    const changed = parseStoredState({ ...completed(), evidenceVersion: 'oct29' }).state;
+    const approved = apply(changed, { type: 'confirm-focus' }, { type: 'consent', value: true }, { type: 'confirm-plan' }, { type: 'save-reflection' });
+    expect(hasReflection(approved)).toBe(true);
+    expect(parseStoredState(approved)).toEqual({ state: approved, stale: false });
+    expect(parseStoredState({ ...approved, evidenceVersion: 'oct28' }).stale).toBe(true);
+  });
+
+  it('restores old cycles without changing their approval bytes', () => {
+    const original = completed();
+    const legacy: Record<string, unknown> = { ...original };
+    for (const key of ['evidenceVersion', 'updateAvailable', 'updateReviewed']) delete legacy[key];
+    const parsed = parseStoredState(legacy);
+    expect(parsed).toEqual({ state: original, stale: false });
+    expect(parsed.state.focusStamp).toBe(original.focusStamp);
+    expect(parsed.state.planStamp).toBe(original.planStamp);
+    expect(parsed.state.reflectionStamp).toBe(original.reflectionStamp);
+  });
+
+  it.each([
+    { evidenceVersion: 'tomorrow' }, { evidenceVersion: null }, { updateAvailable: 'yes' }, { updateReviewed: 1 },
+    { updateReviewed: true, updateAvailable: false }, { evidenceVersion: 'oct29', updateAvailable: true },
+  ])('rejects malformed or contradictory snapshot fields %j', fields => {
+    expect(() => parseStoredState({ ...initialState(), ...fields })).toThrow(/Invalid/);
+  });
+});
+
 // These oracles come from the checked educator-ownership contract, not snapshots of JSX.
 describe('educator-owned workflow', () => {
   it('requires explicit decisions throughout a complete evidence-to-follow-up journey', () => {

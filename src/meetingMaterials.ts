@@ -1,5 +1,6 @@
 import { exportPlan, hasPlan, hasReflection, minutes, type PlanState } from './model';
 import type { ReferenceData } from './data/seed';
+import { evidenceSnapshotDescription, referenceForVersion } from './data/evidenceSnapshots';
 import { followUpSourceBlocks, selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
 
 export const agendaHeadings = ['Connect to the goal', 'Examine student work', 'Test the interpretation', 'Design & rehearse the teaching move', 'Plan implementation', 'Choose the next evidence'];
@@ -22,6 +23,7 @@ function plannedCollectionBlocks(state: PlanState): MaterialBlock[] {
 }
 export function buildMeetingKit(state: PlanState, reference: ReferenceData): MeetingPage[] {
   if (!hasPlan(state)) throw new Error('Approve the current plan before opening meeting materials.');
+  reference = referenceForVersion(reference, state.evidenceVersion);
   const challenge = reference.challenges.find(item => item.id === state.lens);
   const selectedWork = reference.responses.filter(response => state.selected.includes(response.id));
   const accessPlan = state.accessParticipation.trim()
@@ -38,7 +40,7 @@ export function buildMeetingKit(state: PlanState, reference: ReferenceData): Mee
   ];
   return [
     ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: 'Facilitation directions · reviewed by the leader', text: state.agenda[index] }, ...content[index]] })),
-    { title: 'Source packet', label: 'Reference handout · fictional evidence', blocks: [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)] },
+    { title: 'Source packet', label: 'Reference handout · fictional evidence', blocks: [{ heading: 'Evidence snapshot used for this plan', text: evidenceSnapshotDescription(state.evidenceVersion) }, ...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)] },
     { title: 'Evidence-to-action activity', label: 'Participant handout · write in during the PLC', blocks: [
       { heading: 'Instructional focus', text: state.focus },
       { heading: '1 · Examine the evidence', text: state.agenda[1] },
@@ -56,10 +58,11 @@ export function buildMeetingKit(state: PlanState, reference: ReferenceData): Mee
   ];
 }
 export function exportMeetingNotes(state: PlanState, reference: ReferenceData): string {
+  reference = referenceForVersion(reference, state.evidenceVersion);
   const plan = exportPlan(state, reference.labels);
-  const sources = [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)];
+  const sources = [{ heading: 'Evidence snapshot used for this plan', text: evidenceSnapshotDescription(state.evidenceVersion) }, ...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)];
   const recordedContext = hasReflection(state)
-    ? '\n\nRECORDED FOLLOW-UP COMPARISON CONTEXT\n\n' + followUpSourceBlocks(reference).map(block => block.heading + '\n' + block.text).join('\n\n')
+    ? '\n\nRECORDED FOLLOW-UP COMPARISON CONTEXT\n\n' + followUpSourceBlocks().map(block => block.heading + '\n' + block.text).join('\n\n')
     : '';
   return plan + '\n\nSOURCE PACKET\n\n' + sources.map(block => block.heading + '\n' + block.text).join('\n\n') + recordedContext;
 }

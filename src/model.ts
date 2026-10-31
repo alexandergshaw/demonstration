@@ -8,6 +8,7 @@ export const evidenceLabels = {
   observation: 'Sep 9 observation · One classroom · Historical context',
 };
 export type EvidenceId = keyof typeof evidenceLabels;
+export type EvidenceVersion = 'oct28' | 'oct29';
 export type Lens = 'wording' | 'meaning' | 'variation';
 export const minutes = [5, 10, 10, 15, 5, 5];
 export const initialAgenda = [
@@ -23,6 +24,7 @@ export interface PlanState {
   planStamp: string | null; implementation: '' | 'yes' | 'partial' | 'no';
   reflection: string; reflectionStamp: string | null; review: boolean;
   evidenceCollector: string; collectionDate: string; reviewDate: string; nextCycleQuestion: string;
+  evidenceVersion: EvidenceVersion; updateAvailable: boolean; updateReviewed: boolean;
 }
 export const initialState = (): PlanState => ({
   step: 0, selected: ['assessment'], interpretation: '', lens: 'wording', challenged: false,
@@ -30,8 +32,11 @@ export const initialState = (): PlanState => ({
   action: '', owner: 'Grade 4 teaching team', implementationCheck: '', learningCheck: '', accessParticipation: '',
   consent: false, planStamp: null, implementation: '', reflection: '', reflectionStamp: null, review: false,
   evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '',
+  evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false,
 });
-const focusSignature = (s: PlanState) => JSON.stringify([s.selected, s.interpretation, s.lens, s.challenged, s.focus, s.confidence]);
+const focusSignature = (s: PlanState) => JSON.stringify([s.selected, s.interpretation, s.lens, s.challenged, s.focus, s.confidence,
+  ...(s.evidenceVersion !== 'oct28' ? [{ extension: 'evidence-v4', version: s.evidenceVersion }] : []),
+]);
 // Empty optional notes retain the original signature so existing approvals remain valid.
 const planSignature = (s: PlanState) => JSON.stringify([s.focusStamp, s.agenda, s.action, s.owner, s.implementationCheck, s.learningCheck, s.consent, ...(s.accessParticipation ? [s.accessParticipation] : []),
   ...(s.evidenceCollector || s.collectionDate || s.reviewDate ? [{ extension: 'plan-v3', evidenceCollector: s.evidenceCollector, collectionDate: s.collectionDate, reviewDate: s.reviewDate }] : []),
@@ -85,7 +90,7 @@ export type Action =
   | { type: 'consent'; value: boolean }
   | { type: 'implementation'; value: PlanState['implementation'] }
   | { type: 'go'; step: number }
-  | { type: 'challenge' | 'confirm-focus' | 'confirm-plan' | 'save-reflection' | 'reset' };
+  | { type: 'challenge' | 'confirm-focus' | 'confirm-plan' | 'save-reflection' | 'reset' | 'simulate-evidence-update' | 'keep-current-evidence' };
 function invalidatePlan(s: PlanState): PlanState {
   return { ...s, planStamp: null, consent: false, reflectionStamp: null, review: s.review || s.planStamp !== null };
 }
@@ -95,6 +100,8 @@ function invalidateFocus(s: PlanState): PlanState {
 export function reducer(s: PlanState, action: Action): PlanState {
   switch (action.type) {
     case 'reset': return initialState();
+    case 'simulate-evidence-update': return s.evidenceVersion !== 'oct28' || s.updateAvailable ? s : { ...s, updateAvailable: true, updateReviewed: false };
+    case 'keep-current-evidence': return !s.updateAvailable || s.updateReviewed ? s : { ...s, updateReviewed: true };
     case 'text': {
       if (s[action.field] === action.value) return s;
       const value = action.value.slice(0, 4000);
@@ -149,7 +156,7 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
   if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(value).length > MAX_DRAFT_LENGTH) throw new Error('Invalid draft');
   const source = value as Record<string, unknown>;
   // A missing optional field is an older cycle, while a present invalid value remains an error.
-  const input: Record<string, unknown> = { accessParticipation: '', evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '', ...source };
+  const input: Record<string, unknown> = { accessParticipation: '', evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '', evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false, ...source };
   const base = initialState();
   for (const [key, expected] of Object.entries(base)) {
     const actual = input[key];
@@ -160,6 +167,7 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
   if (!Array.isArray(input.selected) || input.selected.length > 4 || !input.selected.includes('assessment') || new Set(input.selected).size !== input.selected.length || !input.selected.every(id => typeof id === 'string' && Object.hasOwn(evidenceLabels, id))) throw new Error('Invalid evidence');
   if (!Array.isArray(input.agenda) || input.agenda.length !== minutes.length || !input.agenda.every(text => typeof text === 'string' && text.length <= 4000)) throw new Error('Invalid agenda');
   if (![0, 1, 2, 3].includes(input.step as number) || !['wording', 'meaning', 'variation'].includes(input.lens as string) || !['tentative', 'moderate', 'strong'].includes(input.confidence as string) || !['', 'yes', 'partial', 'no'].includes(input.implementation as string)) throw new Error('Invalid choice');
+  if (!['oct28', 'oct29'].includes(input.evidenceVersion as string) || (input.updateReviewed && !input.updateAvailable) || (input.evidenceVersion === 'oct29' && (input.updateAvailable || input.updateReviewed))) throw new Error('Invalid evidence snapshot');
   // Date drafts are bounded strings, including incomplete input. Validate their
   // calendar meaning only at plan approval so an edit can always be corrected.
   let state = Object.fromEntries(Object.keys(base).map(key => [key, input[key]])) as unknown as PlanState;

@@ -22,6 +22,34 @@ function approved(): PlanState {
 }
 
 describe('meeting materials preserve educator ownership', () => {
+  it('exports each plan with its own evidence snapshot even when passed the base reference', () => {
+    const original = approved();
+    const changed = parseStoredState({ ...original, evidenceVersion: 'oct29' }).state;
+    expect(hasPlan(changed)).toBe(false);
+    const revised = apply(changed, { type: 'challenge' }, { type: 'confirm-focus' }, { type: 'consent', value: true }, { type: 'confirm-plan' });
+    expect(hasPlan(revised)).toBe(true);
+    for (const output of [exportMeetingNotes(revised, reference), exportMeetingHtml(revised, reference)]) {
+      expect(output).toContain('52/116');
+      expect(output).toContain('Oct 29');
+      expect(output).toContain('four students were absent');
+      expect(output).toContain('September 9');
+      expect(output).not.toContain('89/120');
+    }
+    for (const output of [exportMeetingNotes(original, reference), exportMeetingHtml(original, reference)]) {
+      expect(output).toContain('89/120');
+      expect(output).toContain('46/120');
+      expect(output).not.toContain('52/116');
+    }
+    expect(hasPlan(original)).toBe(true);
+    expect(reference.assessment.date).toBe('Oct 28');
+    const reflected = apply(revised, { type: 'implementation', value: 'partial' }, { type: 'text', field: 'reflection', value: 'These separate fictional cases do not supply results for our own teaching action.' }, { type: 'save-reflection' });
+    const recorded = exportMeetingNotes(reflected, reference);
+    expect(recorded).toContain('52/116');
+    expect(recorded).toContain('Separate Oct 28 case');
+    expect(recorded).toContain('Follow-up illustration: 56/120');
+    expect(recorded).not.toContain('56/116');
+  });
+
   it('carries exact approved collection plans into materials without presenting them as collected evidence', () => {
     const collector = 'Ms. Chen & team <script>not markup</script>';
     const state = apply(approved(),
@@ -190,7 +218,7 @@ describe('meeting materials preserve educator ownership', () => {
     expect(notes).toContain('Implementation: partial');
     expect(notes).toContain('Recorded reflection: ' + reflection);
     expect(notes).toContain('Follow-up illustration: 56/120');
-    for (const block of followUpSourceBlocks(reference)) {
+    for (const block of followUpSourceBlocks()) {
       expect(notes).toContain(block.heading + '\n' + block.text);
     }
     expect(notes).toContain('not a prediction or an observed outcome of your plan');

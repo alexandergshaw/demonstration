@@ -8,13 +8,17 @@ import type { ReferenceData } from './data/seed';
 import { EvidenceInspector, LearningGoal } from './components/EvidenceInspector';
 import { MeetingKit } from './components/MeetingKit';
 import { agendaHeadings, agendaHints, exportMeetingNotes } from './meetingMaterials';
-import { followUpSourceBlocks, taskBlocks } from './lessonContext';
+import { followUpSourceBlocks, incompleteFollowUpComparison, taskBlocks } from './lessonContext';
 import { ReadingSettings, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
 import { EquityLens, AccessParticipation } from './components/EquitySupport';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
 import { EvidenceCollection } from './components/EvidenceCollection';
 import { RehearsalGuide } from './components/RehearsalGuide';
+import { EvidenceDock } from './components/EvidenceDock';
+import { EvidenceUpdate } from './components/EvidenceUpdate';
+import { WorkedFollowUp } from './components/WorkedFollowUp';
+import { evidenceSnapshotDescription, referenceForVersion } from './data/evidenceSnapshots';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -75,10 +79,11 @@ function Evidence({ state, dispatch }: { state: PlanState; dispatch: Dispatch })
     <LearningGoal />
     <div className="evidence-heading"><div><h2>{workspace.unit}</h2><p className="source-meta">End-of-lesson cool-down <span>·</span> {assessment.total} students <span>·</span> {results.length} classes</p></div><span className="source-date">{assessment.date}</span></div>
     <AssessmentComparison assessment={assessment} />
+    <p className="snapshot-provenance caption">{evidenceSnapshotDescription(state.evidenceVersion)}</p>
     <div className="subsection-title"><div><h2>Student work</h2><p className="small muted">Two illustrative responses, not a representative sample.</p></div><button className="textlink" aria-expanded={examples} aria-controls="student-examples" onClick={() => setExamples(!examples)}>{examples ? 'Hide examples' : 'Show examples'}</button></div>
     {examples && <div className="student-work" id="student-examples">{responses.map(response => <article className={`work ${state.selected.includes(response.id) ? 'work-selected' : ''}`} key={response.id}>
       <div className="source-label"><span className="source-avatar" aria-hidden="true">{response.id === 'responseB' ? 'B' : 'C'}</span><strong>{response.label}</strong></div>
-      <div className="work-body"><blockquote>“{response.quote}”</blockquote><p>{response.interpretation}</p><div className="work-meta"><span className="source-category">{response.category}</span><div className="evidence-action"><EvidenceButton id={response.id} state={state} dispatch={dispatch} /></div></div></div>
+      <div className="work-body"><blockquote>“{response.quote}”</blockquote><details className="response-interpretation support-disclosure"><summary>Consider a possible interpretation</summary><p>{response.interpretation}</p></details><div className="work-meta"><span className="source-category">Student work · {assessment.date}</span><div className="evidence-action"><EvidenceButton id={response.id} state={state} dispatch={dispatch} /></div></div></div>
     </article>)}</div>}
     <div className="class-disclosure"><div><h3>Across-class variation</h3><p>Compare responses, not teacher performance.</p></div><button className="selectbtn" aria-expanded={classes} aria-controls="class-results" onClick={() => setClasses(!classes)}>{classes ? 'Hide class results' : 'View class results'}<Icon name="chevron" size={15} /></button></div>
     {classes && <div className="class-results" id="class-results"><table><caption>{assessment.date} · Fictional responses by class</caption><thead><tr><th scope="col">Class</th><th scope="col">Correct fraction</th><th scope="col">Adequate explanation</th></tr></thead><tbody>{results.map(result => <tr key={result.id}><th scope="row">{result.label}</th><td>{result.correct}/{result.total}<div className="mini-bar" aria-hidden="true"><i style={{ width: `${result.correct / result.total * 100}%` }} /></div></td><td>{result.explanations}/{result.total}<div className="mini-bar" aria-hidden="true"><i className="two" style={{ width: `${result.explanations / result.total * 100}%` }} /></div></td></tr>)}</tbody></table><p className="caption">Task conditions and missing context may explain variation. These totals do not measure teacher effectiveness.</p></div>}
@@ -118,7 +123,7 @@ function Meeting({ state: s, dispatch, submit }: { state: PlanState; dispatch: D
     </section>
     <section className="workflow-section" aria-labelledby="follow-up-plan-title">
     <div className="section-heading"><h2 id="follow-up-plan-title">Plan the evidence & participation</h2><p>Separate a change in teaching from a change in student learning.</p></div>
-    <div className="grid2"><TextArea id="implementation-check" label="Check that teaching changed" requirement="At least 15 characters" hint="Implementation evidence" value={s.implementationCheck} onChange={value => dispatch({ type: 'text', field: 'implementationCheck', value })} placeholder="A teacher check-in, a lesson artifact, an observation…" /><TextArea id="learning-check" label="Check student learning" requirement="At least 15 characters" hint="Comparable learning evidence" value={s.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} placeholder="Comparable cool-downs, the same explanation rubric…" /></div>
+    <div className="grid2"><TextArea id="implementation-check" label="Check that teaching changed" requirement="At least 15 characters" hint="Implementation evidence" value={s.implementationCheck} onChange={value => dispatch({ type: 'text', field: 'implementationCheck', value })} placeholder="A teacher check-in, a lesson artifact, an observation…" /><TextArea id="learning-check" label="Check student learning" requirement="At least 15 characters" hint="What comparable work would lead you to keep or revise the teaching move?" value={s.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} placeholder="Comparable cool-downs, the same explanation rubric…" /></div>
     <div className="optional-support" aria-label="Optional planning details">
     <AccessParticipation state={s} dispatch={dispatch} />
     <EvidenceCollection state={s} dispatch={dispatch} />
@@ -132,23 +137,23 @@ function Meeting({ state: s, dispatch, submit }: { state: PlanState; dispatch: D
   </>;
 }
 function FollowUp({ state: s, dispatch, submit, download }: { state: PlanState; dispatch: Dispatch; submit: (kind: 'focus' | 'plan' | 'reflection') => void; download: () => void }) {
-  const reference = useReference();
-  const { assessment } = reference;
+  const assessment = incompleteFollowUpComparison;
   const statusError = useFieldError('implementation-yes');
   const messages = { '': 'Choose an implementation status before interpreting the next learning evidence.', yes: 'Inspect subsequent work and implementation fidelity before evaluating the strategy.', partial: 'Record which classes used the routine and how. Aggregate results may conceal different experiences.', no: 'Start with implementation barriers. The agreed strategy has not yet been tested in classrooms.' };
   return <>
     <div className="summary"><div className="kicker"><Icon name="check" size={15} />Agreed teaching action</div><p>{s.action}</p><p className="small muted">Owner: {s.owner}</p><dl className="checks"><dt>Implementation check</dt><dd>{s.implementationCheck}</dd><dt>Learning check</dt><dd>{s.learningCheck}</dd>{s.accessParticipation.trim() && <><dt>Access & participation plan</dt><dd>{s.accessParticipation}</dd></>}</dl></div>
     {plannedCollection(s) && <section className="collection-summary"><h2>Planned evidence collection</h2><p>{plannedCollection(s)}</p><p className="caption">These are your planned commitments. They do not date or verify the fictional comparison below.</p></section>}
     <fieldset className="implementation" aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy}><legend>Was the strategy used?</legend><div className="optionrow">{([['yes', 'Used as planned'], ['partial', 'Partially used'], ['no', 'Not yet used']] as const).map(([id, label]) => <label className={`option ${s.implementation === id ? 'selected' : ''}`} key={id}><input id={`implementation-${id}`} type="radio" name="implementation" value={id} checked={s.implementation === id} aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy} onChange={() => dispatch({ type: 'implementation', value: id })} />{label}</label>)}</div></fieldset><FieldError id="implementation-yes" />
-    <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>Inspect the follow-up comparison</h2><span className="pill">Fictional illustration</span></div>
-    <p className="caption">This fixed example stays the same for every plan and implementation choice.</p>
-    <div className="metrics grid2"><Metric label="Initial adequate explanations" value={assessment.explanations} total={assessment.total} detail={assessment.date} /><Metric label="Next-cycle adequate explanations" value={assessment.followUp} total={assessment.total} detail="Date not supplied" secondary /></div>
+    <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>Practice reading incomplete evidence</h2><span className="pill">Fictional illustration</span></div>
+    <p className="caption">Separate Oct 28 case · This incomplete comparison stays the same for every plan and evidence snapshot. It is not a result of your teaching action.</p>
+    <div className="metrics grid2"><Metric label="Initial adequate explanations" value={assessment.explanations} total={assessment.total} detail={assessment.date} /><Metric label="Unverified follow-up illustration" value={assessment.followUp} total={assessment.total} detail="Date not supplied" secondary /></div>
     <details className="task-context"><summary>Inspect follow-up context & initial task</summary><div className="source-blocks">
-      {followUpSourceBlocks(reference).map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
+      {followUpSourceBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
       <p className="caption">Initial reference only. These are not verified follow-up materials.</p>
       {taskBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
     </div></details>
     <Notice tone="warning"><strong>Check comparability before drawing a conclusion.</strong> The follow-up task, scoring, cohort and missing responses are not supplied. A higher count does not establish learning progress or causality.</Notice>
+    <WorkedFollowUp />
     <section className="workflow-section" aria-labelledby="reflection-label">
     <TextArea id="reflection" heading label="Interpret the follow-up" requirement="At least 30 characters" hint="What can you conclude, what remains unknown, and what should the PLC examine next?" value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })} placeholder="Given these limits, I can say… Before concluding, we need…" />
     <TextArea id="next-cycle-question" label="Question for the next PLC" requirement="Optional" hint="Name one question to revisit. This is recorded with your reflection; it does not start a new evidence cycle." value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} placeholder="At our next PLC, what do we need to learn about…?" />
@@ -181,6 +186,7 @@ function DecisionThread({ state: s }: { state: PlanState }) {
 }
 function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; reading: ReadingController; learning: LearningController }) {
   const { state, snapshot, notice, setNotice, saveError } = workspace;
+  const reference = useReference();
   const [error, setError] = useState(''), [errorField, setErrorField] = useState('');
   const [resetOpen, setResetOpen] = useState(false), [reloadOpen, setReloadOpen] = useState(false), [freshOpen, setFreshOpen] = useState(false), [guideOpen, setGuideOpen] = useState(false);
   const [lockNotice, setLockNotice] = useState('');
@@ -197,7 +203,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   }, [workspace.dirty]);
   const openGuide = (step?: number) => { if (isLessonId(step)) learning.dispatch({ type: 'visitLesson', lesson: step }); setGuideEntry(step === undefined ? { view: 'home' } : { view: 'walkthrough', step }); setGuideOpen(true); };
   const canEnterStage = (step: number) => Number.isInteger(step) && step >= 0 && step < 4 && (step < 2 || (step === 2 ? focus : plan));
-  const act: Dispatch = action => { setError(''); setErrorField(''); setLockNotice(''); workspace.dispatch(action); };
+  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); return workspace.dispatch(action); };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
   const requestReload = () => workspace.dirty ? setReloadOpen(true) : reloadSaved();
   const submit = (kind: 'focus' | 'plan' | 'reflection') => {
@@ -217,7 +223,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
     act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
   };
   const download = () => {
-    try { const url = URL.createObjectURL(new Blob([exportMeetingNotes(state, snapshot.reference)], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Throughline_PLC_Meeting_Plan.txt'; document.body.append(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
+    try { const url = URL.createObjectURL(new Blob([exportMeetingNotes(state, reference)], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Throughline_PLC_Meeting_Plan.txt'; document.body.append(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
     catch (caught) { setErrorField(''); setError(caught instanceof Error ? caught.message : 'The plan could not be exported. Please try again.'); window.requestAnimationFrame(() => errorBox.current?.focus()); }
   };
   const savedLabel = workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
@@ -241,25 +247,26 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
         {workspace.externalChanged && !saveError && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>Another tab changed this workspace. Reload to see its saved cycles.</span><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div>}
         {workspace.operationError && <Notice tone="warning"><span role="alert">{workspace.operationError}</span><div className="button-group"><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div></Notice>}
-        <div className="layout"><main id="workspace" className="main" tabIndex={-1}>
+        <EvidenceUpdate state={state} base={snapshot.reference} dispatch={act} onRevise={workspace.reviseWithLatest} error={workspace.operationError} saveError={saveError} onRetrySave={workspace.retrySave} />
+        <div className={`layout ${state.step === 1 || state.step === 2 ? 'with-evidence-dock' : ''}`}><main id="workspace" className="main" tabIndex={-1}>
           {state.review && <div role="status"><Notice tone="warning"><strong>Review required.</strong> A source or decision changed. Your drafts are preserved; reconfirm the affected decisions.</Notice></div>}
           {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => focusField(errorField)}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
           {state.step === 0 && <Evidence state={state} dispatch={act} />}
           {state.step === 1 && <Reasoning state={state} dispatch={act} submit={submit} />}
           {state.step === 2 && <Meeting state={state} dispatch={act} submit={submit} />}
           {state.step === 3 && <FollowUp state={state} dispatch={act} submit={submit} download={() => setKitOpen(true)} />}
-        </main><DecisionThread state={state} /></div>
+        </main><div className="workspace-sidebar">{state.step === 1 || state.step === 2 ? <><EvidenceDock state={state} reference={reference} /><details className="thread-disclosure"><summary>Review the Decision Thread</summary><DecisionThread state={state} /></details></> : <DecisionThread state={state} />}</div></div>
         <footer className="footnote"><span>Throughline / PLC planning workbook</span><span>{savedLabel}</span></footer>
       </div>
     </div></div>
-    {kitOpen && plan && <MeetingKit state={state} reference={snapshot.reference} onClose={() => setKitOpen(false)} downloadNotes={download} />}
+    {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} downloadNotes={download} />}
     {resetOpen && <ConfirmationDialog title="Reset this cycle?" confirmLabel="Reset cycle" error={workspace.operationError} onClose={() => setResetOpen(false)} onConfirm={() => { if (workspace.resetCycle(snapshot.activeCycleId)) { setResetOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } }}><p>This clears this cycle's draft, approvals, and reflection. Other saved cycles stay unchanged.</p></ConfirmationDialog>}
     {reloadOpen && <ConfirmationDialog title="Reload saved data?" confirmLabel="Reload saved data" error={workspace.saveError || workspace.operationError} onClose={() => setReloadOpen(false)} onConfirm={reloadSaved}><p>This replaces unsaved edits on this page with the latest saved workspace. Copy any work you want to keep before continuing.</p></ConfirmationDialog>}
     {freshOpen && <ConfirmationDialog title="Start a fresh demo?" confirmLabel="Reset all cycles" error={workspace.operationError} onClose={() => setFreshOpen(false)} onConfirm={() => { if (workspace.resetDatabase()) setFreshOpen(false); }}><p>This removes all saved PLC cycles from this browser and starts one fresh cycle.</p></ConfirmationDialog>}
     {guideOpen && <LearningGuide learning={learning} currentStep={state.step} canEnter={canEnterStage}
       onNavigate={step => { if (!canEnterStage(step)) return; setGuideOpen(false); act({ type: 'go', step }); window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }); }}
       onClose={() => setGuideOpen(false)} initialView={guideEntry.view} initialStep={guideEntry.step}
-      about={<><section className="pilot-notes"><h4>Who this pilot serves</h4><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h4>Assumptions to test</h4><p>Aim for 20–40 minutes of preparation for a 50-minute meeting; this is a design target, not a measured result. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Selected source labels stay visible; full excerpts and task details are one click away. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice></>} presenterTools={<details className="guide-reset support-disclosure"><summary>Presenter tools</summary><p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></details>} />}
+      about={<><section className="pilot-notes"><h4>Who this pilot serves</h4><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h4>Assumptions to test</h4><p>Aim to prepare an evidence-grounded plan within 20 minutes for a 50-minute meeting; this target has not been validated with educators. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Keep selected evidence beside your writing, or use View evidence on a smaller screen without leaving your draft. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice></>} presenterTools={<details className="guide-reset support-disclosure"><summary>Presenter tools</summary><p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></details>} />}
 
   </FieldErrorProvider>;
 }
@@ -275,5 +282,5 @@ export default function App() {
   const reading = useReadingPreferences();
   const learning = useLearningProgress();
   if (!workspace.snapshot || !workspace.state) return <Startup workspace={workspace} reading={reading} />;
-  return <ReferenceContext.Provider value={workspace.snapshot.reference}><Planner learning={learning} reading={reading} key={workspace.snapshot.activeCycleId} workspace={{ ...workspace, snapshot: workspace.snapshot, state: workspace.state }} /></ReferenceContext.Provider>;
+  return <ReferenceContext.Provider value={referenceForVersion(workspace.snapshot.reference, workspace.state.evidenceVersion)}><Planner learning={learning} reading={reading} key={workspace.snapshot.activeCycleId} workspace={{ ...workspace, snapshot: workspace.snapshot, state: workspace.state }} /></ReferenceContext.Provider>;
 }

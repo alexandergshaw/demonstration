@@ -53,9 +53,9 @@ export function useWorkspace() {
   }
   function dispatch(action: Action) {
     const state = current.current.state;
-    if (!state) return;
+    if (!state) return false;
     const next = reducer(state, action);
-    if (next !== state) persist(next);
+    return next !== state ? persist(next) : !dirtyRef.current && !externalRef.current;
   }
   function command(operation: (snapshot: WorkspaceSnapshot) => WorkspaceSnapshot): boolean {
     const snapshot = current.current.snapshot;
@@ -78,6 +78,7 @@ export function useWorkspace() {
     createCycle: (title: string) => command(snapshot => backend.createCycle(title, snapshot.revision)),
     renameCycle: (id: string, title: string) => command(snapshot => backend.renameCycle(id, title, snapshot.revision)),
     duplicateCycle: (id: string) => command(snapshot => backend.duplicateCycle(id, snapshot.revision)),
+    reviseWithLatest: () => command(snapshot => backend.reviseWithLatest(snapshot.activeCycleId, snapshot.revision)),
     selectCycle: (id: string) => command(snapshot => backend.selectCycle(id, snapshot.revision)),
     deleteCycle: (id: string) => command(snapshot => backend.deleteCycle(id, snapshot.revision)),
     resetCycle: (id: string) => command(snapshot => backend.resetCycle(id, snapshot.revision)),

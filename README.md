@@ -57,7 +57,7 @@ Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, 
 
 **Reading** provides 100/125/150% text and expanded spacing, independently of PLC decisions. Keyboard and dialog focus, descriptive evidence controls, mobile labels and field instructions have been reviewed. Reduced-motion and forced-color rules are included; this is not an accessibility certification.
 
-Interpretation offers questions about strengths, access, language and missing perspectives. An optional **Access & participation plan** carries into the approved meeting materials, participant handout and follow-up. Editing it requires plan approval again. Existing saved cycles keep their approvals; database schemas 1 and 2 are read without rewriting them, and the next successful edit writes schema 3 under the same storage key so older clients cannot silently discard the new notes.
+Interpretation offers questions about strengths, access, language and missing perspectives. An optional **Access & participation plan** carries into the approved meeting materials, participant handout and follow-up. Editing it requires plan approval again. Existing saved cycles keep their approvals; database schemas 1, 2 and 3 are read without rewriting them, and the next successful edit writes schema 4 under the same storage key so older clients cannot silently discard the new notes.
 
 Learning progress records only reviewed/attempted topics and navigation preferences in a separate browser-local record. It is not a proficiency score or a personnel record. Corrupt, unsupported, denied or full storage does not silently overwrite an existing record; unsaved learning choices remain available for the current page session. No live tutor, external analytics, automatic translation or student uploads were added.
 
@@ -92,3 +92,13 @@ The learning goal and task/rubric stay available through evidence, interpretatio
 Collection roles and dates are optional planned commitments, distinct from the fictional comparison. Incomplete date drafts save normally; approval checks valid calendar dates and review order. Editing these commitments requires plan approval again. The next-PLC question travels only with a current recorded reflection in the text export.
 
 **Guide → About this demo → How we would test this** describes a proposed 6–8-leader formative trial, comparison with the current workflow, independent curriculum review, total workload, implementation follow-up and adopt/revise/stop criteria. Its downloadable HTML is a separate printable research handout with blank notes, not collected findings. No study telemetry, live AI, routine library or linked evidence cycles are included.
+
+## Core decisions: workspace, freshness and follow-up
+
+During Interpretation and Meeting, **Compare as you write** keeps a selected source, counts or task/rubric beside the draft. **View evidence** offers a compact non-modal reader on smaller screens; returning to the draft closes it without moving focus or scrolling the page. The Decision Thread can be expanded beneath the evidence. Suggested interpretations of student work are initially collapsed.
+
+**Try a new-results update** demonstrates an incoming October 29 collection. Compare the dated snapshots, keep the October 28 evidence, or create a new draft with the newer results. Creating a revision preserves the original cycle and approvals, retains writing for review, resets source selection, and requires fresh decisions. The newer collection has 116 of 120 expected responses and repeats the original task; its coverage and practice-effect limitations travel with the exported source packet. This is a fictional update, not a live integration. Each cycle's evidence version is stored in schema 4; existing schemas 1–3 remain readable without rewriting on load.
+
+Reflection offers **Explore a complete worked example**: a separate invented case with a specific teaching move, implementation records, dated comparable tasks, shared scoring criteria, matched coverage, student work and a qualified keep/revise decision. It never fills a plan or claims results for the leader's action. The incomplete October 28 illustration remains a distinct fixed 46/120 → 56/120 case even when the active cycle uses newer evidence.
+
+The preparation target is now explicitly **within 20 minutes**, not an observed result. The timed evaluation procedure and verification limits are in [the core-decisions check](docs/CORE_DECISIONS_VERIFICATION.md).

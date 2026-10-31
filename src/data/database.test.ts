@@ -90,6 +90,108 @@ const mutations: Array<[string, (backend: Backend, snapshot: Snapshot) => Snapsh
   ['reset', (db, s) => db.resetCycle(s.activeCycleId, s.revision)],
 ];
 
+describe('reviewing a newer evidence snapshot', () => {
+  function readyForUpdate() {
+    const context = setup();
+    let snapshot = context.backend.load();
+    let state = completedState();
+    state = reducer(state, { type: 'text', field: 'evidenceCollector', value: 'Grade 4 coach' });
+    state = reducer(state, { type: 'text', field: 'collectionDate', value: '2026-11-04' });
+    state = reducer(state, { type: 'text', field: 'reviewDate', value: '2026-11-06' });
+    state = reducer(state, { type: 'consent', value: true });
+    state = reducer(state, { type: 'confirm-plan' });
+    state = reducer(state, { type: 'text', field: 'nextCycleQuestion', value: 'What would change our interpretation?' });
+    state = reducer(state, { type: 'save-reflection' });
+    state = reducer(state, { type: 'simulate-evidence-update' });
+    snapshot = context.backend.saveCycle(snapshot.activeCycleId, state, snapshot.revision);
+    return { ...context, snapshot };
+  }
+
+  it('creates a new draft without changing the original approved cycle or its sources', () => {
+    const { backend, snapshot } = readyForUpdate();
+    const original = active(snapshot);
+    expect(hasReflection(original.state)).toBe(true);
+    const revised = backend.reviseWithLatest(original.id, snapshot.revision);
+    expect(revised.cycles.find(cycle => cycle.id === original.id)).toEqual(original);
+    expect(revised.reference).toEqual(snapshot.reference);
+    expect(active(revised).id).not.toBe(original.id);
+    expect(active(revised).title).toContain('Oct 29 review');
+    const draft = active(revised).state;
+    expect(draft).toMatchObject({ evidenceVersion: 'oct29', updateAvailable: false, updateReviewed: false, selected: ['assessment'], step: 0, challenged: false, focusStamp: null, planStamp: null, reflectionStamp: null, consent: false, review: true });
+    for (const field of ['interpretation', 'focus', 'action', 'owner', 'implementationCheck', 'learningCheck', 'agenda'] as const) expect(draft[field]).toEqual(original.state[field]);
+    for (const field of ['implementation', 'reflection', 'nextCycleQuestion', 'evidenceCollector', 'collectionDate', 'reviewDate'] as const) expect(draft[field]).toBe('');
+    const loaded = backend.load();
+    expect(active(loaded)).toEqual(active(revised));
+    expect(loaded.cycles.find(cycle => cycle.id === original.id)).toEqual(original);
+    expect(loaded.notice).toBe('');
+  });
+
+  it('lets a leader reconsider a kept snapshot without rewriting that decision', () => {
+    const { backend, snapshot } = readyForUpdate();
+    const kept = backend.saveCycle(snapshot.activeCycleId, reducer(active(snapshot).state, { type: 'keep-current-evidence' }), snapshot.revision);
+    const revised = backend.reviseWithLatest(kept.activeCycleId, kept.revision);
+    expect(revised.cycles.find(cycle => cycle.id === kept.activeCycleId)).toEqual(active(kept));
+    expect(active(revised).state.evidenceVersion).toBe('oct29');
+  });
+
+  it('rejects nonexistent or unavailable updates without writing', () => {
+    const { backend, storage } = setup();
+    const original = backend.load();
+    const bytes = storage.getItem(DATABASE_KEY);
+    expectCode(() => backend.reviseWithLatest('missing-cycle', original.revision), 'not-found');
+    expectCode(() => backend.reviseWithLatest(original.activeCycleId, original.revision), 'invalid-input');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    const available = backend.saveCycle(original.activeCycleId, reducer(active(original).state, { type: 'simulate-evidence-update' }), original.revision);
+    const revised = backend.reviseWithLatest(available.activeCycleId, available.revision);
+    const revisedBytes = storage.getItem(DATABASE_KEY);
+    expectCode(() => backend.reviseWithLatest(revised.activeCycleId, revised.revision), 'invalid-input');
+    expect(storage.getItem(DATABASE_KEY)).toBe(revisedBytes);
+  });
+
+  it('preserves all stored cycles if the new draft cannot be saved', () => {
+    const { backend, storage, snapshot } = readyForUpdate();
+    const bytes = storage.getItem(DATABASE_KEY);
+    storage.failWrite = new DOMException('Full', 'QuotaExceededError');
+    expectCode(() => backend.reviseWithLatest(snapshot.activeCycleId, snapshot.revision), 'quota-exceeded');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    storage.failWrite = null;
+    expect(backend.load()).toEqual({ ...snapshot, notice: '' });
+  });
+
+  it('rejects stale requests and the cycle limit while preserving the original', () => {
+    const { backend, storage, snapshot } = readyForUpdate();
+    const originalId = snapshot.activeCycleId;
+    let latest = backend.createCycle('Another cycle', snapshot.revision);
+    const bytes = storage.getItem(DATABASE_KEY);
+    expectCode(() => backend.reviseWithLatest(originalId, snapshot.revision), 'conflict');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    while (latest.cycles.length < MAX_CYCLES) latest = backend.createCycle(`Cycle ${latest.cycles.length + 1}`, latest.revision);
+    const fullBytes = storage.getItem(DATABASE_KEY);
+    expectCode(() => backend.reviseWithLatest(originalId, latest.revision), 'cycle-limit');
+    expect(storage.getItem(DATABASE_KEY)).toBe(fullBytes);
+    expect(backend.load().cycles.find(cycle => cycle.id === originalId)).toEqual(active(snapshot));
+  });
+
+  it.each([1, 2, 3])('reads schema %s without a write or approval loss and upgrades only on mutation', version => {
+    const { backend, storage, snapshot } = readyForUpdate();
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = version;
+    for (const key of ['evidenceVersion', 'updateAvailable', 'updateReviewed']) delete legacy.cycles[0].state[key];
+    const bytes = JSON.stringify(legacy);
+    storage.setItem(DATABASE_KEY, bytes);
+    const writes = storage.writes;
+    const loaded = backend.load();
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    expect(storage.writes).toBe(writes);
+    expect(active(loaded).state).toMatchObject({ evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false });
+    expect(active(loaded).state.planStamp).toBe(active(snapshot).state.planStamp);
+    expect(hasReflection(active(loaded).state)).toBe(true);
+    const updated = backend.saveCycle(loaded.activeCycleId, reducer(active(loaded).state, { type: 'simulate-evidence-update' }), loaded.revision);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(4);
+    expect(hasReflection(active(updated).state)).toBe(true);
+  });
+});
+
 describe('optional access plan persistence', () => {
   it('upgrades v1 only on a successful mutation so older clients cannot erase the new access plan', () => {
     const { storage, backend } = setup();
@@ -100,7 +202,7 @@ describe('optional access plan persistence', () => {
     const original = JSON.stringify(legacy);
     storage.setItem(DATABASE_KEY, original);
     const loaded = backend.load();
-    expect(loaded.version).toBe(3);
+    expect(loaded.version).toBe(4);
     expect(storage.getItem(DATABASE_KEY)).toBe(original);
     const note = 'Offer words or diagrams while preserving the same mathematical goal.';
     const state = reducer(active(loaded).state, { type: 'text', field: 'accessParticipation', value: note });
@@ -110,7 +212,7 @@ describe('optional access plan persistence', () => {
     storage.failWrite = null;
     const saved = backend.saveCycle(loaded.activeCycleId, state, loaded.revision);
     const stored = JSON.parse(storage.getItem(DATABASE_KEY)!);
-    expect(stored.version).toBe(3);
+    expect(stored.version).toBe(4);
     expect(active(saved).id).toBe(active(loaded).id);
     expect(active(backend.load()).state.accessParticipation).toBe(note);
     expect(stored.cycles[0].state.interpretation).toBe(legacy.cycles[0].state.interpretation);
@@ -165,7 +267,7 @@ describe('optional access plan persistence', () => {
   it('persists a usable seed once and returns the same durable workspace on repeated loads', () => {
     const { storage, backend } = setup();
     const first = backend.load();
-    expect(first.version).toBe(3);
+    expect(first.version).toBe(4);
     expect(first.cycles).toHaveLength(1);
     expect(active(first).state).toEqual(initialState());
     expect(active(first).id.length).toBeGreaterThan(0);
@@ -486,7 +588,7 @@ describe('untrusted database and save boundaries', () => {
   it('rejects a future database version without downgrading or overwriting it', () => {
     const { backend, storage } = setup();
     const seed = backend.load();
-    const raw = JSON.stringify({ ...seed, version: 4 });
+    const raw = JSON.stringify({ ...seed, version: 5 });
     storage.data.set(DATABASE_KEY, raw);
     expectCode(() => backend.load(), 'unsupported-version');
     expect(storage.data.get(DATABASE_KEY)).toBe(raw);
@@ -710,7 +812,7 @@ describe('collection-plan schema migration and durable drafts', () => {
     const loaded = backend.load();
     expect(storage.writes).toBe(writes);
     expect(storage.getItem(DATABASE_KEY)).toBe(before);
-    expect(loaded.version).toBe(3);
+    expect(loaded.version).toBe(4);
     expect(loaded.notice).toBe('');
     for (const stamp of ['focusStamp', 'planStamp', 'reflectionStamp'] as const) expect(active(loaded).state[stamp]).toBe(oldState[stamp]);
     expect(hasReflection(active(loaded).state)).toBe(true);
@@ -722,7 +824,7 @@ describe('collection-plan schema migration and durable drafts', () => {
     expect(draft.collectionDate).toBe('2026-11-');
     storage.failWrite = null;
     const saved = backend.saveCycle(loaded.activeCycleId, draft, loaded.revision);
-    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(3);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(4);
     expect(active(saved).state.collectionDate).toBe('2026-11-');
     expect(active(backend.load()).state.collectionDate).toBe('2026-11-');
   });
