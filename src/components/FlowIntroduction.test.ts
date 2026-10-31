@@ -1,0 +1,77 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it, vi } from 'vitest';
+import { FlowIntroduction } from './FlowIntroduction';
+
+const escapedText = (value: string) => renderToStaticMarkup(createElement('span', null, value)).slice(6, -7);
+
+describe('first-use purpose and structural preview', () => {
+  it('leaves the kit preview closed and the introduction associated with its heading', () => {
+    const onContinue = vi.fn();
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue }));
+    const labelId = markup.match(/^<section\b[^>]*aria-labelledby="([^"]+)"/)?.[1];
+    expect(labelId).toBeDefined();
+    expect(markup).toContain(`<h2 class="flow-introduction-title" id="${labelId}">`);
+    const details = markup.match(/<details\b([^>]*)>/);
+    expect(details).not.toBeNull();
+    expect(details![1]).not.toMatch(/\bopen(?:\s|=|$)/);
+    expect(markup).toContain('professional learning community (PLC)');
+    expect(markup).toMatch(/Structure preview[^<]+(?:approved|approval)/);
+    expect(onContinue).not.toHaveBeenCalled();
+  });
+
+  it('previews all six real agenda sections and their 50-minute allocation without offering an export or approval', () => {
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue: vi.fn() }));
+    const agenda = markup.match(/<section class="flow-kit-page flow-kit-agenda">([\s\S]*?)<\/section>/)?.[1];
+    expect(agenda).toBeDefined();
+    const rows = [...agenda!.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(match => match[1]);
+    const expectedRows = [
+      ['Connect to the goal', 5],
+      ['Examine student work', 10],
+      ['Test the interpretation', 10],
+      ['Design & rehearse the teaching move', 15],
+      ['Plan implementation', 5],
+      ['Choose the next evidence', 5],
+    ] as const;
+    expect(rows).toHaveLength(6);
+    expectedRows.forEach(([heading, duration], index) => {
+      expect(rows[index]).toContain(escapedText(heading));
+      expect(rows[index]).toContain(`${duration} min`);
+    });
+    expect(markup).toContain('50-minute agenda');
+    expect(markup).toContain('Source packet');
+    expect(markup).toContain('Participant activity');
+    expect(markup).toMatch(/teacher action \+ student thinking/i);
+    expect(markup).toContain('Implementation check');
+    expect(markup).toContain('Learning check');
+    expect(markup.match(/<button\b/g)).toHaveLength(1);
+    expect(markup).not.toMatch(/<(?:a|input|textarea)\b/);
+    expect(markup).not.toContain('Plan approved by you');
+    expect(markup).not.toContain('Open meeting kit');
+  });
+
+  it('uses subordinate headings when replayed inside the Guide dialog', () => {
+    const onContinue = vi.fn();
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, {
+      onContinue, headingLevel: 'h3', continueLabel: 'Return to Interpretation',
+    }));
+    expect(markup).toMatch(/<h3 class="flow-introduction-title"/);
+    expect(markup.match(/<h4 class="flow-phase-title"/g)).toHaveLength(3);
+    expect(markup.match(/<h4 class="flow-kit-title"/g)).toHaveLength(3);
+    expect(markup).not.toMatch(/<h[1256]\b/);
+    expect(markup).toContain('Return to Interpretation');
+    expect(markup).not.toContain('Start with the evidence');
+    expect(onContinue).not.toHaveBeenCalled();
+  });
+
+  it('keeps classroom work between preparation and reflection and states the demonstration boundary', () => {
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue: vi.fn() }));
+    const phases = [...markup.matchAll(/class="flow-phase-title">([^<]+)<\/h[34]>/g)].map(match => match[1]);
+    expect(phases).toEqual(['Prepare here', 'With your team', 'Return to Reflect']);
+    expect(markup).toMatch(/(?:try|tries) the move/);
+    expect(markup).toContain('Report implementation');
+    expect(markup).toContain('examine evidence');
+    expect(markup).toContain('choose a next step');
+    for (const boundary of ['Fictional Grade 4 math', 'Scripted prompts', 'no live AI', 'Saves only in this browser']) expect(markup).toContain(boundary);
+  });
+});

@@ -1,0 +1,236 @@
+.flow-introduction {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  margin: 0 0 2rem;
+  border: 1px solid var(--border, #ccd4de);
+  border-top: 3px solid var(--accent, #225cd5);
+  border-radius: .375rem;
+  background: #f6f8fb;
+  color: var(--ink, #172637);
+}
+
+.flow-introduction .flow-introduction-title {
+  max-width: 38ch;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+  margin: 0;
+}
+
+.flow-introduction .flow-introduction-lead {
+  max-width: 65ch;
+  margin: .75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-introduction-agency {
+  max-width: 65ch;
+  margin: .5rem 0 0;
+  color: var(--muted, #526170);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-introduction-phases {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding: 0;
+  margin: 1.5rem 0 1rem;
+  list-style: none;
+}
+
+.flow-introduction-phases > li {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  min-width: 0;
+}
+
+.flow-introduction .flow-phase-number {
+  flex: 0 0 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #a4b3c6;
+  border-radius: 50%;
+  font-size: .8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.flow-introduction-phases > li:first-child .flow-phase-number {
+  color: var(--accent-dark, #163f99);
+  border-color: var(--accent, #225cd5);
+  background: #edf3ff;
+}
+
+.flow-introduction .flow-phase-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.flow-introduction .flow-introduction-phases p {
+  margin: .25rem 0 0;
+  color: var(--muted, #526170);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-introduction-preview > summary {
+  min-height: 2.75rem;
+  padding: .65rem 0;
+  color: var(--accent-dark, #163f99);
+  font-size: .875rem;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.flow-introduction .flow-kit-preview {
+  margin: .5rem 0 1.25rem;
+}
+
+.flow-introduction .flow-kit-preview > figcaption {
+  margin: 0 0 1rem;
+  color: var(--muted, #526170);
+  font-size: .8125rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-kit-pages {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: .875rem;
+  align-items: start;
+}
+
+.flow-introduction .flow-kit-page {
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border, #ccd4de);
+  border-top: 3px solid #a4b3c6;
+  border-radius: 2px;
+}
+
+.flow-introduction .flow-kit-agenda {
+  border-top-color: var(--accent, #225cd5);
+}
+
+.flow-introduction .flow-kit-page > .icon {
+  color: var(--accent-dark, #163f99);
+  margin-bottom: .65rem;
+}
+
+.flow-introduction .flow-kit-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.flow-introduction .flow-kit-page > p {
+  margin: .5rem 0 1rem;
+  color: var(--muted, #526170);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-kit-section {
+  border-top: 1px solid #e1e6ed;
+  padding: .65rem 0;
+  font-size: .8125rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-kit-section strong,
+.flow-introduction .flow-kit-section span {
+  display: block;
+}
+
+.flow-introduction .flow-kit-section span {
+  color: var(--muted, #526170);
+  margin-top: .2rem;
+}
+
+.flow-introduction .flow-kit-agenda ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.flow-introduction .flow-kit-agenda li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .45rem 0;
+  border-top: 1px solid #e1e6ed;
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+
+.flow-introduction .flow-kit-agenda li > span:last-child {
+  flex-shrink: 0;
+  color: var(--muted, #526170);
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-introduction .flow-introduction-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem 1.5rem;
+  border-top: 1px solid var(--border, #ccd4de);
+  padding-top: 1rem;
+  margin-top: .5rem;
+}
+
+.flow-introduction .flow-introduction-footer p {
+  flex: 1 1 18rem;
+  margin: 0;
+  color: var(--muted, #526170);
+  font-size: .8125rem;
+  line-height: 1.6;
+}
+
+.flow-introduction .flow-introduction-footer > .btn {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.flow-introduction :is(h2, h3, h4, h5, p, li, button, summary) {
+  overflow-wrap: anywhere;
+}
+
+.flow-introduction :is(button, summary):focus-visible {
+  outline: 3px solid var(--accent, #225cd5);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .flow-introduction .flow-introduction-phases,
+  .flow-introduction .flow-kit-pages {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flow-introduction .flow-introduction-phases {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .flow-introduction .flow-introduction-footer > .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root[data-text-size="largest"] .flow-introduction .flow-introduction-phases,
+  :root[data-text-size="largest"] .flow-introduction .flow-kit-pages {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

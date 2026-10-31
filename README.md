@@ -26,6 +26,14 @@ npm run preview
 
 App tests cover the planning model, local repository, workspace rendering contracts and approval-gated meeting materials. The current guidance workflow, verification boundaries and proposed leader trial are in [guidance verification](docs/GUIDANCE_VERIFICATION.md). [Focused-workspace verification](docs/FOCUSED_WORKSPACES_VERIFICATION.md) records the earlier layout pass; original implementation and backend records remain in `docs/dev-loop/`. Runtime receipts are retained locally under the ignored `.agnostic-loop/` directory. Browser testing is unavailable because browser use is disabled in the app settings, so source review and automated checks do not establish rendered layout or interaction quality.
 
+## Getting oriented
+
+The first-use overview introduces the purpose: turn student work into one teaching move and a meeting kit the team can use. It defines PLC, distinguishes the app's organizing/prompts from the leader's interpretation and approval, and shows **Prepare here → Meet and teach with the team → Return to Reflect**. It appears inline on Evidence when the introduction has not been dismissed and there is no authored decision, modified agenda/owner, follow-up report or pending review. The evidence workspace beneath it remains usable; no modal opens automatically and no tour is required.
+
+**Preview what you’ll make** starts collapsed and shows the structure of the source packet, six-activity agenda and teaching move with two checks. It does not seed decisions or grant approval. **Start with the evidence** dismisses the overview through the existing, separate browser-local learning preference and returns focus to the main heading. **Guide → Start here** replays the overview at any stage, including for returning users. Starting a new cycle does not reset that learning preference.
+
+During the flow, each header explains the current phase, why the work matters and what the leader will take forward. Meeting readiness points to using the kit; Reflection is framed as a return after teaching. The Guide walkthrough also explains why each stage exists. These first-use choices are grounded in [the updated research synthesis](docs/onboarding/research.md#subsequent-synthesis-introducing-purpose-through-use); comprehension, reduced burden and independent use remain hypotheses awaiting educator testing.
+
 ## Four focused workspaces
 
 1. **Evidence — a comparison desk.** A shared assessment heading, date and response coverage stay above three compact views. **Results** directly labels two bars with exact counts and percentages. **By class** keeps A–D in a three-column table, with each measure's denominator and a consistent percentage scale. **Task & sources** shows the exact prompt and two scoring definitions, with full rubric, lesson context and provenance available in collapsed disclosures. Original student work and selection stay alongside; repeated-task/coverage cautions remain visible, and the older observation has its own dated disclosure.
@@ -45,7 +53,7 @@ Each stage has a short question near the active task and a collapsed **Help me t
 
 Evidence's compact views aim to reduce repeated reading while retaining the task, scoring and limits needed for an educator's judgment. Percentages supplement exact counts; separate score totals do not identify which students met both criteria, and class differences do not rank teachers. The role-neutral rationale and primary design sources are in [product decisions](docs/PRODUCT_DECISIONS.md#evidence-amount-and-provenance). Faster comprehension remains a hypothesis; browser-rendered and keyboard behavior have not been verified in this pass.
 
-**Guide** provides a replayable walkthrough, three fictional practice cases with explanatory feedback, a glossary, separate worked follow-up examples and prototype information. **Help with this step** opens the relevant lesson. All support is optional and never writes or approves a plan.
+**Guide → Start here** repeats the purpose overview and structural output preview. Guide also provides a replayable walkthrough, three fictional practice cases with explanatory feedback, a glossary, separate worked follow-up examples and prototype information. **Help with this step** opens the relevant lesson, including why that stage matters. All support is optional and never writes or approves a plan.
 
 ## Freshness and follow-up
 

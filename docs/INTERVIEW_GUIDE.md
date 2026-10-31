@@ -2,7 +2,7 @@
 
 ## Suggested ten minutes (not prescribed by the assignment)
 
-1. **Product thesis, 1 minute:** Explain the gap between available evidence and changes in instruction. The chatbot idea becomes a persistent evidence-to-action workspace where the leader inspects sources, writes the judgment and approves the plan.
+1. **Product thesis and first use, 1 minute:** Show the inline purpose overview, or replay it through **Guide → Start here**. Explain the job: turn student work into one teaching move and a usable team meeting. Briefly open **Preview what you’ll make** to show the source packet, six-activity agenda and separate checks. This is a structural preview; it does not write decisions into the cycle. Point out **Prepare here → Meet and teach with the team → Return to Reflect** before entering the evidence.
 2. **Pilot target, 1 minute:** A single-grade math PLC leader preparing a 50-minute meeting, with an unvalidated preparation target of 20 minutes. All lesson materials and results are fictional.
 3. **Evidence, 2 minutes:** Show the comparison of 89 correct fractions with 46 adequate explanations beside student work. Select a response. Use **By class** or **Task & sources** to inspect a specific question, then open the older observation and explain its one-classroom scope.
 4. **Interpret, 2 minutes:** Write in **Notice** while the original source stays beside the editor. Open **Test an alternative** and show the three routes: **Revise interpretation**, **Inspect source**, or **Keep interpretation & explain uncertainty**. Keeping records consideration and opens **Choose a focus** after the save succeeds. Explain the source, the alternative and what would change your mind in the focus; the app does not write the conclusion. On a smaller screen, **View selected evidence & task** opens a source dialog.
@@ -22,7 +22,11 @@ Type or adapt these as fictional demonstration notes; the app does not supply th
 
 ## Navigation and optional demonstrations
 
-**Cycle actions → New cycle** starts a fresh walkthrough. Use the top-bar **Decisions** control to inspect the current cycle's writing and approval states without adding a permanent history column to the workspace. **Guide** and **Help with this step** provide optional support; no welcome screen must be completed.
+**Cycle actions → New cycle** starts a fresh planning cycle. The inline introduction appears only on Evidence when it has not been dismissed and there is no authored decision, modified agenda/owner, follow-up report or pending review. It is not an automatic modal, and the evidence below it can be used immediately. **Start with the evidence** records dismissal in the separate browser-local learning preference and returns focus to the main heading; it does not approve or author anything. A new cycle does not reset that preference. Use **Guide → Start here** to replay the overview for a demonstration or returning user instead of clearing their data.
+
+As the leader progresses, point to the phase, purpose and **You’ll take forward** line in the header. These connect each task to a concrete output rather than merely identifying a screen: selected evidence, a defensible focus, reviewed meeting materials and a supported next action. **Help with this step → Walkthrough** explains why the stage exists. The meeting-ready phase makes the real-world meeting and lesson explicit before reflection.
+
+Use the top-bar **Decisions** control to inspect the current cycle's writing and approval states without adding a permanent history column to the workspace. Guide, the structural preview and contextual help remain optional. No welcome screen or lesson must be completed to work on the cycle.
 
 At one stage, open **Help me think this through** to show the short question, task-specific guidance and **Self-check**. Close it to return to the main work. Explain that the self-check is a prompt for the leader, not a rating or automatic completion rule. Use the active activity's help in Plan rather than opening a second instruction panel for every agenda row.
 
@@ -56,6 +60,6 @@ Keep existing cycles when rehearsing. **Cycle actions → Reset cycle** clears o
 
 The assignment accepts sketches, annotated screens, code or a clickable prototype; a native Figma file is not required. It suggests at most two hours of preparation and prioritizes reasoning over visual polish. Do not imply that subsequent implementation, review and deployment work fit that preparation budget.
 
-The prototype uses browser-local data and no live AI. The 20-minute preparation target, clearer information hierarchy and expected benefits are hypotheses. Explain how a pilot would test preparation time, whether leaders can explain their choices, actual classroom implementation and comparable follow-up work before claiming impact.
+The prototype uses browser-local data and no live AI. The 20-minute preparation target, clearer information hierarchy and expected benefits are hypotheses. Explain how a pilot would test preparation time, whether leaders can explain their choices, actual classroom implementation and comparable follow-up work before claiming impact. The [first-use research synthesis](onboarding/research.md#subsequent-synthesis-introducing-purpose-through-use) separates public-source evidence from product inference. A proposed first-use check asks whether leaders can explain the purpose, their decision authority, the expected output and when to return after teaching; no such study has been completed.
 
 Browser testing was unavailable because browser use is disabled in the app settings. Code review and automated checks do not establish that rendered layouts, keyboard interactions or assistive-technology experiences have passed hands-on testing. [Guidance verification](GUIDANCE_VERIFICATION.md) records the workflow boundaries and a proposed leader-testing protocol; it contains no educator-study findings.

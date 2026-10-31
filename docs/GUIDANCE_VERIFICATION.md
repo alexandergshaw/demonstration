@@ -25,13 +25,15 @@ Relevant implementation: [StepCoach](../src/components/StepCoach.tsx), [Evidence
 
 The integration run completed with:
 
-- `npm test`: 303 passing tests across 11 files, including the subsequent compact Evidence views.
+- `npm test`: 325 passing tests across 13 files, including the compact Evidence views and first-use purpose introduction.
 - `npm run build`: production TypeScript/Vite build passed.
 - `git diff --check`: passed.
 
 Regression coverage includes the approved ready landing and reload, existing cycles saved at Reflect, collection edits that require reapproval while preserving reflection text as an unrecorded draft, optional coaching, the collection-editor entry route, the approval guard on MeetingReady, and implementation-specific reflection prompts. Controller tests exercise save-failure policy against the local backend. Server-render and controller checks do not exercise a real browser DOM or replace interaction testing.
 
 The compact Evidence pass adds seven source-render regressions for both dated snapshots: exact aggregate and class counts, independently specified rounded percentages, each class's denominator, stable class order, table caption and header scopes, unchanged task/rubric/source wording, collapsed detail and escaped source labels. Existing workspace contracts still check source selection and date/coverage boundaries. The three view controls remain ordinary pressed buttons associated with one labelled content region; keyboard focus uses their native button behavior. Switching views only updates local presentation state.
+
+The first-use pass adds 18 eligibility cases and four component-render checks. The overview appears only in an undismissed, unstarted Evidence cycle; retained agenda, owner, check, collection and follow-up work also suppress it. Tests cover that boundary without altering the cycle, the closed structural preview, the real six-activity/50-minute agenda, subordinate Guide headings, and the meeting/teaching interval. Existing learning-storage tests cover preference reload, blocked/full storage and separation from cycle records. They do not verify browser focus or pointer interaction. The explicit continue action changes only the existing `welcomeDismissed` preference; the workspace stays usable without it. Guide → Start here replays the overview independently of that preference.
 
 ## Verification limits
 
@@ -51,6 +53,7 @@ These are proposed checks, not completed observations. Once browser testing is a
 6. From Reflect, open **Review what to collect → Update collection plan**. Confirm that the collector is reachable, changing a commitment removes the current plan approval, reflection text survives, and reapproval returns to the meeting-ready handoff. Enter Reflect explicitly to review and record again.
 7. In a controlled local test, deny or exhaust storage and simulate a revision conflict. Attempt focus confirmation, plan approval and reflection recording. Confirm that failure leaves the draft available, communicates the save problem, and never displays a newly awarded approval or recorded success. Restore storage, save as appropriate and explicitly confirm again.
 8. Check meeting-kit access and exports before approval, after approval and after invalidating edits. Verify that only the current approved decisions appear and that any exported recorded reflection retains the no-dataset limitation.
+9. Start with a new browser-local learning preference and untouched cycle. Read the purpose, preview the material structure and choose Start with the evidence. Verify focus moves to the main heading, reload retains dismissal and no decisions are created. Replay from Guide at each stage, close it and confirm the current draft and stage remain unchanged. Repeat with blocked preference storage; the current page should honor dismissal while reporting that it was not saved.
 
 ## Proposed small leader trial
 

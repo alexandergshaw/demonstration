@@ -6,6 +6,8 @@ import {
 } from '../learning';
 import { Modal } from './CycleManager';
 import { PilotEvaluation } from './PilotEvaluation';
+import { FlowIntroduction } from './FlowIntroduction';
+import { flowOrientation } from '../flowOrientation';
 
 const browserStorage = () => window.localStorage;
 export function useLearningProgress() {
@@ -80,8 +82,9 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
       </nav>
 
       {view === 'home' && <section className="learning-section">
-        <h3 ref={heading} tabIndex={-1} className="learning-heading">Choose the support you need</h3>
-        <p className="learning-lead">Learn the workflow, practice a decision, or look up a term. Everything is optional and can be revisited.</p>
+        <FlowIntroduction headingLevel="h3" headingRef={heading} continueLabel={`Return to ${currentStage}`} onContinue={() => { learning.dispatch({ type: 'dismissWelcome' }); onClose(); }} />
+        <h4 className="learning-support-heading">More support when you need it</h4>
+        <p className="learning-lead">Walk through a step, practice a decision, or look up a term. Everything is optional.</p>
         <div className="learning-routes">
           {onOpenExamples && <article><div className="learning-route-copy"><span className="kicker">Separate fictional cases</span><h4>Follow a decision through to reflection</h4><p>Compare a documented follow-up with a case missing key evidence.</p></div><button className="btn secondary" onClick={onOpenExamples}>Explore worked examples</button></article>}
           <article><div className="learning-route-copy"><span className="kicker">Four short lessons</span><h4>Walk through the planning cycle</h4><p>See what to do at each stage and why it matters.</p>
@@ -100,7 +103,7 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
       {view === 'walkthrough' && <section className="learning-section">
         <p className="kicker">Lesson {lessonId + 1} of 4 · {lesson.stage}</p>
         <h3 ref={heading} tabIndex={-1} className="learning-heading">{lesson.title}</h3>
-        <p className="learning-goal">{lesson.goal}</p>
+        <p className="learning-goal">{flowOrientation[lessonId].why}</p>
         <nav className="lesson-picker" aria-label="Walkthrough lessons">{learningLessons.map(item => <button key={item.id} aria-current={item.id === lessonId ? 'step' : undefined}
           className={item.id === lessonId ? 'selected' : ''} onClick={() => openLesson(item.id)}><span>{item.id + 1}. {item.stage}</span>{learning.progress.reviewedLessons.includes(item.id) && <small>Reviewed</small>}</button>)}</nav>
         <ol className="learning-steps">{lesson.steps.map(step => <li key={step}>{step}</li>)}</ol>
