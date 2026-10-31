@@ -31,7 +31,7 @@ App tests cover the planning model, local repository, and approval-gated meeting
 1. Inspect the October 28 results and optionally select student responses or the older classroom observation.
 2. Write an interpretation, consider a scripted challenge, and confirm one instructional focus.
 3. Write facilitation and activity directions in the six-part, 50-minute agenda; specify an action, owner, and separate implementation and learning checks; then explicitly approve.
-4. Record implementation, inspect fictional next-cycle evidence, save a reflection, and open the approved meeting kit.
+4. Record implementation, inspect the fictional follow-up comparison and its missing context, then save a reflection. The text plan includes a current recorded reflection and those comparison limits; the HTML meeting kit remains the approved meeting materials.
 
 Upstream changes revoke affected approvals and recorded reflection while preserving draft content. Each saved cycle keeps its own state. Duplicated cycles require fresh educator decisions.
 
@@ -68,3 +68,7 @@ The deployed flow was audited against the performance-task brief. Source inspect
 The workbook treatment replaces repetitive rounded score cards, tinted panels, decorative badges and duplicate progress summaries. The comparison shows 89/120 correct selections and 46/120 adequate explanations on the same count scale; it does not imply linked pupil-level data. Source dates, sample limitations, approval states and all saved-cycle behavior remain intact. Meeting-kit previews and portable HTML share the document hierarchy.
 
 The self-hosted font files come from the official [IBM Plex repository](https://github.com/IBM/plex), with `public/fonts/IBM-Plex-OFL.txt` preserved. Design decisions, asset provenance, and independent visual/functional verification are in `docs/visual-identity-pass/`.
+
+## Brief re-audit
+
+The follow-up count is a fixed fictional illustration, independent of the chosen teaching action or reported implementation. Reflection now exposes the missing date, follow-up task, verified rubric, matched cohort, response coverage and implementation evidence, with the original task available as a baseline only. A higher count does not establish comparable learning progress. The same context travels with a recorded reflection in the text download; drafts and invalidated reflections are excluded. Review evidence is in `docs/brief-reaudit/`.

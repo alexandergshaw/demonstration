@@ -6,7 +6,7 @@
 2. **Pilot target, 1 minute:** A single-grade math PLC coach, using fictional grade-four fraction equivalence results.
 3. **Evidence, 2 minutes:** Compare 89 correct answers with 46 adequate explanations, inspect illustrative student responses and the fictional original prompt/rubric, and qualify the older one-classroom observation.
 4. **Educator reasoning, 2 minutes:** Type an interpretation, request the scripted thinking challenge, inspect selected sources without leaving the draft, then confirm an instructional focus in the educator's own words.
-5. **Meeting and follow-up, 2 minutes:** Write participant directions in the agenda, add a teaching action and two follow-up checks, approve the plan, and open Meeting kit. Preview the activity handout, download the HTML for offline presentation/printing, then revisit the fictional next cycle.
+5. **Meeting and follow-up, 2 minutes:** Write participant directions in the agenda, add a teaching action and two follow-up checks, approve the plan, and open Meeting kit. Preview the activity handout, then inspect the missing context around the fictional follow-up comparison. Record what you can conclude and what evidence you need next.
 6. **Design judgment, 2 minutes:** Discuss tradeoffs, safeguards, rejected alternatives, and baseline-driven pilot evaluation.
 
 ## Example inputs
@@ -33,3 +33,7 @@ The assignment accepts sketches, annotated screens, code, or a clickable prototy
 Open Guide to explain the single-grade, student-work-first target and the 20–40 minute preparation hypothesis. The lesson, task, rubric and all results are fictional assumptions. The prompts are scripted and all cycle data is browser-local. Explain how a real pilot would test preparation time, evidence ownership and actual classroom implementation before making learning-impact claims.
 
 For the meeting kit, edit Activity 2 with the evidence-discussion instructions and Activity 4 with the teaching-design or rehearsal instructions. These exact directions carry into the participant handout. Review the six sections before approval; a title-only older plan can still be opened, but should be expanded with useful directions before using it to facilitate a meeting. Export again after edits and reapproval; downloads are snapshots, not synchronized documents.
+
+The follow-up 56/120 is a fixed illustration; it does not react to the teaching action or implementation choice. Open **Inspect follow-up context & initial task** and explain what is unavailable: collection date, subsequent question, verified scoring criteria, matched cohort, response coverage and an implementation artifact. The original task is a baseline, not a verified follow-up task. Demonstrate the judgment to request that evidence before calling the higher count learning progress.
+
+After saving a reflection, **Meeting kit → Download text plan** includes the exact recorded reflection, implementation status and comparison limits. Draft edits are excluded until saved again. The HTML meeting kit is for the approved initial meeting and does not include a future-outcome record. Keep that distinction clear when choosing which artifact to show.

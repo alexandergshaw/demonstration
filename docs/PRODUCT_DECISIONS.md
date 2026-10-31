@@ -16,7 +16,7 @@
 
 - October 28 assessment: 120 responses, 89 selected the correct fraction; 46 met the explanation rubric.
 - September 9 observation: one classroom; not a causal explanation for October results.
-- Follow-up demonstration: fictional 56/120 adequate explanations, explicitly not proof of causality.
+- Follow-up demonstration: a fixed fictional 56/120 adequate explanations. The follow-up task/date, scoring, matched cohort, response coverage and observed implementation evidence are not supplied, so comparable progress is unverified.
 
 ## Pilot hypotheses
 
@@ -35,3 +35,9 @@ The lesson context, original fraction prompt and scoring criteria are explicit p
 The six existing agenda fields now support multiline facilitation directions. After the educator approves the plan, Throughline assembles six presentation sections, a complete selected-source packet and an evidence-to-action activity handout. Directions, focus, teaching action and checks come from the approved plan; fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. The downloaded HTML works offline and can be printed or saved as PDF through the browser. Editing any plan field revokes access until reapproval. Existing saved plans and the versioned local database remain compatible.
 
 The default activity no longer selects a partner-discussion strategy before the leader has reasoned from the evidence. Existing cycles retain their own wording. Multi-grade analysis, configurable meeting durations, lesson-planning-first workflows and real curriculum integrations remain deliberate deferrals.
+
+## Follow-up evidence limits
+
+The next-count illustration stays the same for every plan and implementation choice. It is neither a forecast nor an observed outcome of the educator's action. Rather than inventing a subsequent task or cohort, the comparison disclosure identifies the missing context and keeps the original task/rubric available as an initial reference only. This demonstrates how a leader can withhold a conclusion and name the evidence needed next.
+
+Saving a reflection records the educator's own interpretation and reported implementation status. The text plan serves as a cycle record and includes that reflection's comparison limits only while the reflection remains current. Editing reflection/status removes the recorded follow-up from export until it is saved again; editing upstream decisions retains the existing reapproval requirements. The HTML meeting kit and participant handout remain preimplementation meeting materials and do not present the illustrative future result as an observed outcome.

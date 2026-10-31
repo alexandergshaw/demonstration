@@ -8,6 +8,7 @@ import type { ReferenceData } from './data/seed';
 import { EvidenceInspector, TaskContext } from './components/EvidenceInspector';
 import { MeetingKit } from './components/MeetingKit';
 import { agendaHeadings, agendaHints, exportMeetingNotes } from './meetingMaterials';
+import { followUpSourceBlocks, taskBlocks } from './lessonContext';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -28,7 +29,7 @@ function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?:
   return <div className={`notice ${tone}`}><Icon name={tone === 'success' ? 'check' : tone === 'warning' ? 'warning' : 'info'} size={18} /><div>{children}</div></div>;
 }
 function Metric({ label, value, total, detail, secondary = false }: { label: string; value: number; total: number; detail: string; secondary?: boolean }) {
-  return <div className={`stat ${secondary ? 'stat-secondary' : ''}`}><span className="stat-label">{label}</span><div className="statnum">{Math.round(value / total * 100)}<span>%</span></div><div className="metric-detail">{value} of {total} students <span>· {detail}</span></div><div className="progress" aria-hidden="true"><span style={{ width: `${value / total * 100}%` }} /></div></div>;
+  return <div className={`stat ${secondary ? 'stat-secondary' : ''}`}><span className="stat-label">{label}</span><div className="statnum">{Math.round(value / total * 100)}<span>%</span></div><div className="metric-detail">{value} of {total} responses <span>· {detail}</span></div><div className="progress" aria-hidden="true"><span style={{ width: `${value / total * 100}%` }} /></div></div>;
 }
 function EvidenceButton({ id, state, dispatch }: { id: EvidenceId; state: PlanState; dispatch: Dispatch }) {
   const selected = state.selected.includes(id);
@@ -100,17 +101,24 @@ function Meeting({ state: s, dispatch, submit }: { state: PlanState; dispatch: D
   </>;
 }
 function FollowUp({ state: s, dispatch, submit, download }: { state: PlanState; dispatch: Dispatch; submit: (kind: 'focus' | 'plan' | 'reflection') => void; download: () => void }) {
-  const { assessment } = useReference();
+  const reference = useReference();
+  const { assessment } = reference;
   const statusError = useFieldError('implementation-yes');
   const messages = { '': 'Choose an implementation status before interpreting the next learning evidence.', yes: 'Inspect subsequent work and implementation fidelity before evaluating the strategy.', partial: 'Record which classes used the routine and how. Aggregate results may conceal different experiences.', no: 'Start with implementation barriers. The agreed strategy has not yet been tested in classrooms.' };
   return <>
     <div className="summary"><div className="kicker"><Icon name="check" size={15} />Agreed teaching action</div><p>{s.action}</p><p className="small muted">Owner: {s.owner}</p><dl className="checks"><dt>Implementation check</dt><dd>{s.implementationCheck}</dd><dt>Learning check</dt><dd>{s.learningCheck}</dd></dl></div>
     <fieldset className="implementation" aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy}><legend>Was the strategy used?</legend><div className="optionrow">{([['yes', 'Used as planned'], ['partial', 'Partially used'], ['no', 'Not yet used']] as const).map(([id, label]) => <label className={`option ${s.implementation === id ? 'selected' : ''}`} key={id}><input id={`implementation-${id}`} type="radio" name="implementation" value={id} checked={s.implementation === id} aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy} onChange={() => dispatch({ type: 'implementation', value: id })} />{label}</label>)}</div></fieldset><FieldError id="implementation-yes" />
-    <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>The next student evidence</h2><span className="pill">Fictional follow-up</span></div>
-    <div className="metrics grid2"><Metric label="Initial adequate explanations" value={assessment.explanations} total={assessment.total} detail={assessment.date} /><Metric label="Next-cycle adequate explanations" value={assessment.followUp} total={assessment.total} detail="Follow-up" secondary /></div>
-    <Notice tone="warning"><strong>Improvement is not proof of causality.</strong> Compare the rubric, assessment, cohort, missing responses, and actual implementation before drawing a conclusion.</Notice>
-    <TextArea id="reflection" label="Your follow-up interpretation" hint="At least 30 characters. What changed, what might explain it, and what should the PLC examine next?" value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })} placeholder="The next evidence suggests… Before concluding, we should…" />
-    {hasReflection(s) && <div role="status"><Notice tone="success"><strong>Reflection recorded.</strong> Your interpretation is linked to this plan in the Decision Thread.</Notice></div>}
+    <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>Inspect the follow-up comparison</h2><span className="pill">Fictional illustration</span></div>
+    <p className="caption">This fixed example stays the same for every plan and implementation choice.</p>
+    <div className="metrics grid2"><Metric label="Initial adequate explanations" value={assessment.explanations} total={assessment.total} detail={assessment.date} /><Metric label="Next-cycle adequate explanations" value={assessment.followUp} total={assessment.total} detail="Date not supplied" secondary /></div>
+    <details className="task-context"><summary>Inspect follow-up context & initial task</summary><div className="source-blocks">
+      {followUpSourceBlocks(reference).map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
+      <p className="caption">Initial reference only. These are not verified follow-up materials.</p>
+      {taskBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
+    </div></details>
+    <Notice tone="warning"><strong>Check comparability before drawing a conclusion.</strong> The follow-up task, scoring, cohort and missing responses are not supplied. A higher count does not establish learning progress or causality.</Notice>
+    <TextArea id="reflection" label="Your follow-up interpretation" hint="At least 30 characters. What can you conclude, what remains unknown, and what should the PLC examine next?" value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })} placeholder="Given these limits, I can say… Before concluding, we need…" />
+    {hasReflection(s) && <div role="status"><Notice tone="success"><strong>Reflection recorded.</strong> Your interpretation is linked to this plan in the Decision Thread. Download the text plan from Meeting kit to keep this reflection and its comparison context.</Notice></div>}
     <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 2 })}>Edit meeting</button><div className="button-group"><button className="btn secondary" onClick={download}><Icon name="book" size={16} />Open meeting kit</button><button className="btn" onClick={() => submit('reflection')}>{hasReflection(s) ? 'Reflection recorded' : 'Save reflection'}<Icon name="check" size={16} /></button></div></div>
   </>;
 }

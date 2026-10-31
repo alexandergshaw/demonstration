@@ -1,6 +1,6 @@
-import { exportPlan, hasPlan, minutes, type PlanState } from './model';
+import { exportPlan, hasPlan, hasReflection, minutes, type PlanState } from './model';
 import type { ReferenceData } from './data/seed';
-import { selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
+import { followUpSourceBlocks, selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
 
 export const agendaHeadings = ['Connect to the goal', 'Examine student work', 'Test the interpretation', 'Design one teaching change', 'Plan implementation', 'Choose the next evidence'];
 export const agendaHints = [
@@ -40,7 +40,12 @@ export function buildMeetingKit(state: PlanState, reference: ReferenceData): Mee
   ];
 }
 export function exportMeetingNotes(state: PlanState, reference: ReferenceData): string {
-  return exportPlan(state, reference.labels) + '\n\nSOURCE PACKET\n\n' + [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)].map(block => block.heading + '\n' + block.text).join('\n\n');
+  const plan = exportPlan(state, reference.labels);
+  const sources = [...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)];
+  const recordedContext = hasReflection(state)
+    ? '\n\nRECORDED FOLLOW-UP COMPARISON CONTEXT\n\n' + followUpSourceBlocks(reference).map(block => block.heading + '\n' + block.text).join('\n\n')
+    : '';
+  return plan + '\n\nSOURCE PACKET\n\n' + sources.map(block => block.heading + '\n' + block.text).join('\n\n') + recordedContext;
 }
 // Every dynamic string is text, including headings. The portable document has no scripts or external requests.
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]!));

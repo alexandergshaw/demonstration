@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createReferenceData } from './data/seed';
 import { buildMeetingKit, exportMeetingHtml, exportMeetingNotes } from './meetingMaterials';
-import { lessonContext, selectedSourceBlocks } from './lessonContext';
-import { hasPlan, initialState, reducer, type Action, type PlanState } from './model';
+import { followUpSourceBlocks, lessonContext, selectedSourceBlocks } from './lessonContext';
+import { hasPlan, hasReflection, initialState, reducer, type Action, type PlanState } from './model';
 
 const reference = createReferenceData();
 const apply = (state: PlanState, ...actions: Action[]) => actions.reduce(reducer, state);
@@ -81,5 +81,45 @@ describe('meeting materials preserve educator ownership', () => {
     expect(JSON.stringify(state)).toBe(before);
     expect(hasPlan(state)).toBe(true);
     expect(initialState().agenda[3]).not.toContain('partner-discussion');
+  });
+  it('carries comparison limits with exact recorded reflection text, without adding future results to the meeting kit', () => {
+    const reflection = 'We cannot call this progress yet. Check the task and missing responses before attributing change. <note>Keep my wording & uncertainty.</note>';
+    const state = apply(approved(), { type: 'implementation', value: 'partial' }, { type: 'text', field: 'reflection', value: reflection }, { type: 'save-reflection' });
+    const before = JSON.stringify(state), notes = exportMeetingNotes(state, reference);
+    expect(hasReflection(state)).toBe(true);
+    expect(notes).toContain('Implementation: partial');
+    expect(notes).toContain('Recorded reflection: ' + reflection);
+    expect(notes).toContain('Follow-up illustration: 56/120');
+    for (const block of followUpSourceBlocks(reference)) {
+      expect(notes).toContain(block.heading + '\n' + block.text);
+    }
+    expect(notes).toContain('not a prediction or an observed outcome of your plan');
+    expect(notes).toContain('Equal denominators do not establish the same students or complete coverage');
+    expect(buildMeetingKit(state, reference)).toHaveLength(8);
+    for (const prospective of [JSON.stringify(buildMeetingKit(state, reference)), exportMeetingHtml(state, reference)]) {
+      expect(prospective).not.toContain(reflection);
+      expect(prospective).not.toContain('56/120');
+      expect(prospective).not.toContain('Fixed fictional comparison');
+    }
+    expect(JSON.stringify(state)).toBe(before);
+  });
+  it('excludes unrecorded and invalidated reflection context until the current reflection is saved again', () => {
+    const draft = apply(approved(), { type: 'implementation', value: 'partial' }, { type: 'text', field: 'reflection', value: 'First reflection: the illustrative counts need a verified task and response coverage.' });
+    const recorded = apply(draft, { type: 'save-reflection' });
+    const edited = apply(recorded, { type: 'text', field: 'reflection', value: 'Revised reflection: obtain dated follow-up work and check who responded before comparing.' });
+    const statusChanged = apply(recorded, { type: 'implementation', value: 'no' });
+    for (const state of [approved(), draft, edited, statusChanged]) {
+      expect(hasReflection(state)).toBe(false);
+      const notes = exportMeetingNotes(state, reference);
+      expect(notes).not.toContain('RECORDED FOLLOW-UP COMPARISON CONTEXT');
+      expect(notes).not.toContain('Follow-up illustration:');
+      if (state.reflection) expect(notes).not.toContain(state.reflection);
+    }
+    const savedAgain = apply(edited, { type: 'save-reflection' });
+    expect(exportMeetingNotes(savedAgain, reference)).toContain('Recorded reflection: ' + edited.reflection);
+    expect(exportMeetingNotes(savedAgain, reference)).toContain('RECORDED FOLLOW-UP COMPARISON CONTEXT');
+    expect(exportMeetingNotes(savedAgain, reference)).not.toContain(recorded.reflection);
+    const upstreamEdit = apply(recorded, { type: 'text', field: 'action', value: 'A changed teaching action needs fresh approval before this cycle can be exported.' });
+    expect(() => exportMeetingNotes(upstreamEdit, reference)).toThrow(/Approve/);
   });
 });
