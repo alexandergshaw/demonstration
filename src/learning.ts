@@ -29,11 +29,11 @@ export const learningLessons = [
   },
   {
     id: 2, title: 'Shape a practical meeting', stage: 'Meeting plan',
-    goal: 'Turn the focus into useful activity directions, a teaching action and two checks.',
+    goal: 'Choose a teaching action and two checks, then shape the meeting around them.',
     steps: [
-      'Expand the six agenda prompts into directions: what to inspect, discuss, rehearse and record.',
-      'Name one teaching action, who will try it, and separate checks for implementation and student learning.',
-      'Consider an access and participation plan. Review your decisions and approve them to open the meeting kit.',
+      'Name one teaching action connected to the learning goal, who will try it, and separate checks for implementation and student learning.',
+      'Consider access and participation, then optionally plan who will collect evidence and when the PLC will review it.',
+      'Expand the six agenda prompts into directions. Activity 4 offers an optional rehearsal guide. Review your decisions and approve them to open the meeting kit.',
     ],
     example: 'A lesson artifact can help check whether a routine was used. Comparable student explanations can help check learning. Neither measure alone explains why a change occurred.',
     selfCheck: 'Could another facilitator follow your activity directions, and do your two checks answer different questions?',

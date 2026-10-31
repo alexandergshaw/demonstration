@@ -100,7 +100,7 @@ describe('optional access plan persistence', () => {
     const original = JSON.stringify(legacy);
     storage.setItem(DATABASE_KEY, original);
     const loaded = backend.load();
-    expect(loaded.version).toBe(2);
+    expect(loaded.version).toBe(3);
     expect(storage.getItem(DATABASE_KEY)).toBe(original);
     const note = 'Offer words or diagrams while preserving the same mathematical goal.';
     const state = reducer(active(loaded).state, { type: 'text', field: 'accessParticipation', value: note });
@@ -110,7 +110,7 @@ describe('optional access plan persistence', () => {
     storage.failWrite = null;
     const saved = backend.saveCycle(loaded.activeCycleId, state, loaded.revision);
     const stored = JSON.parse(storage.getItem(DATABASE_KEY)!);
-    expect(stored.version).toBe(2);
+    expect(stored.version).toBe(3);
     expect(active(saved).id).toBe(active(loaded).id);
     expect(active(backend.load()).state.accessParticipation).toBe(note);
     expect(stored.cycles[0].state.interpretation).toBe(legacy.cycles[0].state.interpretation);
@@ -165,7 +165,7 @@ describe('optional access plan persistence', () => {
   it('persists a usable seed once and returns the same durable workspace on repeated loads', () => {
     const { storage, backend } = setup();
     const first = backend.load();
-    expect(first.version).toBe(2);
+    expect(first.version).toBe(3);
     expect(first.cycles).toHaveLength(1);
     expect(active(first).state).toEqual(initialState());
     expect(active(first).id.length).toBeGreaterThan(0);
@@ -486,7 +486,7 @@ describe('untrusted database and save boundaries', () => {
   it('rejects a future database version without downgrading or overwriting it', () => {
     const { backend, storage } = setup();
     const seed = backend.load();
-    const raw = JSON.stringify({ ...seed, version: 3 });
+    const raw = JSON.stringify({ ...seed, version: 4 });
     storage.data.set(DATABASE_KEY, raw);
     expectCode(() => backend.load(), 'unsupported-version');
     expect(storage.data.get(DATABASE_KEY)).toBe(raw);
@@ -680,4 +680,107 @@ describe('supported maximum draft persistence', () => {
       expect(hasReflection(cycle.state)).toBe(true);
     }
   }, 20_000);
+});
+
+describe('collection-plan schema migration and durable drafts', () => {
+  const newFields = ['evidenceCollector', 'collectionDate', 'reviewDate', 'nextCycleQuestion'] as const;
+  function collectionState(): PlanState {
+    let state = completedState();
+    for (const [field, value] of [
+      ['evidenceCollector', 'Grade 4 coach'], ['collectionDate', '2026-11-04'],
+      ['reviewDate', '2026-11-06'], ['nextCycleQuestion', 'What evidence would test the alternative interpretation?'],
+    ] as const) state = reducer(state, { type: 'text', field, value });
+    state = reducer(state, { type: 'consent', value: true });
+    state = reducer(state, { type: 'confirm-plan' });
+    return reducer(state, { type: 'save-reflection' });
+  }
+
+  it.each([1, 2])('reads version %s without writes or changed approvals, then upgrades on successful mutation', version => {
+    const { backend, storage } = setup();
+    let snapshot = backend.load();
+    snapshot = backend.saveCycle(snapshot.activeCycleId, completedState(), snapshot.revision);
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = version;
+    for (const field of newFields) delete legacy.cycles[0].state[field];
+    if (version === 1) delete legacy.cycles[0].state.accessParticipation;
+    const oldState = legacy.cycles[0].state;
+    const before = JSON.stringify(legacy);
+    storage.data.set(DATABASE_KEY, before);
+    const writes = storage.writes;
+    const loaded = backend.load();
+    expect(storage.writes).toBe(writes);
+    expect(storage.getItem(DATABASE_KEY)).toBe(before);
+    expect(loaded.version).toBe(3);
+    expect(loaded.notice).toBe('');
+    for (const stamp of ['focusStamp', 'planStamp', 'reflectionStamp'] as const) expect(active(loaded).state[stamp]).toBe(oldState[stamp]);
+    expect(hasReflection(active(loaded).state)).toBe(true);
+    for (const field of newFields) expect(active(loaded).state[field]).toBe('');
+    const draft = reducer(active(loaded).state, { type: 'text', field: 'collectionDate', value: '2026-11-' });
+    storage.failWrite = new DOMException('No room', 'QuotaExceededError');
+    expectCode(() => backend.saveCycle(loaded.activeCycleId, draft, loaded.revision), 'quota-exceeded');
+    expect(storage.getItem(DATABASE_KEY)).toBe(before);
+    expect(draft.collectionDate).toBe('2026-11-');
+    storage.failWrite = null;
+    const saved = backend.saveCycle(loaded.activeCycleId, draft, loaded.revision);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(3);
+    expect(active(saved).state.collectionDate).toBe('2026-11-');
+    expect(active(backend.load()).state.collectionDate).toBe('2026-11-');
+  });
+
+  it('saves and reopens invalid date drafts so they can be corrected without losing the plan text', () => {
+    const { backend } = setup();
+    let snapshot = backend.load();
+    let state = reducer(collectionState(), { type: 'text', field: 'reviewDate', value: '2026-02-30' });
+    snapshot = backend.saveCycle(snapshot.activeCycleId, state, snapshot.revision);
+    const reopened = backend.load();
+    expect(active(reopened).state.reviewDate).toBe('2026-02-30');
+    expect(active(reopened).state.action).toBe(authoredText);
+    expect(hasFocus(active(reopened).state)).toBe(true);
+    expect(hasPlan(active(reopened).state)).toBe(false);
+    state = reducer(active(reopened).state, { type: 'text', field: 'reviewDate', value: '2026-11-06' });
+    state = reducer(state, { type: 'consent', value: true });
+    state = reducer(state, { type: 'confirm-plan' });
+    snapshot = backend.saveCycle(reopened.activeCycleId, state, reopened.revision);
+    expect(hasPlan(active(snapshot).state)).toBe(true);
+    expect(hasReflection(active(snapshot).state)).toBe(false);
+  });
+
+  it('retains all collection details through reload and switching but clears scheduling and follow-up on duplication', () => {
+    const { backend } = setup();
+    let snapshot = backend.load();
+    const sourceId = snapshot.activeCycleId, state = collectionState();
+    snapshot = backend.saveCycle(sourceId, state, snapshot.revision);
+    expect(active(backend.load()).state).toEqual(state);
+    snapshot = backend.createCycle('Another cycle', snapshot.revision);
+    snapshot = backend.selectCycle(sourceId, snapshot.revision);
+    expect(active(snapshot).state).toEqual(state);
+    snapshot = backend.duplicateCycle(sourceId, snapshot.revision);
+    const duplicate = active(snapshot).state;
+    for (const field of newFields) expect(duplicate[field]).toBe('');
+    expect(duplicate.action).toBe(state.action);
+    expect(duplicate.reflection).toBe('');
+    expect(duplicate.implementation).toBe('');
+    expect(duplicate.focusStamp).toBeNull();
+    expect(duplicate.planStamp).toBeNull();
+    expect(duplicate.reflectionStamp).toBeNull();
+    expect(snapshot.cycles.find(cycle => cycle.id === sourceId)?.state).toEqual(state);
+  });
+
+  it('preserves durable bytes and the working draft on a failed collection update or stale writer', () => {
+    const { backend, storage } = setup();
+    let snapshot = backend.load();
+    snapshot = backend.saveCycle(snapshot.activeCycleId, collectionState(), snapshot.revision);
+    const prior = storage.getItem(DATABASE_KEY);
+    const draft = reducer(active(snapshot).state, { type: 'text', field: 'nextCycleQuestion', value: 'A revised question remains available for retry.' });
+    storage.failWrite = new Error('Storage denied');
+    expectCode(() => backend.saveCycle(snapshot.activeCycleId, draft, snapshot.revision), 'storage-unavailable');
+    expect(storage.getItem(DATABASE_KEY)).toBe(prior);
+    expect(draft.nextCycleQuestion).toBe('A revised question remains available for retry.');
+    storage.failWrite = null;
+    const newer = backend.renameCycle(snapshot.activeCycleId, 'A newer title', snapshot.revision);
+    const newerBytes = storage.getItem(DATABASE_KEY);
+    expectCode(() => backend.saveCycle(snapshot.activeCycleId, draft, snapshot.revision), 'conflict');
+    expect(storage.getItem(DATABASE_KEY)).toBe(newerBytes);
+    expect(active(backend.load()).state.nextCycleQuestion).toBe(active(newer).state.nextCycleQuestion);
+  });
 });

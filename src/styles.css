@@ -166,4 +166,18 @@ dialog:has(.learning-guide){width:min(820px,calc(100% - 32px))}
 @media(max-width:700px){.cycle-selector label{display:block;position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}}
 @media(max-width:520px){.app-topbar{height:auto;min-height:60px}.topbar-actions{gap:10px}.chart-row{grid-template-columns:minmax(0,1fr) minmax(0,105px)}.chart-value{gap:3px}.class-disclosure{flex-wrap:wrap}.class-results table{table-layout:fixed}.class-results th{overflow-wrap:anywhere}.agenda{gap:10px}.agenda-index{display:none}.modal-actions{flex-wrap:wrap}dialog{padding:20px}.next-step{display:block}.source-date{white-space:normal}.evidence-heading{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+.learning-goal-context{border-top:1px solid var(--ink);border-bottom:1px solid var(--border);padding:18px 0;margin-bottom:28px}
+.learning-goal-context .lesson-goal{font-size:1.0625rem;line-height:1.7;margin:8px 0}.learning-goal-context .task-context{margin:10px 0 0;border-bottom:0}
+.agenda-writing{flex:1;min-width:0}.agenda-writing>.field-group{width:100%}
+.planning-disclosure,.pilot-evaluation{border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:24px 0}
+.planning-disclosure>summary,.pilot-evaluation>summary,.pilot-sources>summary{min-height:48px;padding:12px 0;cursor:pointer;color:var(--accent-dark);line-height:1.7}
+.planning-disclosure>summary .caption{margin-left:10px}.planning-disclosure-body,.pilot-evaluation-body{padding:0 0 20px}
+.planning-disclosure-body>p{line-height:1.75;margin:10px 0 20px}.planning-disclosure-body>.grid2{margin-bottom:0}
+.rehearsal-guide{margin:18px 0 0}.rehearsal-evidence{border-left:2px solid var(--accent);padding-left:16px;margin:20px 0}.rehearsal-evidence blockquote{margin:10px 0;font-size:1rem;line-height:1.75}
+.rehearsal-steps{padding-left:24px}.rehearsal-steps li{padding-left:6px;margin:18px 0;line-height:1.75}.rehearsal-steps p{margin:6px 0}
+.collection-summary{padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:24px}.collection-summary>p{white-space:pre-line;line-height:1.75;margin:10px 0}
+.pilot-evaluation h4{margin:24px 0 12px}.pilot-evaluation dl{margin:12px 0}.pilot-evaluation dl>div{padding:12px 0;border-bottom:1px solid var(--border)}.pilot-evaluation dt{font-weight:600}.pilot-evaluation dd{margin:6px 0 0}
+.pilot-sequence ol,.pilot-sources ul{padding-left:24px}.pilot-sequence li,.pilot-sources li{padding-left:6px;margin:18px 0}
+.pilot-table-wrap{max-width:100%;overflow-x:auto;margin:24px 0}.pilot-table{width:100%;border-collapse:collapse;text-align:left;line-height:1.7}.pilot-table caption{text-align:left;font-weight:600;padding:12px 0}.pilot-table th,.pilot-table td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:top;font-size:.8125rem}.pilot-table th{font-weight:600}.pilot-table th:first-child,.pilot-table td:first-child{padding-left:0}.pilot-sources{margin-top:20px}
+@media(max-width:520px){.pilot-table{min-width:540px}.planning-disclosure>summary .caption{display:block;margin-left:0}.rehearsal-evidence{padding-left:12px}}
 @media(forced-colors:active){.step.active,.option.selected,.selectbtn.chosen{border-color:Highlight}.work-selected{border-left:3px solid Highlight}.chart-bar,.progress>span,.mini-bar i{background:Highlight}.status-dot{background:CanvasText}}

@@ -23,9 +23,11 @@ workspace = backend.saveCycle(cycle.id, cycle.state, workspace.revision);
 
 The remaining methods are `selectCycle`, `duplicateCycle`, `deleteCycle`, `resetCycle`, and explicit `resetDatabase`. All cycle mutations require the expected database revision. `load` initializes missing storage, and `resetDatabase` deliberately replaces it. Optional clock and ID generators plus an injected Storage adapter support deterministic tests.
 
-Creating or duplicating selects the new cycle. Duplication keeps teaching draft content but clears challenge review, approvals, consent, implementation, and reflection. Deleting the active cycle selects the first remaining one; deleting the last cycle is prevented. Reset cycle preserves its name/identity and clears only its planning state. Reset all saved cycles appears in presenter tools and requires confirmation.
+Creating or duplicating selects the new cycle. Duplication keeps teaching draft content but clears challenge review, approvals, consent, implementation, reflection, collection role/dates, and the next-PLC question. Deleting the active cycle selects the first remaining one; deleting the last cycle is prevented. Reset cycle preserves its name/identity and clears only its planning state. Reset all saved cycles appears in presenter tools and requires confirmation.
 
 ## Migration and recovery
+
+The current schema is version 3 under the existing storage key. Versions 1 and 2 remain readable without rewriting their stored bytes on load. Missing optional access, collection and next-PLC fields default to empty strings. Empty additions preserve existing approval signatures; populated collection commitments extend the plan signature and the next-PLC question extends only the reflection signature. A successful mutation writes schema 3, which older clients reject rather than silently dropping its fields. Incomplete or invalid date text remains a saveable draft; approval validates calendar dates and review order.
 
 When the new key is absent, a valid legacy `throughline.draft.v1` draft migrates with its valid approvals and current stage. The original key remains untouched as a recovery copy. An existing new database always takes precedence. Invalid legacy data produces a visible fresh-cycle notice without deleting the legacy bytes. Invalid or future-version new databases are not overwritten by ordinary reads; retry or an explicitly confirmed fresh start is required.
 
@@ -35,6 +37,6 @@ These are optimistic checks, not cross-tab atomic transactions. Two simultaneous
 
 ## Verification
 
-The independent repository suite has 82 tests covering lifecycle, migration, detached reads, invalid/unsupported data, failed writes, retry, stale revisions, and twelve maximum-length escaping-heavy drafts. All 69 existing model tests remain unchanged. Both suites and production compilation are checked by the manual loop. The browser walkthrough covers migration from the checkpoint build, named cycle management, reload persistence, duplicate approval clearing, reset isolation, and two-tab unsaved-work recovery.
+The current application suite covers lifecycle, schema migration, detached reads, invalid/unsupported data, failed writes, retry, stale revisions, twelve maximum-length escaping-heavy drafts, approval invalidation and export boundaries. Historical browser walkthroughs covered named cycle management and recovery. For the instructional-practice update, 241 tests and the production build passed; a fresh browser walkthrough was unavailable because local browser use was disabled in Work settings.
 
 The pre-backend checkpoint was pushed to `main` as `ead2317da648daccfcdb1375925bc901c71344eb`. The local-backend implementation run completed without another push or deployment. A later user-requested Vercel deployment includes this backend from the working tree; GitHub still contains the earlier checkpoint. See `DEPLOYMENT_STATUS.md` for the current hosted status.

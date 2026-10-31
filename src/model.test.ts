@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   decodeDraft, encodeDraft, exportPlan, focusError, hasFocus, hasPlan,
-  hasReflection, initialState, minutes, parseStoredState, planError, reducer, reflectionError,
+  hasReflection, initialState, isCalendarDate, minutes, parseStoredState, planError, reducer, reflectionError,
   type Action, type PlanState,
 } from './model';
 
@@ -124,6 +124,9 @@ describe('downstream invalidation', () => {
     ['implementation measure', { type: 'text', field: 'implementationCheck', value: implementationCheck + ' Use a shared checklist.' }],
     ['learning measure', { type: 'text', field: 'learningCheck', value: learningCheck + ' Include missing responses.' }],
     ['access and participation plan', { type: 'text', field: 'accessParticipation', value: 'Offer thinking time and written or drawn explanations while keeping the same fraction goal.' }],
+    ['evidence collector', { type: 'text', field: 'evidenceCollector', value: 'Grade 4 PLC coach' }],
+    ['collection date', { type: 'text', field: 'collectionDate', value: '2026-11-04' }],
+    ['review date', { type: 'text', field: 'reviewDate', value: '2026-11-06' }],
     ['withdrawn consent', { type: 'consent', value: false }],
   ];
   it.each(planChanges)('changing %s keeps the focus but revokes plan and reflection acceptance', (_name, change) => {
@@ -152,6 +155,7 @@ describe('downstream invalidation', () => {
   it.each<Action>([
     { type: 'implementation', value: 'partial' },
     { type: 'text', field: 'reflection', value: reflection + ' We will gather another cycle.' },
+    { type: 'text', field: 'nextCycleQuestion', value: 'What further evidence would test the interpretation?' },
   ])('follow-up edits preserve the approved plan but need a fresh save (%j)', change => {
     const state = reducer(completed(), change);
     expect(hasFocus(state)).toBe(true);
@@ -368,15 +372,18 @@ describe('maximum supported draft persistence', () => {
       { type: 'challenge' },
       { type: 'confirm-focus' },
     );
-    for (const field of ['action', 'owner', 'implementationCheck', 'learningCheck', 'accessParticipation'] as const) {
+    for (const field of ['action', 'owner', 'implementationCheck', 'learningCheck', 'accessParticipation', 'evidenceCollector'] as const) {
       original = reducer(original, { type: 'text', field, value });
     }
     for (let index = 0; index < 6; index++) original = reducer(original, { type: 'agenda', index, value });
     original = apply(original,
+      { type: 'text', field: 'collectionDate', value: '2026-11-04' },
+      { type: 'text', field: 'reviewDate', value: '2026-11-06' },
       { type: 'consent', value: true },
       { type: 'confirm-plan' },
       { type: 'implementation', value: 'yes' },
       { type: 'text', field: 'reflection', value },
+      { type: 'text', field: 'nextCycleQuestion', value },
       { type: 'save-reflection' },
     );
 
@@ -389,11 +396,99 @@ describe('maximum supported draft persistence', () => {
     expect(hasPlan(restored.state), 'reload must retain the approved plan').toBe(true);
     expect(hasReflection(restored.state), 'reload must retain the recorded reflection').toBe(true);
     expect(restored.state.step).toBe(3);
-    for (const field of ['interpretation', 'focus', 'action', 'owner', 'implementationCheck', 'learningCheck', 'reflection'] as const) {
+    for (const field of ['interpretation', 'focus', 'action', 'owner', 'implementationCheck', 'learningCheck', 'reflection', 'evidenceCollector', 'nextCycleQuestion'] as const) {
       expect(original[field]).toHaveLength(4000);
       expect(restored.state[field]).toBe(value);
     }
     expect(restored.state.agenda).toEqual(Array(6).fill(value));
     expect(restored.notice).toMatch(/restored/i);
+  });
+});
+
+describe('optional collection plan and next question', () => {
+  it('restores old approval bytes exactly when optional additions are absent', () => {
+    const original = completed();
+    const legacy: Record<string, unknown> = { ...original };
+    for (const key of ['evidenceCollector', 'collectionDate', 'reviewDate', 'nextCycleQuestion']) delete legacy[key];
+    expect(original.focusStamp).toBe(JSON.stringify([original.selected, original.interpretation, original.lens, original.challenged, original.focus, original.confidence]));
+    expect(original.planStamp).toBe(JSON.stringify([original.focusStamp, original.agenda, original.action, original.owner, original.implementationCheck, original.learningCheck, original.consent]));
+    expect(original.reflectionStamp).toBe(JSON.stringify([original.planStamp, original.implementation, original.reflection]));
+    const restored = parseStoredState(legacy);
+    expect(restored.stale).toBe(false);
+    expect(restored.state).toEqual(original);
+    expect(hasReflection(restored.state)).toBe(true);
+  });
+
+  it.each(['evidenceCollector', 'collectionDate', 'reviewDate'] as const)('clearing approved %s requires fresh plan approval while preserving the focus', field => {
+    const value = field === 'evidenceCollector' ? 'The grade-four coach' : '2026-11-04';
+    const original = apply(completed(), { type: 'text', field, value }, { type: 'consent', value: true }, { type: 'confirm-plan' }, { type: 'save-reflection' });
+    expect(hasReflection(parseStoredState(original).state)).toBe(true);
+    const cleared = reducer(original, { type: 'text', field, value: '' });
+    expect(cleared.focusStamp).toBe(original.focusStamp);
+    expect(cleared.challenged).toBe(true);
+    expect(cleared.planStamp).toBeNull();
+    expect(cleared.reflectionStamp).toBeNull();
+    expect(() => exportPlan(cleared)).toThrow(/Approve/);
+    expect(parseStoredState({ ...original, [field]: '' }).stale).toBe(true);
+  });
+
+  it.each(['2024-02-29', '2000-02-29', '2026-11-30', '0001-01-01'])('accepts calendar date %s', value => {
+    expect(isCalendarDate(value)).toBe(true);
+  });
+  it.each(['', '2026-02-29', '1900-02-29', '2026-04-31', '2026-00-04', '2026-13-01', '2026-11-00', '0000-01-01', '2026-1-01', '2026-11-', 'tomorrow'])('rejects non-calendar date %s without preventing draft correction', value => {
+    expect(isCalendarDate(value)).toBe(false);
+    const draft = reducer(planDraft(), { type: 'text', field: 'collectionDate', value });
+    expect(parseStoredState(draft).state.collectionDate).toBe(value);
+    if (value) {
+      expect(planError(draft)).toMatch(/valid collection date/);
+      expect(hasPlan(reducer(draft, { type: 'confirm-plan' }))).toBe(false);
+    }
+  });
+
+  it('validates optional review dates and ordering at approval, not during draft persistence', () => {
+    expect(planError(planDraft())).toBe('');
+    const draft = apply(planDraft(), { type: 'text', field: 'collectionDate', value: '2026-11-04' }, { type: 'text', field: 'reviewDate', value: '2026-11-' });
+    expect(parseStoredState(draft).state.reviewDate).toBe('2026-11-');
+    expect(planError(draft)).toMatch(/valid review date/);
+    const reversed = reducer(draft, { type: 'text', field: 'reviewDate', value: '2026-11-03' });
+    expect(parseStoredState(reversed).state.reviewDate).toBe('2026-11-03');
+    expect(planError(reversed)).toMatch(/on or after/);
+    const corrected = apply(reversed, { type: 'text', field: 'reviewDate', value: '2026-11-04' }, { type: 'consent', value: true }, { type: 'confirm-plan' });
+    expect(hasPlan(corrected)).toBe(true);
+    expect(corrected.evidenceCollector).toBe('');
+  });
+
+  it('exports approved collection details and only a currently recorded next question', () => {
+    const question = 'Would the same reasoning appear on a comparable task?';
+    const original = apply(completed(),
+      { type: 'text', field: 'evidenceCollector', value: 'Grade 4 coach' },
+      { type: 'text', field: 'collectionDate', value: '2026-11-04' },
+      { type: 'text', field: 'reviewDate', value: '2026-11-06' },
+      { type: 'consent', value: true }, { type: 'confirm-plan' },
+      { type: 'text', field: 'nextCycleQuestion', value: question });
+    const draftExport = exportPlan(original);
+    expect(draftExport).toContain('Evidence collector: Grade 4 coach');
+    expect(draftExport).toContain('PLANNED · Evidence collection');
+    expect(draftExport).toContain('Planned collection date: 2026-11-04');
+    expect(draftExport).toContain('Planned review date: 2026-11-06');
+    expect(draftExport).toContain('These are plans, not evidence that collection or review occurred.');
+    expect(draftExport).not.toContain(question);
+    const recorded = reducer(original, { type: 'save-reflection' });
+    expect(exportPlan(recorded)).toContain('Question for the next PLC: ' + question);
+    const revised = reducer(recorded, { type: 'text', field: 'nextCycleQuestion', value: 'A different question to investigate.' });
+    expect(revised.planStamp).toBe(recorded.planStamp);
+    expect(hasPlan(revised)).toBe(true);
+    expect(hasReflection(revised)).toBe(false);
+    expect(exportPlan(revised)).not.toContain(question);
+    expect(exportPlan(revised)).not.toContain(revised.nextCycleQuestion);
+    const cleared = reducer(recorded, { type: 'text', field: 'nextCycleQuestion', value: '' });
+    expect(hasReflection(cleared)).toBe(false);
+    expect(hasReflection(reducer(cleared, { type: 'save-reflection' }))).toBe(true);
+  });
+
+  it.each(['evidenceCollector', 'collectionDate', 'reviewDate', 'nextCycleQuestion'] as const)('rejects malformed or oversized stored %s rather than defaulting it', field => {
+    for (const value of [null, false, [], 7, 'x'.repeat(4001)]) {
+      expect(() => parseStoredState({ ...completed(), [field]: value })).toThrow(/Invalid field/);
+    }
   });
 });

@@ -22,17 +22,31 @@ export interface PlanState {
   implementationCheck: string; learningCheck: string; accessParticipation: string; consent: boolean;
   planStamp: string | null; implementation: '' | 'yes' | 'partial' | 'no';
   reflection: string; reflectionStamp: string | null; review: boolean;
+  evidenceCollector: string; collectionDate: string; reviewDate: string; nextCycleQuestion: string;
 }
 export const initialState = (): PlanState => ({
   step: 0, selected: ['assessment'], interpretation: '', lens: 'wording', challenged: false,
   focus: '', confidence: 'moderate', focusStamp: null, agenda: [...initialAgenda],
   action: '', owner: 'Grade 4 teaching team', implementationCheck: '', learningCheck: '', accessParticipation: '',
   consent: false, planStamp: null, implementation: '', reflection: '', reflectionStamp: null, review: false,
+  evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '',
 });
 const focusSignature = (s: PlanState) => JSON.stringify([s.selected, s.interpretation, s.lens, s.challenged, s.focus, s.confidence]);
 // Empty optional notes retain the original signature so existing approvals remain valid.
-const planSignature = (s: PlanState) => JSON.stringify([s.focusStamp, s.agenda, s.action, s.owner, s.implementationCheck, s.learningCheck, s.consent, ...(s.accessParticipation ? [s.accessParticipation] : [])]);
-const reflectionSignature = (s: PlanState) => JSON.stringify([s.planStamp, s.implementation, s.reflection]);
+const planSignature = (s: PlanState) => JSON.stringify([s.focusStamp, s.agenda, s.action, s.owner, s.implementationCheck, s.learningCheck, s.consent, ...(s.accessParticipation ? [s.accessParticipation] : []),
+  ...(s.evidenceCollector || s.collectionDate || s.reviewDate ? [{ extension: 'plan-v3', evidenceCollector: s.evidenceCollector, collectionDate: s.collectionDate, reviewDate: s.reviewDate }] : []),
+]);
+const reflectionSignature = (s: PlanState) => JSON.stringify([s.planStamp, s.implementation, s.reflection,
+  ...(s.nextCycleQuestion ? [{ extension: 'reflection-v3', nextCycleQuestion: s.nextCycleQuestion }] : []),
+]);
+export function isCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+const isOptionalDate = (value: string) => value === '' || isCalendarDate(value);
 export function focusError(s: PlanState): string {
   if (s.interpretation.trim().length < 30) return 'Write an interpretation of at least 30 characters in your own words.';
   if (!s.challenged) return 'Review a thinking-partner challenge before confirming your focus.';
@@ -47,6 +61,9 @@ export function planError(s: PlanState): string {
   if (s.owner.trim().length < 3) return 'Name who will try the strategy (at least 3 characters).';
   if (s.implementationCheck.trim().length < 15) return 'Describe how you will check implementation (at least 15 characters).';
   if (s.learningCheck.trim().length < 15) return 'Describe how you will check student learning (at least 15 characters).';
+  if (!isOptionalDate(s.collectionDate)) return 'Choose a valid collection date.';
+  if (!isOptionalDate(s.reviewDate)) return 'Choose a valid review date.';
+  if (s.collectionDate && s.reviewDate && s.reviewDate < s.collectionDate) return 'Choose a review date on or after the collection date.';
   if (!s.consent) return 'Confirm that you reviewed and own this plan.';
   return '';
 }
@@ -58,7 +75,7 @@ export function reflectionError(s: PlanState): string {
   return '';
 }
 export const hasReflection = (s: PlanState) => !reflectionError(s) && s.reflectionStamp === reflectionSignature(s);
-type TextField = 'interpretation' | 'focus' | 'action' | 'owner' | 'implementationCheck' | 'learningCheck' | 'accessParticipation' | 'reflection';
+type TextField = 'interpretation' | 'focus' | 'action' | 'owner' | 'implementationCheck' | 'learningCheck' | 'accessParticipation' | 'reflection' | 'evidenceCollector' | 'collectionDate' | 'reviewDate' | 'nextCycleQuestion';
 export type Action =
   | { type: 'text'; field: TextField; value: string }
   | { type: 'evidence'; id: EvidenceId }
@@ -81,7 +98,7 @@ export function reducer(s: PlanState, action: Action): PlanState {
     case 'text': {
       if (s[action.field] === action.value) return s;
       const value = action.value.slice(0, 4000);
-      if (action.field === 'reflection') return { ...s, reflection: value, reflectionStamp: null };
+      if (action.field === 'reflection' || action.field === 'nextCycleQuestion') return { ...s, [action.field]: value, reflectionStamp: null };
       const next = action.field === 'interpretation' || action.field === 'focus' ? invalidateFocus(s) : invalidatePlan(s);
       return { ...next, [action.field]: value, challenged: action.field === 'interpretation' ? false : next.challenged };
     }
@@ -115,9 +132,15 @@ export function exportPlan(s: PlanState, labels = evidenceLabels): string {
     ...s.agenda.map((text, i) => `${minutes[i]} min · ${text}`), '',
     'Teaching action: ' + s.action, 'Owner: ' + s.owner,
     'Implementation check: ' + s.implementationCheck, 'Student learning check: ' + s.learningCheck,
+    ...(s.evidenceCollector.trim() || s.collectionDate || s.reviewDate ? ['', 'PLANNED · Evidence collection'] : []),
+    ...(s.evidenceCollector.trim() ? ['Evidence collector: ' + s.evidenceCollector] : []),
+    ...(s.collectionDate ? ['Planned collection date: ' + s.collectionDate] : []),
+    ...(s.reviewDate ? ['Planned review date: ' + s.reviewDate] : []),
+    ...(s.evidenceCollector.trim() || s.collectionDate || s.reviewDate ? ['These are plans, not evidence that collection or review occurred.'] : []),
     ...(s.accessParticipation.trim() ? ['Access & participation plan: ' + s.accessParticipation] : []),
     '', 'FOLLOW-UP', hasReflection(s) ? 'Implementation: ' + s.implementation : 'Implementation: Not yet recorded',
     hasReflection(s) ? 'Recorded reflection: ' + s.reflection : 'Reflection: Not yet recorded (draft edits are not included)',
+    ...(hasReflection(s) && s.nextCycleQuestion.trim() ? ['Question for the next PLC: ' + s.nextCycleQuestion] : []),
     '', 'Evidence does not establish causality. Observation notes describe one classroom on Sep 9.',
   ].join('\n');
 }
@@ -126,7 +149,7 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
   if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(value).length > MAX_DRAFT_LENGTH) throw new Error('Invalid draft');
   const source = value as Record<string, unknown>;
   // A missing optional field is an older cycle, while a present invalid value remains an error.
-  const input = Object.hasOwn(source, 'accessParticipation') ? source : { ...source, accessParticipation: '' };
+  const input: Record<string, unknown> = { accessParticipation: '', evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '', ...source };
   const base = initialState();
   for (const [key, expected] of Object.entries(base)) {
     const actual = input[key];
@@ -137,6 +160,8 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
   if (!Array.isArray(input.selected) || input.selected.length > 4 || !input.selected.includes('assessment') || new Set(input.selected).size !== input.selected.length || !input.selected.every(id => typeof id === 'string' && Object.hasOwn(evidenceLabels, id))) throw new Error('Invalid evidence');
   if (!Array.isArray(input.agenda) || input.agenda.length !== minutes.length || !input.agenda.every(text => typeof text === 'string' && text.length <= 4000)) throw new Error('Invalid agenda');
   if (![0, 1, 2, 3].includes(input.step as number) || !['wording', 'meaning', 'variation'].includes(input.lens as string) || !['tentative', 'moderate', 'strong'].includes(input.confidence as string) || !['', 'yes', 'partial', 'no'].includes(input.implementation as string)) throw new Error('Invalid choice');
+  // Date drafts are bounded strings, including incomplete input. Validate their
+  // calendar meaning only at plan approval so an edit can always be corrected.
   let state = Object.fromEntries(Object.keys(base).map(key => [key, input[key]])) as unknown as PlanState;
   const stale = Boolean((state.focusStamp && !hasFocus(state)) || (state.planStamp && !hasPlan(state)) || (state.reflectionStamp && !hasReflection(state)));
   if (!hasFocus(state)) state = { ...state, focusStamp: null, planStamp: null, consent: false, reflectionStamp: null, step: Math.min(state.step, 1) };

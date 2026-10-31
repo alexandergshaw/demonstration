@@ -6,14 +6,14 @@
 2. **Pilot target, 1 minute:** A single-grade math PLC coach, using fictional grade-four fraction equivalence results.
 3. **Evidence, 2 minutes:** Compare 89 correct answers with 46 adequate explanations, inspect illustrative student responses and the fictional original prompt/rubric, and qualify the older one-classroom observation.
 4. **Educator reasoning, 2 minutes:** Type an interpretation, request the scripted thinking challenge, inspect selected sources without leaving the draft, then confirm an instructional focus in the educator's own words.
-5. **Meeting and follow-up, 2 minutes:** Write participant directions in the agenda, add a teaching action and two follow-up checks, approve the plan, and open Meeting kit. Preview the activity handout, then inspect the missing context around the fictional follow-up comparison. Record what you can conclude and what evidence you need next.
-6. **Design judgment, 2 minutes:** Discuss tradeoffs, safeguards, rejected alternatives, and baseline-driven pilot evaluation.
+5. **Meeting and follow-up, 2 minutes:** Choose a teaching action and two follow-up checks before writing the agenda. Expand Activity 4's rehearsal helper to show how a teacher question receives feedback against the fraction task/rubric. Optionally name a collector and planned dates, approve, and open Meeting kit. Inspect the missing context around the fictional comparison, then record a reflection and a question for the next PLC.
+6. **Design judgment, 2 minutes:** Open Guide → About this demo → How we would test this. Explain the proposed comparison with the existing workflow, independent instructional review, total burden and adopt/revise/stop criteria. Download the separate research handout if useful; no results have been collected.
 
 ## Example inputs
 
 - Interpretation: “Many students selected an equivalent fraction correctly, but fewer could explain why. The wording may also influence that difference.”
-- Focus: “Help students justify fraction equivalence using visual models and peer explanations.”
-- Teaching action: “Teachers will use a partner explanation routine with fraction models in two upcoming lessons.”
+- Focus: “Response B describes a procedure without explaining equal amounts. Even if task wording contributed, I would explore questions about the same whole; two examples do not establish a class-wide pattern.”
+- Teaching action: “In the next lesson, teachers will ask students to explain how partitioning the same half into two equal parts changes the number of parts but preserves the amount, using a drawing or words.”
 - Implementation check: “Teacher check-in on whether the explanation routine was used in each class.”
 - Learning check: “Two comparable cool-down explanations scored with the same rubric.”
 

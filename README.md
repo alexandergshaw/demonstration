@@ -30,8 +30,8 @@ App tests cover the planning model, local repository, and approval-gated meeting
 
 1. Inspect the October 28 results and optionally select student responses or the older classroom observation.
 2. Write an interpretation, consider a scripted challenge, and confirm one instructional focus.
-3. Write facilitation and activity directions in the six-part, 50-minute agenda; specify an action, owner, and separate implementation and learning checks; then explicitly approve.
-4. Record implementation, inspect the fictional follow-up comparison and its missing context, then save a reflection. The text plan includes a current recorded reflection and those comparison limits; the HTML meeting kit remains the approved meeting materials.
+3. Specify a teaching action, owner, and separate implementation and learning checks. Optionally plan who will collect evidence and when to collect/review it, then write the six-part, 50-minute agenda and explicitly approve. Activity 4 offers a fraction-specific rehearsal structure.
+4. Record implementation, inspect the fictional follow-up comparison and its missing context, then save a reflection and optional question for the next PLC. The text plan includes the current recorded reflection and those comparison limits; the HTML meeting kit remains the approved meeting materials.
 
 Upstream changes revoke affected approvals and recorded reflection while preserving draft content. Each saved cycle keeps its own state. Duplicated cycles require fresh educator decisions.
 
@@ -57,7 +57,7 @@ Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, 
 
 **Reading** provides 100/125/150% text and expanded spacing, independently of PLC decisions. Keyboard and dialog focus, descriptive evidence controls, mobile labels and field instructions have been reviewed. Reduced-motion and forced-color rules are included; this is not an accessibility certification.
 
-Interpretation offers questions about strengths, access, language and missing perspectives. An optional **Access & participation plan** carries into the approved meeting materials, participant handout and follow-up. Editing it requires plan approval again. Existing saved cycles keep their approvals; database schema 1 is read without rewriting it, and the next successful edit writes schema 2 under the same storage key so older clients cannot silently discard the new notes.
+Interpretation offers questions about strengths, access, language and missing perspectives. An optional **Access & participation plan** carries into the approved meeting materials, participant handout and follow-up. Editing it requires plan approval again. Existing saved cycles keep their approvals; database schemas 1 and 2 are read without rewriting them, and the next successful edit writes schema 3 under the same storage key so older clients cannot silently discard the new notes.
 
 Learning progress records only reviewed/attempted topics and navigation preferences in a separate browser-local record. It is not a proficiency score or a personnel record. Corrupt, unsupported, denied or full storage does not silently overwrite an existing record; unsaved learning choices remain available for the current page session. No live tutor, external analytics, automatic translation or student uploads were added.
 
@@ -82,3 +82,11 @@ The self-hosted font files come from the official [IBM Plex repository](https://
 ## Brief re-audit
 
 The follow-up count is a fixed fictional illustration, independent of the chosen teaching action or reported implementation. Reflection now exposes the missing date, follow-up task, verified rubric, matched cohort, response coverage and implementation evidence, with the original task available as a baseline only. A higher count does not establish comparable learning progress. The same context travels with a recorded reflection in the text download; drafts and invalidated reflections are excluded. Review evidence is in `docs/brief-reaudit/`.
+
+## Instructional practice and evaluation
+
+The learning goal and task/rubric stay available through evidence, interpretation and meeting preparation. The existing focus prompt asks for evidence, an alternative and remaining uncertainty; the action prompt connects the next lesson to that goal. The optional Activity 4 helper supports a 15-minute prepare/rehearse/feedback/revise sequence using selected student work. It does not fill the agenda or certify instructional quality.
+
+Collection roles and dates are optional planned commitments, distinct from the fictional comparison. Incomplete date drafts save normally; approval checks valid calendar dates and review order. Editing these commitments requires plan approval again. The next-PLC question travels only with a current recorded reflection in the text export.
+
+**Guide → About this demo → How we would test this** describes a proposed 6–8-leader formative trial, comparison with the current workflow, independent curriculum review, total workload, implementation follow-up and adopt/revise/stop criteria. Its downloadable HTML is a separate printable research handout with blank notes, not collected findings. No study telemetry, live AI, routine library or linked evidence cycles are included.

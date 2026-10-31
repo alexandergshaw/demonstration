@@ -5,6 +5,17 @@ import { lessonContext, selectedSourceBlocks, taskBlocks } from '../lessonContex
 import { Modal } from './CycleManager';
 import { Icon } from './Icon';
 
+export function LearningGoal() {
+  return <section className="learning-goal-context" aria-label="Lesson learning goal">
+    <p className="caption">Learning goal · fictional lesson</p>
+    <p className="lesson-goal">{lessonContext.goal}</p>
+    <details className="task-context">
+      <summary>Inspect task & rubric</summary>
+      <div className="source-blocks">{taskBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}</div>
+    </details>
+  </section>;
+}
+
 export function TaskContext() {
   return <details className="task-context">
     <summary>Inspect the lesson, original prompt & scoring criteria</summary>

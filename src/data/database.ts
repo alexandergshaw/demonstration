@@ -14,7 +14,7 @@ export interface CycleRecord {
   id: string; title: string; createdAt: string; updatedAt: string; revision: number; state: PlanState;
 }
 interface Database {
-  version: 2; revision: number; activeCycleId: string; reference: ReferenceData; cycles: CycleRecord[];
+  version: 3; revision: number; activeCycleId: string; reference: ReferenceData; cycles: CycleRecord[];
 }
 export interface WorkspaceSnapshot extends Database { notice: string }
 const copy = <T,>(value: T): T => structuredClone(value);
@@ -36,8 +36,8 @@ function parseDatabase(raw: string): { database: Database; notice: string } {
     if (raw.length > MAX_DATABASE_LENGTH) throw new Error('Oversized database');
     const input: unknown = JSON.parse(raw);
     if (!isObject(input)) throw new Error('Invalid database');
-    if (input.version !== 1 && input.version !== 2) {
-      if (typeof input.version === 'number' && Number.isInteger(input.version) && input.version > 2) throw new DatabaseError('unsupported-version', 'These saved cycles use a newer version of Throughline. Your stored data has not been changed.');
+    if (input.version !== 1 && input.version !== 2 && input.version !== 3) {
+      if (typeof input.version === 'number' && Number.isInteger(input.version) && input.version > 3) throw new DatabaseError('unsupported-version', 'These saved cycles use a newer version of Throughline. Your stored data has not been changed.');
       throw new Error('Invalid version');
     }
     if (!isRevision(input.revision) || !isId(input.activeCycleId) || !Array.isArray(input.cycles) || input.cycles.length < 1 || input.cycles.length > MAX_CYCLES) throw new Error('Invalid database fields');
@@ -55,9 +55,9 @@ function parseDatabase(raw: string): { database: Database; notice: string } {
       return { id: value.id, title, createdAt: value.createdAt, updatedAt: value.updatedAt, revision: value.revision, state: parsed.state };
     });
     if (!ids.has(input.activeCycleId)) throw new Error('Missing active cycle');
-    // Read v1 without rewriting it. The next explicit mutation writes v2, which
-    // older clients already reject rather than silently dropping access notes.
-    return { database: { version: 2, revision: input.revision, activeCycleId: input.activeCycleId, reference, cycles }, notice: stale ? 'Saved decisions changed. Your drafts are available; review and approve them again.' : '' };
+    // Read old versions without rewriting. An explicit mutation writes v3,
+    // which older clients reject rather than silently dropping new fields.
+    return { database: { version: 3, revision: input.revision, activeCycleId: input.activeCycleId, reference, cycles }, notice: stale ? 'Saved decisions changed. Your drafts are available; review and approve them again.' : '' };
   } catch (error) {
     if (error instanceof DatabaseError && error.code === 'unsupported-version') throw error;
     throw new DatabaseError('corrupt-data', 'The saved workspace could not be read safely. Your stored data has not been changed. Retry or start a fresh demo.');
@@ -90,7 +90,7 @@ export function createLocalBackend(storageGetter: () => StorageLike, options: { 
   }
   function fresh(state = initialState()): Database {
     const id = idFor([]), time = timestamp();
-    return { version: 2, revision: 0, activeCycleId: id, reference: createReferenceData(), cycles: [{ id, title: 'Fraction equivalence · Cycle 1', createdAt: time, updatedAt: time, revision: 0, state }] };
+    return { version: 3, revision: 0, activeCycleId: id, reference: createReferenceData(), cycles: [{ id, title: 'Fraction equivalence · Cycle 1', createdAt: time, updatedAt: time, revision: 0, state }] };
   }
   function write(adapter: StorageLike, database: Database, notice = ''): WorkspaceSnapshot {
     const raw = JSON.stringify(database);
@@ -160,7 +160,8 @@ export function createLocalBackend(storageGetter: () => StorageLike, options: { 
         const source = cycleIn(database, id);
         if (database.cycles.length >= MAX_CYCLES) throw new DatabaseError('cycle-limit', `You can keep up to ${MAX_CYCLES} cycles. Delete an unused cycle first.`);
         const newCycleId = idFor(database.cycles), time = timestamp();
-        const state: PlanState = { ...copy(source.state), step: 0, challenged: false, focusStamp: null, planStamp: null, reflectionStamp: null, consent: false, implementation: '', reflection: '', review: true };
+        const state: PlanState = { ...copy(source.state), step: 0, challenged: false, focusStamp: null, planStamp: null, reflectionStamp: null, consent: false, implementation: '', reflection: '', review: true,
+          nextCycleQuestion: '', evidenceCollector: '', collectionDate: '', reviewDate: '' };
         database.cycles.push({ id: newCycleId, title: `${source.title.slice(0, 73).trimEnd()} (copy)`, createdAt: time, updatedAt: time, revision: 0, state }); database.activeCycleId = newCycleId;
       });
     },

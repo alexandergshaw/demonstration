@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { focusError, hasFocus, hasPlan, hasReflection, minutes, planError, reflectionError, type Action, type EvidenceId, type PlanState } from './model';
+import { focusError, hasFocus, hasPlan, hasReflection, isCalendarDate, minutes, planError, reflectionError, type Action, type EvidenceId, type PlanState } from './model';
 import { useWorkspace, type ReadyWorkspace, type WorkspaceController } from './useWorkspace';
 import { CycleManager, ConfirmationDialog, Modal } from './components/CycleManager';
 import { FieldErrorProvider, FieldError, TextArea, TextInput, useFieldError } from './components/Field';
 import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
-import { EvidenceInspector, TaskContext } from './components/EvidenceInspector';
+import { EvidenceInspector, LearningGoal } from './components/EvidenceInspector';
 import { MeetingKit } from './components/MeetingKit';
 import { agendaHeadings, agendaHints, exportMeetingNotes } from './meetingMaterials';
 import { followUpSourceBlocks, taskBlocks } from './lessonContext';
@@ -13,6 +13,8 @@ import { ReadingSettings, useReadingPreferences, type ReadingController } from '
 import { EquityLens, AccessParticipation } from './components/EquitySupport';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
+import { EvidenceCollection } from './components/EvidenceCollection';
+import { RehearsalGuide } from './components/RehearsalGuide';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -21,6 +23,16 @@ function useReference() {
   return reference;
 }
 type Dispatch = (action: Action) => void;
+function plannedCollection(state: PlanState): string {
+  return [state.evidenceCollector.trim() && `Collector: ${state.evidenceCollector}`, state.collectionDate && `Planned collection: ${state.collectionDate}`, state.reviewDate && `Planned PLC review: ${state.reviewDate}`].filter(Boolean).join('\n');
+}
+function focusField(id: string) {
+  const field = document.getElementById(id);
+  for (let parent = field?.parentElement; parent; parent = parent.parentElement) {
+    if (parent instanceof HTMLDetailsElement) parent.open = true;
+  }
+  field?.focus();
+}
 const stages: { label: string; short: string; detail: string }[] = [
   { label: 'Evidence', short: 'Evidence', detail: 'Inspect the sources' },
   { label: 'Interpretation', short: 'Interpret', detail: 'Choose a teaching focus' },
@@ -60,9 +72,9 @@ function Evidence({ state, dispatch }: { state: PlanState; dispatch: Dispatch })
   const [examples, setExamples] = useState(true), [classes, setClasses] = useState(false);
   const { workspace, assessment, responses, observation, classes: results } = useReference();
   return <>
+    <LearningGoal />
     <div className="evidence-heading"><div><h2>{workspace.unit}</h2><p className="source-meta">End-of-lesson cool-down <span>·</span> {assessment.total} students <span>·</span> {results.length} classes</p></div><span className="source-date">{assessment.date}</span></div>
     <AssessmentComparison assessment={assessment} />
-    <TaskContext />
     <div className="subsection-title"><div><h2>Student work</h2><p className="small muted">Two illustrative responses, not a representative sample.</p></div><button className="textlink" aria-expanded={examples} aria-controls="student-examples" onClick={() => setExamples(!examples)}>{examples ? 'Hide examples' : 'Show examples'}</button></div>
     {examples && <div className="student-work" id="student-examples">{responses.map(response => <article className={`work ${state.selected.includes(response.id) ? 'work-selected' : ''}`} key={response.id}>
       <div className="source-label"><span className="source-avatar" aria-hidden="true">{response.id === 'responseB' ? 'B' : 'C'}</span><strong>{response.label}</strong></div>
@@ -80,12 +92,13 @@ function Reasoning({ state: s, dispatch, submit }: { state: PlanState; dispatch:
   const { assessment, observation, challenges: lenses } = reference;
   const challengeError = useFieldError('challenge');
   return <>
+    <LearningGoal />
     <div className="summary evidence-recap"><Icon name="evidence" /><div><strong>Evidence in view</strong><p>{assessment.correct}/{assessment.total} students selected the correct fraction; {assessment.explanations}/{assessment.total} met the explanation rubric.</p><p className="caption">{assessment.date} · {s.selected.includes('observation') ? `Selected observation: ${observation.date}, ${observation.scope.toLowerCase()}, ${observation.age.toLowerCase()}.` : 'The older observation is not selected.'}</p></div></div>
     <EvidenceInspector state={s} reference={reference} showQuotes />
     <EquityLens />
     <TextArea id="interpretation" label="Your interpretation" hint="At least 30 characters. Separate what you observe from what might explain it." value={s.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })} placeholder="I notice… One possible explanation is… I still need to know…" />
     <section className="coachbox" aria-labelledby="challenge-title"><div className="coach-heading"><Icon name="reasoning" /><h2 id="challenge-title">Test your interpretation</h2><span className="pill">Scripted prompts</span></div><p className="small muted">Consider an alternative before choosing a focus. These are prewritten questions, not live AI.</p><div className="optionrow" role="group" aria-label="Challenge angle">{lenses.map(lens => <button key={lens.id} className={`option ${s.lens === lens.id ? 'selected' : ''}`} aria-pressed={s.lens === lens.id} onClick={() => dispatch({ type: 'lens', value: lens.id })}>{lens.label}</button>)}</div><div className="btnrow"><button id="challenge" className="btn secondary" disabled={s.interpretation.trim().length < 30} aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={() => dispatch({ type: 'challenge' })}>Challenge my interpretation</button>{s.interpretation.trim().length < 30 && <span className="caption">Write your interpretation first.</span>}</div><FieldError id="challenge" />{s.challenged && <div className="challenge-result" role="status"><strong>A question to consider</strong><p>{lenses.find(lens => lens.id === s.lens)?.prompt}</p><span className="caption">Consider the question, then choose or revise your focus.</span></div>}</section>
-    <TextArea id="focus" label="One instructional focus" hint="At least 25 characters. Name one teaching change to explore and explain how the challenge affected your choice." value={s.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })} placeholder="After considering the alternative, our focus is… because…" />
+    <TextArea id="focus" label="One instructional focus" hint="At least 25 characters. Name one teaching change to explore. Explain which evidence and alternative shaped your choice, and what remains uncertain." value={s.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })} placeholder="After considering the alternative, our focus is… because…" />
     <div className="grid2 confidence-row"><div><label className="field" htmlFor="confidence">Confidence in this interpretation</label><select id="confidence" value={s.confidence} onChange={event => dispatch({ type: 'confidence', value: event.target.value as PlanState['confidence'] })}><option value="tentative">Tentative · More evidence needed</option><option value="moderate">Moderate · Plausible, not proven</option><option value="strong">Strong · Supported, still open to revision</option></select></div><div className="authority"><Icon name="shield" /><p>Only you can confirm this focus. A thinking prompt offers questions, not approval.</p></div></div>
     <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 0 })}>Review evidence</button><button className="btn" onClick={() => submit('focus')}>Confirm instructional focus<Icon name="arrow" size={16} /></button></div>
   </>;
@@ -94,15 +107,17 @@ function Meeting({ state: s, dispatch, submit }: { state: PlanState; dispatch: D
   const reference = useReference();
   const consentError = useFieldError('consent', 'consent-hint');
   return <>
+    <LearningGoal />
     <div className="focus-summary"><div className="kicker"><Icon name="check" size={15} />Confirmed instructional focus</div><p>{s.focus}</p><button className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Revisit your reasoning</button></div>
     <EvidenceInspector state={s} reference={reference} />
-    <div className="subsection-title"><div><h2>Your meeting agenda & activities</h2><p className="small muted">Shape the directions for your team. After approval, these become presentation sections and a printable activity handout.</p></div><span className="pill"><Icon name="clock" size={14} />50 minutes</span></div>
-    <div className="agenda-list">{s.agenda.map((activity, i) => <div className="agenda" key={i}><span className="agenda-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="minute">{minutes[i]}<small>min</small></span><TextArea id={`agenda-${i}`} label={`Activity ${i + 1} · ${agendaHeadings[i]}`} hint={`Required · At least 5 characters. ${agendaHints[i]}`} value={activity} onChange={value => dispatch({ type: 'agenda', index: i, value })} /></div>)}</div>
     <div className="subsection-title section-start"><div><h2>Classroom action & follow-up</h2><p className="small muted">Be specific about what changes and how you will check it.</p></div></div>
-    <TextArea id="action" label="One concrete teaching action" hint="At least 25 characters. What will teachers try in their next lessons?" value={s.action} onChange={value => dispatch({ type: 'text', field: 'action', value })} placeholder="Teachers will try…" />
+    <TextArea id="action" label="One concrete teaching action" hint="At least 25 characters. What will teachers try in the next lesson, and how does it address this learning goal? Keep the explanation work with students." value={s.action} onChange={value => dispatch({ type: 'text', field: 'action', value })} placeholder="Teachers will try… to help students…" />
     <TextInput id="owner" label="Who will try the strategy?" hint="Required · At least 3 characters." value={s.owner} onChange={value => dispatch({ type: 'text', field: 'owner', value })} />
     <div className="grid2"><TextArea id="implementation-check" label="Check that teaching changed" hint="Implementation evidence · At least 15 characters" value={s.implementationCheck} onChange={value => dispatch({ type: 'text', field: 'implementationCheck', value })} placeholder="A teacher check-in, a lesson artifact, an observation…" /><TextArea id="learning-check" label="Check student learning" hint="Comparable learning evidence · At least 15 characters" value={s.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} placeholder="Comparable cool-downs, the same explanation rubric…" /></div>
     <AccessParticipation state={s} dispatch={dispatch} />
+    <EvidenceCollection state={s} dispatch={dispatch} />
+    <div className="subsection-title"><div><h2>Your meeting agenda & activities</h2><p className="small muted">Design the meeting around your teaching action. Your approved directions become presentation sections and a printable activity handout.</p></div><span className="pill"><Icon name="clock" size={14} />50 minutes</span></div>
+    <div className="agenda-list">{s.agenda.map((activity, i) => <div className="agenda" key={i}><span className="agenda-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="minute">{minutes[i]}<small>min</small></span><div className="agenda-writing"><TextArea id={`agenda-${i}`} label={`Activity ${i + 1} · ${agendaHeadings[i]}`} hint={`Required · At least 5 characters. ${agendaHints[i]}`} value={activity} onChange={value => dispatch({ type: 'agenda', index: i, value })} />{i === 3 && <RehearsalGuide state={s} reference={reference} />}</div></div>)}</div>
     <label className="approval"><input id="consent" type="checkbox" checked={s.consent} aria-invalid={consentError.invalid || undefined} aria-describedby={consentError.describedBy} onChange={event => dispatch({ type: 'consent', value: event.target.checked })} /><span><strong>I reviewed and own this plan.</strong><span id="consent-hint">These decisions reflect my team's judgment. Editing the plan will require approval again.</span></span></label><FieldError id="consent" />
     <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 1 })}>Revisit reasoning</button><button className="btn" onClick={() => submit('plan')}>Approve plan & continue<Icon name="arrow" size={16} /></button></div>
   </>;
@@ -114,6 +129,7 @@ function FollowUp({ state: s, dispatch, submit, download }: { state: PlanState; 
   const messages = { '': 'Choose an implementation status before interpreting the next learning evidence.', yes: 'Inspect subsequent work and implementation fidelity before evaluating the strategy.', partial: 'Record which classes used the routine and how. Aggregate results may conceal different experiences.', no: 'Start with implementation barriers. The agreed strategy has not yet been tested in classrooms.' };
   return <>
     <div className="summary"><div className="kicker"><Icon name="check" size={15} />Agreed teaching action</div><p>{s.action}</p><p className="small muted">Owner: {s.owner}</p><dl className="checks"><dt>Implementation check</dt><dd>{s.implementationCheck}</dd><dt>Learning check</dt><dd>{s.learningCheck}</dd>{s.accessParticipation.trim() && <><dt>Access & participation plan</dt><dd>{s.accessParticipation}</dd></>}</dl></div>
+    {plannedCollection(s) && <section className="collection-summary"><h2>Planned evidence collection</h2><p>{plannedCollection(s)}</p><p className="caption">These are your planned commitments. They do not date or verify the fictional comparison below.</p></section>}
     <fieldset className="implementation" aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy}><legend>Was the strategy used?</legend><div className="optionrow">{([['yes', 'Used as planned'], ['partial', 'Partially used'], ['no', 'Not yet used']] as const).map(([id, label]) => <label className={`option ${s.implementation === id ? 'selected' : ''}`} key={id}><input id={`implementation-${id}`} type="radio" name="implementation" value={id} checked={s.implementation === id} aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy} onChange={() => dispatch({ type: 'implementation', value: id })} />{label}</label>)}</div></fieldset><FieldError id="implementation-yes" />
     <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>Inspect the follow-up comparison</h2><span className="pill">Fictional illustration</span></div>
     <p className="caption">This fixed example stays the same for every plan and implementation choice.</p>
@@ -125,6 +141,7 @@ function FollowUp({ state: s, dispatch, submit, download }: { state: PlanState; 
     </div></details>
     <Notice tone="warning"><strong>Check comparability before drawing a conclusion.</strong> The follow-up task, scoring, cohort and missing responses are not supplied. A higher count does not establish learning progress or causality.</Notice>
     <TextArea id="reflection" label="Your follow-up interpretation" hint="At least 30 characters. What can you conclude, what remains unknown, and what should the PLC examine next?" value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })} placeholder="Given these limits, I can say… Before concluding, we need…" />
+    <TextArea id="next-cycle-question" label="Question for the next PLC" hint="Optional. Name one question to revisit. This is recorded with your reflection; it does not start a new evidence cycle." value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} placeholder="At our next PLC, what do we need to learn about…?" />
     {hasReflection(s) && <div role="status"><Notice tone="success"><strong>Reflection recorded.</strong> Your interpretation is linked to this plan in the Decision Thread. Download the text plan from Meeting kit to keep this reflection and its comparison context.</Notice></div>}
     <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 2 })}>Edit meeting</button><div className="button-group"><button className="btn secondary" onClick={download}><Icon name="book" size={16} />Open meeting kit</button><button className="btn" onClick={() => submit('reflection')}>{hasReflection(s) ? 'Reflection recorded' : 'Save reflection'}<Icon name="check" size={16} /></button></div></div>
   </>;
@@ -138,8 +155,8 @@ function DecisionThread({ state: s }: { state: PlanState }) {
     { label: 'Educator interpretation', value: focus ? s.interpretation : 'Awaiting your confirmation', done: focus },
     { label: 'Instructional focus', value: focus ? s.focus : 'Not yet confirmed', done: focus },
     { label: 'Classroom action', value: plan ? s.action : 'Awaiting plan approval', done: plan },
-    { label: 'Follow-up measures', value: plan ? `Implementation: ${s.implementationCheck}\nLearning: ${s.learningCheck}` : 'Not yet agreed', done: plan },
-    { label: 'Next-cycle reflection', value: reflection ? s.reflection : 'Not yet recorded', done: reflection },
+    { label: 'Follow-up measures', value: plan ? `Implementation: ${s.implementationCheck}\nLearning: ${s.learningCheck}${plannedCollection(s) ? `\n${plannedCollection(s)}` : ''}` : 'Not yet agreed', done: plan },
+    { label: 'Recorded reflection', value: reflection ? `${s.reflection}${s.nextCycleQuestion.trim() ? `\nQuestion for the next PLC: ${s.nextCycleQuestion}` : ''}` : 'Not yet recorded', done: reflection },
   ];
   const captured = items.filter(item => item.done).length;
   const next = !focus ? 'Interpret your evidence and confirm one instructional focus.' : !plan ? 'Shape the meeting around your focus, then review and approve the plan.' : !reflection ? 'Record what was implemented and what the next evidence suggests.' : 'Your decisions are connected. Export the plan or start another cycle.';
@@ -181,8 +198,10 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         : state.agenda.some(activity => activity.trim().length < 5) ? `agenda-${state.agenda.findIndex(activity => activity.trim().length < 5)}`
         : state.action.trim().length < 25 ? 'action' : state.owner.trim().length < 3 ? 'owner'
         : state.implementationCheck.trim().length < 15 ? 'implementation-check'
-        : state.learningCheck.trim().length < 15 ? 'learning-check' : 'consent';
-      setErrorField(field); setError(message); window.requestAnimationFrame(() => document.getElementById(field)?.focus()); return;
+        : state.learningCheck.trim().length < 15 ? 'learning-check'
+        : state.collectionDate && !isCalendarDate(state.collectionDate) ? 'collection-date'
+        : state.reviewDate && (!isCalendarDate(state.reviewDate) || (state.collectionDate && state.reviewDate < state.collectionDate)) ? 'review-date' : 'consent';
+      setErrorField(field); setError(message); window.requestAnimationFrame(() => focusField(field)); return;
     }
     act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
   };
@@ -213,7 +232,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         {workspace.operationError && <Notice tone="warning"><span role="alert">{workspace.operationError}</span><div className="button-group"><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div></Notice>}
         <div className="layout"><main id="workspace" className="main" tabIndex={-1}>
           {state.review && <div role="status"><Notice tone="warning"><strong>Review required.</strong> A source or decision changed. Your drafts are preserved; reconfirm the affected decisions.</Notice></div>}
-          {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => document.getElementById(errorField)?.focus()}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
+          {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => focusField(errorField)}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
           {state.step === 0 && <Evidence state={state} dispatch={act} />}
           {state.step === 1 && <Reasoning state={state} dispatch={act} submit={submit} />}
           {state.step === 2 && <Meeting state={state} dispatch={act} submit={submit} />}

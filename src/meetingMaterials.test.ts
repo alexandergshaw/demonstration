@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createReferenceData } from './data/seed';
 import { buildMeetingKit, exportMeetingHtml, exportMeetingNotes } from './meetingMaterials';
 import { followUpSourceBlocks, lessonContext, selectedSourceBlocks } from './lessonContext';
-import { hasPlan, hasReflection, initialState, reducer, type Action, type PlanState } from './model';
+import { hasPlan, hasReflection, initialState, parseStoredState, reducer, type Action, type PlanState } from './model';
 
 const reference = createReferenceData();
 const apply = (state: PlanState, ...actions: Action[]) => actions.reduce(reducer, state);
@@ -22,6 +22,79 @@ function approved(): PlanState {
 }
 
 describe('meeting materials preserve educator ownership', () => {
+  it('carries exact approved collection plans into materials without presenting them as collected evidence', () => {
+    const collector = 'Ms. Chen & team <script>not markup</script>';
+    const state = apply(approved(),
+      { type: 'text', field: 'evidenceCollector', value: collector },
+      { type: 'text', field: 'collectionDate', value: '2026-11-06' },
+      { type: 'text', field: 'reviewDate', value: '2026-11-09' },
+      { type: 'consent', value: true }, { type: 'confirm-plan' });
+    const pages = buildMeetingKit(state, reference);
+    for (const page of [pages[5], pages[7]]) {
+      const collection = page.blocks.find(block => block.heading === 'PLANNED · Evidence collection & review');
+      expect(collection?.text).toBe(`Who will collect: ${collector}\nPlanned collection date: 2026-11-06\nPlanned PLC review date: 2026-11-09\nThese are plans, not evidence that collection or review occurred.`);
+    }
+    const html = exportMeetingHtml(state, reference);
+    expect(html).toContain('Ms. Chen &amp; team &lt;script&gt;not markup&lt;/script&gt;');
+    expect(html).not.toContain('<script>');
+    const notes = exportMeetingNotes(state, reference);
+    for (const text of [collector, '2026-11-06', '2026-11-09']) expect(notes).toContain(text);
+    expect(notes).toMatch(/planned/i);
+    expect(html).not.toContain('Follow-up illustration: 56/120');
+    expect(() => buildMeetingKit(reducer(state, { type: 'text', field: 'collectionDate', value: '2026-11-07' }), reference)).toThrow(/Approve/);
+  });
+
+  it('keeps older approved plans usable without inventing optional collection details', () => {
+    const legacy: Partial<PlanState> = { ...approved() };
+    delete legacy.evidenceCollector; delete legacy.collectionDate; delete legacy.reviewDate; delete legacy.nextCycleQuestion;
+    const restored = parseStoredState(legacy).state;
+    expect(hasPlan(restored)).toBe(true);
+    const pages = buildMeetingKit(restored, reference);
+    expect(pages).toHaveLength(8);
+    expect(pages.some(page => page.blocks.some(block => block.heading === 'PLANNED · Evidence collection & review'))).toBe(false);
+    const notes = exportMeetingNotes(restored, reference);
+    expect(notes).not.toContain('Evidence collector:');
+    expect(notes).not.toContain('Planned collection date:');
+    expect(notes).not.toContain('Question for the next PLC:');
+  });
+
+  it('exports the next inquiry question only with the current recorded reflection and never in the initial meeting kit', () => {
+    const question = 'Which comparable student explanations would distinguish a task-reading issue from fraction reasoning?';
+    const draft = apply(approved(),
+      { type: 'implementation', value: 'partial' },
+      { type: 'text', field: 'reflection', value: 'The fixed comparison does not establish progress. We need comparable work and implementation evidence.' },
+      { type: 'text', field: 'nextCycleQuestion', value: question });
+    const recorded = apply(draft, { type: 'save-reflection' });
+    const edited = apply(recorded, { type: 'text', field: 'nextCycleQuestion', value: 'A revised question: which responses are still missing from the collection?' });
+    expect(exportMeetingNotes(recorded, reference)).toContain(question);
+    for (const state of [draft, edited]) {
+      expect(hasReflection(state)).toBe(false);
+      expect(exportMeetingNotes(state, reference)).not.toContain(state.nextCycleQuestion);
+      expect(exportMeetingNotes(state, reference)).not.toContain(state.reflection);
+    }
+    for (const state of [draft, recorded, edited]) {
+      expect(JSON.stringify(buildMeetingKit(state, reference))).not.toContain(state.nextCycleQuestion);
+      expect(exportMeetingHtml(state, reference)).not.toContain(state.nextCycleQuestion);
+      expect(exportMeetingHtml(state, reference)).not.toContain(state.reflection);
+    }
+  });
+
+  it('supports a task-specific rehearsal while retaining authored directions and leaving student reasoning blank', () => {
+    const state = approved(), pages = buildMeetingKit(state, reference), handout = pages[7];
+    expect(pages[3].title).toBe('Design & rehearse the teaching move');
+    expect(pages[3].blocks[0].text).toBe(state.agenda[3]);
+    expect(handout.blocks.some(block => block.text === state.agenda[3])).toBe(true);
+    const guide = handout.blocks.find(block => block.heading === 'Optional rehearsal guide · fraction equivalence')!;
+    expect(guide.text).toContain('selected student response or the original task');
+    expect(guide.text).toContain('equal amounts of the same whole');
+    expect(guide.text).toContain('beyond a doubling rule alone');
+    expect(guide.text).toContain('partitioning change the number of parts while preserving the amount');
+    expect(guide.text).toContain('hypothesis to test, not a claim about the student');
+    const notes = handout.blocks.find(block => block.heading === 'Optional rehearsal notes · complete together')!;
+    expect(notes.text).toBe('Selected student response or original task and what to examine:\n\nTeacher question to rehearse:\n\nAnticipated student reasoning:\n\nPeer feedback:\n\nRevised teacher question:\n\nWhat thinking will students still do themselves?\n\n');
+    expect(pages[6].blocks.some(block => block.text === lessonContext.prompt)).toBe(true);
+  });
+
   it('carries the current approved access plan into the teaching section, handout and exports with escaped HTML', () => {
     const note = 'Keep the fraction goal. Offer writing or drawing; ask whose voice is missing. <script>unsafe</script> & "quoted"';
     const state = apply(approved(), { type: 'text', field: 'accessParticipation', value: note }, { type: 'consent', value: true }, { type: 'confirm-plan' });

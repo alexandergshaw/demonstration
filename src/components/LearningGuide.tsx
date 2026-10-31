@@ -5,6 +5,7 @@ import {
   type LearningAction, type LearningView, type LessonId,
 } from '../learning';
 import { Modal } from './CycleManager';
+import { PilotEvaluation } from './PilotEvaluation';
 
 const browserStorage = () => window.localStorage;
 export function useLearningProgress() {
@@ -139,6 +140,7 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
       </section>}
 
       {view === 'about' && <section className="learning-section"><h3 ref={heading} tabIndex={-1} className="learning-heading">About this demonstration</h3>
+        <PilotEvaluation />
         {about ?? <p>Throughline is a fictional grade-four math PLC workbook. Evidence and thinking prompts are scripted. You write and approve your own decisions; no live AI creates the plan.</p>}</section>}
 
       <p className="learning-storage caption" role="status">{learning.message || 'Reviewed topics and practice attempts save only on this browser. They are separate from your planning decisions.'}</p>
