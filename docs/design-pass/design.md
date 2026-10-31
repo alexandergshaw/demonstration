@@ -1,0 +1,9 @@
+# Design direction
+
+Use a compact light application shell, restrained teal for meaningful state/action, and a coherent Inter/body/metadata scale. A bounded workflow rail may be used on desktop only while the central form retains at least600px at1280; collapse/reposition secondary context before starving the work. Mobile navigation and cycle actions must remain keyboard/touch usable. Bring metrics and source context into the first1280x720 viewport; remove repeated marketing-style introductions and redundant surface containers.
+
+Keep selected cycle and creation discoverable, with occasional actions in an accessible contextual disclosure and confirmed destructive operations. Retain the local-save state. Use a small Icon component for consistent SVG treatment and a reusable Field wrapper/context for stable labels/help/error associations, target-specific aria-invalid/describedby and focus targeting. Keep business transitions in the unchanged model/repository/hook; App may add only dirty beforeunload handling, explicit Reload error recovery and presentational navigation/error semantics.
+
+Stage buttons remain focusable when locked, explain prerequisites and do not dispatch unavailable transitions. The decision trail emphasizes captured decisions and the next missing step; previews are bounded, with real expansion of exact full text. Menus/modals have deliberate open/close/Escape/focus-return behavior. Measured contrast tokens replace overly pale essential text; preserved cautions, fictional-data and scripted-coaching disclosures remain legible.
+
+Actual independent visual audit: docs/design-pass/visual-audit.md SHA256 d89a10503bf5c92930fee09d68d96aa678beb64ce9bda429fd7a7a2796e57d06. Its official imagery supports hierarchy and compact grouping as design inferences, not copied brand assets. Root additionally documents official research and the verified Inter4.1 source/license. No packages or behavioral data layers change.

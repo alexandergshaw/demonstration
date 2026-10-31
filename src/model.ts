@@ -104,11 +104,11 @@ export function reducer(s: PlanState, action: Action): PlanState {
     case 'save-reflection': return reflectionError(s) ? s : { ...s, reflectionStamp: reflectionSignature(s) };
   }
 }
-export function exportPlan(s: PlanState): string {
+export function exportPlan(s: PlanState, labels = evidenceLabels): string {
   if (!hasPlan(s)) throw new Error('Approve the current plan before exporting.');
   return [
     'THROUGHLINE | PLC PLANNING PARTNER', 'Fictional demonstration · No real student data or live AI', '',
-    'Evidence: ' + s.selected.map(id => evidenceLabels[id]).join('; '),
+    'Evidence: ' + s.selected.map(id => labels[id]).join('; '),
     'Educator interpretation: ' + s.interpretation, 'Instructional focus: ' + s.focus,
     'Confidence: ' + s.confidence, '', '50-MINUTE MEETING AGENDA',
     ...s.agenda.map((text, i) => `${minutes[i]} min · ${text}`), '',
@@ -119,33 +119,40 @@ export function exportPlan(s: PlanState): string {
     '', 'Evidence does not establish causality. Observation notes describe one classroom on Sep 9.',
   ].join('\n');
 }
+// Shared trust boundary for legacy drafts and database cycle records.
+export function parseStoredState(value: unknown): { state: PlanState; stale: boolean } {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(value).length > MAX_DRAFT_LENGTH) throw new Error('Invalid draft');
+  const input = value as Record<string, unknown>;
+  const base = initialState();
+  for (const [key, expected] of Object.entries(base)) {
+    const actual = input[key];
+    if (expected === null) { if (actual !== null && typeof actual !== 'string') throw new Error('Invalid approval'); }
+    else if (Array.isArray(expected)) { if (!Array.isArray(actual)) throw new Error('Invalid list'); }
+    else if (typeof actual !== typeof expected || (typeof actual === 'string' && actual.length > 4000)) throw new Error('Invalid field');
+  }
+  if (!Array.isArray(input.selected) || input.selected.length > 4 || !input.selected.includes('assessment') || new Set(input.selected).size !== input.selected.length || !input.selected.every(id => typeof id === 'string' && Object.hasOwn(evidenceLabels, id))) throw new Error('Invalid evidence');
+  if (!Array.isArray(input.agenda) || input.agenda.length !== minutes.length || !input.agenda.every(text => typeof text === 'string' && text.length <= 4000)) throw new Error('Invalid agenda');
+  if (![0, 1, 2, 3].includes(input.step as number) || !['wording', 'meaning', 'variation'].includes(input.lens as string) || !['tentative', 'moderate', 'strong'].includes(input.confidence as string) || !['', 'yes', 'partial', 'no'].includes(input.implementation as string)) throw new Error('Invalid choice');
+  let state = Object.fromEntries(Object.keys(base).map(key => [key, input[key]])) as unknown as PlanState;
+  const stale = Boolean((state.focusStamp && !hasFocus(state)) || (state.planStamp && !hasPlan(state)) || (state.reflectionStamp && !hasReflection(state)));
+  if (!hasFocus(state)) state = { ...state, focusStamp: null, planStamp: null, consent: false, reflectionStamp: null, step: Math.min(state.step, 1) };
+  else if (!hasPlan(state)) state = { ...state, planStamp: null, reflectionStamp: null, step: Math.min(state.step, 2) };
+  else if (!hasReflection(state)) state = { ...state, reflectionStamp: null };
+  return { state: { ...state, review: state.review || stale }, stale };
+}
+export function parseDraft(raw: string): { state: PlanState; stale: boolean } {
+  if (raw.length > MAX_DRAFT_LENGTH) throw new Error('Oversized draft');
+  const parsed: unknown = JSON.parse(raw);
+  if (!parsed || typeof parsed !== 'object' || !('version' in parsed) || parsed.version !== 1 || !('state' in parsed)) throw new Error('Unknown draft version');
+  return parseStoredState(parsed.state);
+}
 export function decodeDraft(raw: string | null): { state: PlanState; notice: string } {
   if (!raw) return { state: initialState(), notice: '' };
   try {
-    if (raw.length > MAX_DRAFT_LENGTH) throw new Error('Oversized draft');
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || !('version' in parsed) || parsed.version !== 1 || !('state' in parsed)) throw new Error('Unknown draft version');
-    const input = parsed.state as Record<string, unknown>;
-    if (!input || typeof input !== 'object') throw new Error('Missing draft');
-    const base = initialState();
-    for (const [key, value] of Object.entries(base)) {
-      const actual = input[key];
-      if (value === null) { if (actual !== null && typeof actual !== 'string') throw new Error('Invalid approval'); }
-      else if (Array.isArray(value)) { if (!Array.isArray(actual)) throw new Error('Invalid list'); }
-      else if (typeof actual !== typeof value || (typeof actual === 'string' && actual.length > 4000)) throw new Error('Invalid field');
-    }
-    if (!Array.isArray(input.selected) || input.selected.length > 4 || !input.selected.includes('assessment') || new Set(input.selected).size !== input.selected.length || !input.selected.every(id => typeof id === 'string' && Object.hasOwn(evidenceLabels, id))) throw new Error('Invalid evidence');
-    if (!Array.isArray(input.agenda) || input.agenda.length !== minutes.length || !input.agenda.every(text => typeof text === 'string' && text.length <= 4000)) throw new Error('Invalid agenda');
-    if (![0, 1, 2, 3].includes(input.step as number) || !['wording', 'meaning', 'variation'].includes(input.lens as string) || !['tentative', 'moderate', 'strong'].includes(input.confidence as string) || !['', 'yes', 'partial', 'no'].includes(input.implementation as string)) throw new Error('Invalid choice');
-    let state = Object.fromEntries(Object.keys(base).map(key => [key, input[key]])) as unknown as PlanState;
-    const stale = Boolean((state.focusStamp && !hasFocus(state)) || (state.planStamp && !hasPlan(state)) || (state.reflectionStamp && !hasReflection(state)));
-    if (!hasFocus(state)) state = { ...state, focusStamp: null, planStamp: null, consent: false, reflectionStamp: null, step: Math.min(state.step, 1) };
-    else if (!hasPlan(state)) state = { ...state, planStamp: null, reflectionStamp: null, step: Math.min(state.step, 2) };
-    else if (!hasReflection(state)) state = { ...state, reflectionStamp: null };
-    return { state: { ...state, review: state.review || stale }, notice: stale ? 'Your draft was restored. Changed decisions need your approval again.' : 'Your saved draft was restored on this browser.' };
+    const { state, stale } = parseDraft(raw);
+    return { state, notice: stale ? 'Your draft was restored. Changed decisions need your approval again.' : 'Your saved draft was restored on this browser.' };
   } catch {
     return { state: initialState(), notice: 'The saved draft could not be read. A fresh demo is ready.' };
   }
 }
 export const encodeDraft = (state: PlanState) => JSON.stringify({ version: 1, state });
-

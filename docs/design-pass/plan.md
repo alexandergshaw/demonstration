@@ -1,0 +1,7 @@
+# Execution plan
+
+Record the actual independent baseline audits and concise scope/criteria/design/plan/test-design. UX adversary reviews host-authored planning; visual adversary independently reviews the UX-authored behavioral test design. Batch only actual hash-bound verdicts with truthful timing/provenance, serialized role/cap enforcement, and no invented worker execution. Then admit root's exact UI/source paths.
+
+Root implements the presentation/feedback change, records research and actual author checks, and updates README/DEPLOYMENT_STATUS before source freeze. Independent adversaries review the actual rendered result and exact source against C1–C7, bundling actionable findings. At most two substantive rounds per activity. Any business-source/test change requires a concrete independently accepted defect and new exact grant.
+
+After repairs, freeze source and execute one final registered app/loop/build set against the same whole candidate. Independent browser evidence covers the UI changes and retained educator lifecycle, with measured viewport/contrast/focus observations and clear attribution. Obtain independent verification/whole-change acceptance, then a separately checked local final report. Reconcile owned servers/tabs and operations. Only then may root deploy the clean result to the existing Vercel project and record actual deployment/hosted checks in docs/design-pass/deployment.md; local completion never implies hosted verification. No Git push.

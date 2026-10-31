@@ -1,0 +1,5 @@
+# Design-pass scope
+
+Redesign the existing Throughline React interface after a hard independent visual/UX critique and research of professional applications. Preserve all prior runs, the current uncommitted local backend and all business state behavior. This work is presentation, navigation, and accessible feedback: compact desktop/mobile shell, early useful evidence, restrained type/surfaces, compact cycle actions, readable decision history, explanatory locks and targeted validation.
+
+Root may edit App.tsx, styles.css, CycleManager.tsx, new Icon.tsx/Field.tsx, official Inter font/license assets, README.md and DEPLOYMENT_STATUS.md. Model, database, seed, useWorkspace, package files, existing151 tests and loop tools stay frozen unless an actual independently accepted defect receives a focused amendment. Do not add fake service features, backend dependencies or live AI. No Git push is authorized. Only a clean reviewed result may proceed to the existing Vercel deployment, with actual deployment evidence recorded separately from local completion.

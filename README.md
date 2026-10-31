@@ -1,17 +1,19 @@
 # Throughline | PLC Planning Partner
 
-A React and TypeScript implementation of the supplied Throughline design package. The four-stage workspace connects fictional evidence, educator reasoning, an editable PLC meeting, and follow-up reflection. All student data is fictional and the thinking-partner prompts are scripted. No account, backend, API key, or live AI connection is required.
+A React/TypeScript implementation of the supplied Throughline design package with a localStorage mock backend. The four-stage workspace connects fictional evidence, educator reasoning, an editable PLC meeting, and follow-up reflection. All student data is fictional; thinking-partner prompts are scripted. No account, API key, external database, or live AI connection is required.
 
 ## Run locally
 
-Use Node.js 22.14 or newer and npm.
+Use Node.js 22.14 or newer within the Node 22 release line, and npm.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Open the localhost URL printed by Vite. Drafts save in that browser. Reset demo clears the local draft after confirmation. Browser storage failures show a warning; export an approved plan to keep a text copy.
+Open the localhost URL printed by Vite. The app stores its reference data and named PLC cycles in this browser. You can create, rename, duplicate as draft, switch, and delete cycles. Reset cycle clears only the current plan; presenter tools include a confirmed reset of all cycles. Existing single-draft saves migrate automatically.
+
+If saving fails, your unsaved work remains visible and the app offers retry/reload controls. Data is local to the browser and site URL. Export an approved plan when you need a portable text copy.
 
 ## Check and build
 
@@ -22,7 +24,7 @@ npm run build
 npm run preview
 ```
 
-The app has 69 behavioral model tests. The restored manual loop has 85 passing tests and two platform-conditional skips on Windows. Production TypeScript/Vite compilation and the local production browser workflow were checked during implementation. See `docs/dev-loop/` for review evidence and the manual loop workflow. Runtime evidence is retained locally in the ignored `.agnostic-loop/throughline/` directory.
+App tests: 69 model cases plus 82 independent repository cases. The manual loop suite has 85 passing tests and two Windows symlink-capability skips. See `docs/dev-loop/local-backend/` for the current review records; original implementation records remain in `docs/dev-loop/`. Runtime receipts are retained locally under the ignored `.agnostic-loop/` directory.
 
 ## Workflow
 
@@ -31,20 +33,28 @@ The app has 69 behavioral model tests. The restored manual loop has 85 passing t
 3. Edit the six-part, 50-minute agenda; specify an action, owner, and separate implementation and learning checks; then explicitly approve.
 4. Record implementation, inspect fictional next-cycle evidence, save a reflection, and export the approved plan.
 
-Changing upstream evidence or decisions revokes affected approvals and recorded reflection while preserving the draft text. The Decision Thread and export only present currently approved or recorded work.
+Upstream changes revoke affected approvals and recorded reflection while preserving draft content. Each saved cycle keeps its own state. Duplicated cycles require fresh educator decisions.
 
-## Deploy with Vercel
+## Local backend and deployment
 
-Deployment is left to the repository owner. Use the **Vite** framework preset, `npm run build`, and output directory `dist`; the included `vercel.json` already supplies those settings. No environment variables are needed. This implementation has not been deployed or verified on Vercel.
+`src/data/database.ts` is the mock repository, `src/data/seed.ts` owns the read-only fictional reference tables, and `src/useWorkspace.ts` connects React to stored cycles. The versioned database validates inputs and uses optimistic revisions to reject stale updates. It is not an atomic multi-user service. Details, API examples, migration behavior, and limits are in `docs/LOCAL_BACKEND.md`.
 
-## Project contents
+Live app: **https://throughline-phi-six.vercel.app**. Vercel project `alexandergshaws-projects/throughline` is connected to this GitHub repository with production branch `main`. It uses Vite, Node 22, `npm ci`, `npm run build`, and `dist`. No application environment variables are needed. Each origin has its own browser-local data. See `docs/DEPLOYMENT_STATUS.md` for verification and deployment commands.
 
-- `src/App.tsx`, `src/styles.css`: accessible, responsive React workspace.
-- `src/model.ts`, `src/model.test.ts`: approval lifecycle, persistence recovery, export, and independent tests.
-- `tools/`: runnable manual provider-agnostic loop restored from the supplied archive.
-- `docs/dev-loop/`: scope, criteria, design, plan, reviews, and loop instructions.
-- `docs/INTERVIEW_GUIDE.md`, `docs/PRODUCT_DECISIONS.md`: presentation and product rationale.
-- `docs/DEPLOYMENT_STATUS.md`: current local verification and deployment status.
-- `figma/`: original SVG frames, screenshots, and handoff instructions; these are references, not a native cloud Figma document.
-- `public-prototype.html`, `docs/Assignment.pdf`: preserved original reference materials. The HTML reference is not part of Vite's production output.
+This repository includes the local backend, deployment configuration, and reviewed interface redesign. Vercel builds the production app from `main` on subsequent pushes. The original pre-backend checkpoint remains available at `ead2317da648daccfcdb1375925bc901c71344eb`.
 
+## Preserved reference materials
+
+`figma/` contains the original SVG frames, screenshots, and handoff notes. `docs/INTERVIEW_GUIDE.md` and `docs/PRODUCT_DECISIONS.md` explain the presentation and product rationale. The original `public-prototype.html` and `docs/Assignment.pdf` remain unchanged. The standalone HTML reference is not emitted into Vite's `dist` output.
+
+## Interface redesign
+
+The app includes a professional UI pass informed by official Linear, Notion, and Panorama product imagery. A compact workflow rail and cycle toolbar keep evidence prominent. Field-specific errors, explained stage locks, full-text decision readers, keyboard-safe dialogs, and responsive layouts preserve the existing planning model. Inter is bundled locally with its SIL Open Font License.
+
+Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, reset, and delete. **Guide** explains the fictional/scripted demonstration and contains presenter reset tools. Unsaved edits prompt before a browser refresh. On a stale workspace or failed operation, **Reload saved data** restores durable data after confirmation when needed.
+
+Design research and agnostic-loop review records are in `docs/design-pass/`. The exact post-redesign hosting receipt is recorded separately in `docs/design-pass/deployment.md` after local acceptance.
+
+## Repository delivery preference
+
+After completed repository changes pass the appropriate checks, commit and push the active branch unless the user explicitly asks to keep the work local.

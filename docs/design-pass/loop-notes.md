@@ -1,0 +1,9 @@
+# Design-pass host notes
+
+Active store: .agnostic-loop/design-pass/state-v2. Initial state/ retains the completed visual-audit record and was cancelled before planning/source work solely to exclude generated .env.local metadata. No secret contents were opened, changed or published. Original deadline and remaining assignment budget were preserved. .vercel, .env.local, runtime/build directories and audit docs are excluded from the app candidate; actual artifacts/reports remain separately hash-bound. All prior project runs remain untouched.
+
+The runtime helper imports unchanged repository loop tools. Exact task identities label both worker and context for this run; no per-artifact context refresh is implied. Actual related-artifact analysis may be imported in a batch with truthful provenance and serialized admissions. Deployment proof goes in excluded docs/design-pass/deployment.md after local acceptance; source docs must be frozen before final gates.
+
+Command prefix: node --experimental-strip-types --experimental-default-type=module --experimental-loader file:///C:/Users/alexa/OneDrive/Documents/Projects/demonstration/tools/resolve-ts-hook.ts .agnostic-loop/design-pass/host.ts
+
+Implementation review uses one formal UX checker per substantive round. Root also explicitly delegated a parallel visual peer report, docs/design-pass/visual-implementation-review.md. Its packets truthfully identify a parent-authorized peer review rather than a second engine lease; actual hash-bound peer findings feed the single UX verdict. This preserves the two-round implementation budget and does not pretend the peer ran under the serialized engine assignment. R1 found V1 typography and V2 the mobile Guide name; root repaired within an admitted UI-only assignment and R2 uses an exact new candidate. Runtime screenshot grants are excluded auxiliary evidence, not source mutation grants. Final gate execution remains separately admitted.

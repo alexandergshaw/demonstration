@@ -1,0 +1,12 @@
+.git/
+.vercel/
+.env*
+.agnostic-loop/
+node_modules/
+dist/
+coverage/
+docs/
+figma/
+tools/
+public-prototype.html
+README.md
