@@ -2,8 +2,8 @@ import { workedFollowUp as example } from '../workedFollowUp';
 import './WorkedFollowUp.css';
 
 /** Optional reference case, deliberately independent of the active PLC cycle. */
-export function WorkedFollowUp() {
-  return <details className="worked-follow-up">
+export function WorkedFollowUp({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+  return <details className="worked-follow-up" open={initiallyOpen || undefined}>
     <summary>Explore a complete worked example<span className="disclosure-meta">Separate fictional case</span></summary>
     <div className="worked-example-body">
       <p className="worked-example-boundary">{example.boundary}</p>

@@ -1,5 +1,7 @@
 # Core-decisions verification
 
+This is the earlier core-decisions checkpoint. The subsequent stage redesign and its current verification limits are recorded in [Four focused workspaces](FOCUSED_WORKSPACES_VERIFICATION.md).
+
 ## Story and boundaries
 
 The leader inspects a bounded set of sources, keeps evidence visible while writing a decision, chooses whether new results justify a revised plan, and examines what adequate follow-up evidence would support. This local prototype uses React → planning reducer → versioned localStorage repository → resolved source snapshot → on-screen context and exported meeting materials. No API, live AI or incoming student records are involved.

@@ -44,7 +44,7 @@ function NameDialog({ mode, initialName, error, onClose, onSave }: { mode: 'crea
     </form>
   </Modal>;
 }
-export function CycleManager({ workspace, onReset }: { workspace: ReadyWorkspace; onReset: () => void }) {
+export function CycleManager({ workspace, onReset, compact = false }: { workspace: ReadyWorkspace; onReset: () => void; compact?: boolean }) {
   const { snapshot, dirty, externalChanged } = workspace;
   const cycle = snapshot.cycles.find(value => value.id === snapshot.activeCycleId)!;
   const [mode, setMode] = useState<'create' | 'rename' | 'delete' | null>(null);
@@ -65,15 +65,16 @@ export function CycleManager({ workspace, onReset }: { workspace: ReadyWorkspace
   }, [menuOpen]);
   function closeMenu() { setMenuOpen(false); trigger.current?.focus(); }
   function open(next: typeof mode) { closeMenu(); workspace.clearOperationError(); setMode(next); }
-  return <section className="cycle-toolbar" aria-label="Saved PLC cycles">
+  return <section className={`cycle-toolbar ${compact ? 'cycle-compact' : ''}`} aria-label="Saved PLC cycles">
     <div className="cycle-selector"><label htmlFor="active-cycle">PLC cycle</label><select id="active-cycle" value={cycle.id} disabled={blocked} onChange={event => workspace.selectCycle(event.target.value)}>{snapshot.cycles.map(value => <option key={value.id} value={value.id}>{value.title}</option>)}</select></div>
     <span className="cycle-updated">{dirty ? 'Unsaved edits' : externalChanged ? 'Newer version available' : `Updated ${updated}`}</span>
     <div className="cycle-actions">
-      <button className="btn secondary compact" disabled={blocked || snapshot.cycles.length >= MAX_CYCLES} onClick={() => { workspace.clearOperationError(); setMode('create'); }}><Icon name="plus" size={16} />New cycle</button>
+      {!compact && <button className="btn secondary compact" disabled={blocked || snapshot.cycles.length >= MAX_CYCLES} onClick={() => { workspace.clearOperationError(); setMode('create'); }}><Icon name="plus" size={16} />New cycle</button>}
       <div className="cycle-menu" ref={menu}>
         <button ref={trigger} className="icon-button" aria-label="Cycle actions" aria-expanded={menuOpen} aria-controls={menuId} disabled={blocked} onClick={() => setMenuOpen(!menuOpen)}><Icon name="more" /></button>
         {menuOpen && <div className="cycle-popover" id={menuId} role="group" aria-label="Cycle actions">
           <div className="popover-caption">{snapshot.cycles.length} of {MAX_CYCLES} saved cycles</div>
+          {compact && <button disabled={snapshot.cycles.length >= MAX_CYCLES} onClick={() => open('create')}><Icon name="plus" size={16} />New cycle</button>}
           <button onClick={() => open('rename')}><Icon name="pencil" size={16} />Rename cycle</button>
           <button disabled={snapshot.cycles.length >= MAX_CYCLES} onClick={() => { closeMenu(); workspace.duplicateCycle(cycle.id); }}><Icon name="copy" size={16} />Duplicate as draft</button>
           <div className="popover-divider" />

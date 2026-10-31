@@ -39,23 +39,27 @@ export function useWorkspace() {
     window.addEventListener('storage', changed);
     return () => window.removeEventListener('storage', changed);
   }, [reload]);
-  function persist(state: PlanState): boolean {
+  function persist(state: PlanState, keepDraftOnFailure = true): boolean {
     const snapshot = current.current.snapshot;
     if (!snapshot) return false;
-    current.current = { snapshot, state }; setView(current.current);
+    // Typing stays visible after a failed save. Confirmation must wait for
+    // storage so a failed confirmation cannot close its review or claim success.
+    if (keepDraftOnFailure) { current.current = { snapshot, state }; setView(current.current); }
     try {
       if (externalRef.current) throw new Error('Another tab changed this workspace. Your edits are still here; reload the saved version before continuing.');
       adopt(backend.saveCycle(snapshot.activeCycleId, state, snapshot.revision)); return true;
     } catch (error) {
       if (error instanceof DatabaseError && error.code === 'conflict') { externalRef.current = true; setExternalChanged(true); }
-      dirtyRef.current = true; setDirty(true); setSaveError(message(error)); return false;
+      if (keepDraftOnFailure) { dirtyRef.current = true; setDirty(true); }
+      setSaveError(message(error)); return false;
     }
   }
   function dispatch(action: Action) {
     const state = current.current.state;
     if (!state) return false;
     const next = reducer(state, action);
-    return next !== state ? persist(next) : !dirtyRef.current && !externalRef.current;
+    const confirmation = action.type === 'confirm-focus' || action.type === 'confirm-plan' || action.type === 'save-reflection';
+    return next !== state ? persist(next, !confirmation) : !dirtyRef.current && !externalRef.current;
   }
   function command(operation: (snapshot: WorkspaceSnapshot) => WorkspaceSnapshot): boolean {
     const snapshot = current.current.snapshot;

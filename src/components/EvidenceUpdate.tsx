@@ -14,14 +14,12 @@ export function EvidenceUpdate({ state, base, dispatch, onRevise, error, saveErr
   const incoming = referenceForVersion(base, 'oct29');
   const updated = state.evidenceVersion === 'oct29';
   const available = state.updateAvailable && !updated;
+  if (!available) return null;
   return <section className={`evidence-update ${available && !state.updateReviewed ? 'update-pending' : ''}`} aria-label="Evidence snapshot">
     <div><p className="context-label">Evidence snapshot · {current.assessment.date}, 2026</p>
-      <p className="small">{updated ? 'This cycle uses the newer results. The source packet includes their coverage and comparison limits.' : available ? state.updateReviewed ? 'You kept this snapshot. Newer results remain available to compare.' : 'New fictional results are available. Your current decisions still use the saved snapshot.' : 'Your decisions stay attached to these dated sources.'}</p>
+      <p className="small">{state.updateReviewed ? 'You kept this snapshot. Newer results remain available to compare.' : 'New fictional results are available. Your current decisions still use the saved snapshot.'}</p>
     </div>
-    {!updated && <button className="btn secondary compact" onClick={() => {
-      if (!state.updateAvailable) dispatch({ type: 'simulate-evidence-update' });
-      setOpen(true);
-    }}>{available ? 'Compare new results' : 'Try a new-results update'}</button>}
+    <button className="btn secondary compact" onClick={() => setOpen(true)}>Compare new results</button>
     {open && <Modal title="Review the new results" onClose={() => setOpen(false)}>
       <p className="caption">Fictional update demonstration · No live data connection</p>
       <p className="update-intro">Compare what changed before deciding whether to revise. Newer work does not automatically replace the evidence behind your plan.</p>

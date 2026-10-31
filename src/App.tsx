@@ -1,24 +1,22 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { focusError, hasFocus, hasPlan, hasReflection, isCalendarDate, minutes, planError, reflectionError, type Action, type EvidenceId, type PlanState } from './model';
+import { focusError, hasFocus, hasPlan, hasReflection, isCalendarDate, planError, reflectionError, type Action } from './model';
 import { useWorkspace, type ReadyWorkspace, type WorkspaceController } from './useWorkspace';
 import { CycleManager, ConfirmationDialog, Modal } from './components/CycleManager';
-import { FieldErrorProvider, FieldError, TextArea, TextInput, useFieldError } from './components/Field';
+import { FieldErrorProvider } from './components/Field';
 import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
-import { EvidenceInspector, LearningGoal } from './components/EvidenceInspector';
 import { MeetingKit } from './components/MeetingKit';
-import { agendaHeadings, agendaHints, exportMeetingNotes } from './meetingMaterials';
-import { followUpSourceBlocks, incompleteFollowUpComparison, taskBlocks } from './lessonContext';
+import { exportMeetingNotes } from './meetingMaterials';
 import { ReadingSettings, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
-import { EquityLens, AccessParticipation } from './components/EquitySupport';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
-import { EvidenceCollection } from './components/EvidenceCollection';
-import { RehearsalGuide } from './components/RehearsalGuide';
-import { EvidenceDock } from './components/EvidenceDock';
 import { EvidenceUpdate } from './components/EvidenceUpdate';
-import { WorkedFollowUp } from './components/WorkedFollowUp';
-import { evidenceSnapshotDescription, referenceForVersion } from './data/evidenceSnapshots';
+import { referenceForVersion } from './data/evidenceSnapshots';
+import { EvidenceWorkspace } from './workspaces/EvidenceWorkspace';
+import { ReasoningWorkspace } from './workspaces/ReasoningWorkspace';
+import { PlanWorkspace } from './workspaces/PlanWorkspace';
+import { ReflectWorkspace } from './workspaces/ReflectWorkspace';
+import { DecisionHistory, FollowUpExamples } from './workspaces/WorkspaceReaders';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -26,10 +24,7 @@ function useReference() {
   if (!reference) throw new Error('Workspace references are not loaded');
   return reference;
 }
-type Dispatch = (action: Action) => void;
-function plannedCollection(state: PlanState): string {
-  return [state.evidenceCollector.trim() && `Collector: ${state.evidenceCollector}`, state.collectionDate && `Planned collection: ${state.collectionDate}`, state.reviewDate && `Planned PLC review: ${state.reviewDate}`].filter(Boolean).join('\n');
-}
+
 function focusField(id: string) {
   const field = document.getElementById(id);
   for (let parent = field?.parentElement; parent; parent = parent.parentElement) {
@@ -43,151 +38,17 @@ const stages: { label: string; short: string; detail: string }[] = [
   { label: 'Meeting plan', short: 'Plan', detail: 'Turn the focus into action' },
   { label: 'Reflection', short: 'Reflect', detail: 'Revisit the next evidence' },
 ];
-const titles = ['Read the student work', 'Choose a teaching focus', 'Prepare the PLC meeting', 'Review the next evidence'];
-const subtitles = ['Start with the task. Compare answers with explanations, then choose the work to discuss.', 'Form your interpretation, test an alternative, and choose one instructional focus.', 'Connect one teaching action to a clear agenda and meaningful follow-up.', 'Separate what was implemented from what students learned.'];
+const titles = ['What does the work show?', 'What is your interpretation?', 'Build the meeting around one move.', 'What can we decide now?'];
+const subtitles = ['Compare the results with the student work. Choose the evidence worth discussing.', 'Keep the evidence beside your reasoning. Make one decision at a time.', 'Prepare the conversation, then review the complete plan before approving it.', 'Start with what was tried. Name the evidence still needed for the next decision.'];
 function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?: 'info' | 'warning' | 'success' }) {
   return <div className={`notice ${tone}`}><Icon name={tone === 'success' ? 'check' : tone === 'warning' ? 'warning' : 'info'} size={18} /><div>{children}</div></div>;
-}
-function Metric({ label, value, total, detail, secondary = false }: { label: string; value: number; total: number; detail: string; secondary?: boolean }) {
-  return <div className={`stat ${secondary ? 'stat-secondary' : ''}`}><span className="stat-label">{label}</span><div className="statnum">{Math.round(value / total * 100)}<span>%</span></div><div className="metric-detail">{value} of {total} responses <span>· {detail}</span></div><div className="progress" aria-hidden="true"><span style={{ width: `${value / total * 100}%` }} /></div></div>;
-}
-function EvidenceButton({ id, state, dispatch }: { id: EvidenceId; state: PlanState; dispatch: Dispatch }) {
-  const selected = state.selected.includes(id);
-  const label = useReference().labels[id];
-  return <button className={`selectbtn ${selected ? 'chosen' : ''}`} aria-pressed={selected} aria-label={`${selected ? 'Added to thread' : id === 'observation' ? 'Add as context' : 'Add as evidence'} · ${label}`} onClick={() => dispatch({ type: 'evidence', id })}><Icon name={selected ? 'check' : 'plus'} size={15} />{selected ? 'Added to thread' : id === 'observation' ? 'Add as context' : 'Add as evidence'}</button>;
-}
-function AssessmentComparison({ assessment }: { assessment: ReferenceData['assessment'] }) {
-  const rows = [
-    { label: 'Correct fraction selected', value: assessment.correct, kind: 'answers' },
-    { label: 'Explanation meets rubric', value: assessment.explanations, kind: 'explanations' },
-  ];
-  const gap = Math.round((assessment.correct - assessment.explanations) / assessment.total * 100);
-  return <figure className="assessment-chart" aria-label="Answer and explanation counts on the same scale">
-    {rows.map(row => <div className={`chart-row ${row.kind}`} key={row.kind}>
-      <span className="chart-label">{row.label}</span>
-      <div className="chart-track" aria-hidden="true"><div className="chart-bar" style={{ width: `${row.value / assessment.total * 100}%` }} /></div>
-      <div className="chart-value"><strong>{row.value}</strong><span>/{assessment.total}</span><small>{Math.round(row.value / assessment.total * 100)}%</small></div>
-    </div>)}
-    <div className="chart-scale" aria-hidden="true">{[0, .25, .5, .75, 1].map(tick => <span key={tick}>{assessment.total * tick}</span>)}</div>
-    <figcaption className="chart-note"><strong>{gap} pp difference</strong><span>Between aggregate rates. These counts do not identify which students met both criteria.</span></figcaption>
-  </figure>;
-}
-function Evidence({ state, dispatch }: { state: PlanState; dispatch: Dispatch }) {
-  const [examples, setExamples] = useState(true), [classes, setClasses] = useState(false);
-  const { workspace, assessment, responses, observation, classes: results } = useReference();
-  return <>
-    <LearningGoal />
-    <div className="evidence-heading"><div><h2>{workspace.unit}</h2><p className="source-meta">End-of-lesson cool-down <span>·</span> {assessment.total} students <span>·</span> {results.length} classes</p></div><span className="source-date">{assessment.date}</span></div>
-    <AssessmentComparison assessment={assessment} />
-    <p className="snapshot-provenance caption">{evidenceSnapshotDescription(state.evidenceVersion)}</p>
-    <div className="subsection-title"><div><h2>Student work</h2><p className="small muted">Two illustrative responses, not a representative sample.</p></div><button className="textlink" aria-expanded={examples} aria-controls="student-examples" onClick={() => setExamples(!examples)}>{examples ? 'Hide examples' : 'Show examples'}</button></div>
-    {examples && <div className="student-work" id="student-examples">{responses.map(response => <article className={`work ${state.selected.includes(response.id) ? 'work-selected' : ''}`} key={response.id}>
-      <div className="source-label"><span className="source-avatar" aria-hidden="true">{response.id === 'responseB' ? 'B' : 'C'}</span><strong>{response.label}</strong></div>
-      <div className="work-body"><blockquote>“{response.quote}”</blockquote><details className="response-interpretation support-disclosure"><summary>Consider a possible interpretation</summary><p>{response.interpretation}</p></details><div className="work-meta"><span className="source-category">Student work · {assessment.date}</span><div className="evidence-action"><EvidenceButton id={response.id} state={state} dispatch={dispatch} /></div></div></div>
-    </article>)}</div>}
-    <div className="class-disclosure"><div><h3>Across-class variation</h3><p>Compare responses, not teacher performance.</p></div><button className="selectbtn" aria-expanded={classes} aria-controls="class-results" onClick={() => setClasses(!classes)}>{classes ? 'Hide class results' : 'View class results'}<Icon name="chevron" size={15} /></button></div>
-    {classes && <div className="class-results" id="class-results"><table><caption>{assessment.date} · Fictional responses by class</caption><thead><tr><th scope="col">Class</th><th scope="col">Correct fraction</th><th scope="col">Adequate explanation</th></tr></thead><tbody>{results.map(result => <tr key={result.id}><th scope="row">{result.label}</th><td>{result.correct}/{result.total}<div className="mini-bar" aria-hidden="true"><i style={{ width: `${result.correct / result.total * 100}%` }} /></div></td><td>{result.explanations}/{result.total}<div className="mini-bar" aria-hidden="true"><i className="two" style={{ width: `${result.explanations / result.total * 100}%` }} /></div></td></tr>)}</tbody></table><p className="caption">Task conditions and missing context may explain variation. These totals do not measure teacher effectiveness.</p></div>}
-    <section className="historical-context" aria-labelledby="historical-context-title"><div className="section-heading"><h2 id="historical-context-title">Historical context</h2><p>An older observation to consider alongside the current student work.</p></div><article className="observation"><div className="observation-stamp"><span>Observation</span><strong>{observation.date}</strong></div><div className="observation-copy"><div className="workheader"><h3>Classroom notes</h3><span className="pill amber">{observation.age}</span></div><p className="caption">{observation.scope}</p><blockquote>“{observation.quote}”</blockquote><p className="caution-text">{observation.caution}</p><EvidenceButton id={observation.id} state={state} dispatch={dispatch} /></div></article>
-    <p className="evidence-caution"><Icon name="info" size={16} /><span>A single observation cannot establish causality. Keep source dates and scope in view.</span></p></section>
-    <div className="section-footer"><span className="caption">{state.selected.length} {state.selected.length === 1 ? 'source' : 'sources'} in your decision thread</span><button className="btn" onClick={() => dispatch({ type: 'go', step: 1 })}>Continue to interpretation<Icon name="arrow" size={16} /></button></div>
-  </>;
-}
-function Reasoning({ state: s, dispatch, submit }: { state: PlanState; dispatch: Dispatch; submit: (kind: 'focus' | 'plan' | 'reflection') => void }) {
-  const reference = useReference();
-  const { assessment, observation, challenges: lenses } = reference;
-  const challengeError = useFieldError('challenge');
-  return <>
-    <LearningGoal />
-    <section className="reference-context" aria-labelledby="reasoning-evidence-title"><h2 id="reasoning-evidence-title">Evidence for this decision</h2><p><strong>{assessment.correct}/{assessment.total}</strong> selected the correct fraction; <strong>{assessment.explanations}/{assessment.total}</strong> met the explanation rubric.</p><p className="caption">{assessment.date} · {s.selected.includes('observation') ? `Selected observation: ${observation.date}, ${observation.scope.toLowerCase()}, ${observation.age.toLowerCase()}.` : 'The older observation is not selected.'}</p><EvidenceInspector state={s} reference={reference} showQuotes /></section>
-    <section className="workflow-section" aria-labelledby="interpretation-label">
-    <TextArea id="interpretation" heading label="Interpret the evidence" requirement="At least 30 characters" hint="Separate what you observe from what might explain it." value={s.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })} placeholder="I notice… One possible explanation is… I still need to know…" />
-    <EquityLens />
-    </section>
-    <section className="coachbox" aria-labelledby="challenge-title"><div className="coach-heading"><Icon name="reasoning" /><h2 id="challenge-title">Test an alternative</h2><span className="pill">Scripted prompts</span></div><p className="small muted">Consider an alternative before choosing a focus. These are prewritten questions, not live AI.</p><div className="optionrow" role="group" aria-label="Challenge angle">{lenses.map(lens => <button key={lens.id} className={`option ${s.lens === lens.id ? 'selected' : ''}`} aria-pressed={s.lens === lens.id} onClick={() => dispatch({ type: 'lens', value: lens.id })}>{lens.label}</button>)}</div><div className="btnrow"><button id="challenge" className="btn secondary" disabled={s.interpretation.trim().length < 30} aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={() => dispatch({ type: 'challenge' })}>Challenge my interpretation</button>{s.interpretation.trim().length < 30 && <span className="caption">Write your interpretation first.</span>}</div><FieldError id="challenge" />{s.challenged && <div className="challenge-result" role="status"><strong>A question to consider</strong><p>{lenses.find(lens => lens.id === s.lens)?.prompt}</p><span className="caption">Consider the question, then choose or revise your focus.</span></div>}</section>
-    <section className="workflow-section" aria-labelledby="focus-label">
-    <TextArea id="focus" heading label="Choose your instructional focus" requirement="At least 25 characters" hint="Name one teaching change to explore. Explain which evidence and alternative shaped your choice, and what remains uncertain." value={s.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })} placeholder="After considering the alternative, our focus is… because…" />
-    <div className="grid2 confidence-row"><div><label className="field" htmlFor="confidence">Confidence in this interpretation</label><select id="confidence" value={s.confidence} onChange={event => dispatch({ type: 'confidence', value: event.target.value as PlanState['confidence'] })}><option value="tentative">Tentative · More evidence needed</option><option value="moderate">Moderate · Plausible, not proven</option><option value="strong">Strong · Supported, still open to revision</option></select></div><div className="authority"><Icon name="shield" /><p>Only you can confirm this focus. A thinking prompt offers questions, not approval.</p></div></div>
-    </section>
-    <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 0 })}>Review evidence</button><button className="btn" onClick={() => submit('focus')}>Confirm instructional focus<Icon name="arrow" size={16} /></button></div>
-  </>;
-}
-function Meeting({ state: s, dispatch, submit }: { state: PlanState; dispatch: Dispatch; submit: (kind: 'focus' | 'plan' | 'reflection') => void }) {
-  const reference = useReference();
-  const consentError = useFieldError('consent', 'consent-hint');
-  return <>
-    <LearningGoal />
-    <section className="reference-context confirmed-context" aria-labelledby="confirmed-focus-title"><h2 id="confirmed-focus-title">Confirmed instructional focus</h2><p className="confirmed-focus">{s.focus}</p><button className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Revisit your reasoning</button><EvidenceInspector state={s} reference={reference} /></section>
-    <section className="workflow-section" aria-labelledby="action-label">
-    <TextArea id="action" heading label="Choose the teaching action" requirement="At least 25 characters" hint="What will teachers try in the next lesson, and how does it address this learning goal? Keep the explanation work with students." value={s.action} onChange={value => dispatch({ type: 'text', field: 'action', value })} placeholder="Teachers will try… to help students…" />
-    <TextInput id="owner" label="Who will try the strategy?" requirement="At least 3 characters" hint="Name the team or role responsible for trying the action." value={s.owner} onChange={value => dispatch({ type: 'text', field: 'owner', value })} />
-    </section>
-    <section className="workflow-section" aria-labelledby="follow-up-plan-title">
-    <div className="section-heading"><h2 id="follow-up-plan-title">Plan the evidence & participation</h2><p>Separate a change in teaching from a change in student learning.</p></div>
-    <div className="grid2"><TextArea id="implementation-check" label="Check that teaching changed" requirement="At least 15 characters" hint="Implementation evidence" value={s.implementationCheck} onChange={value => dispatch({ type: 'text', field: 'implementationCheck', value })} placeholder="A teacher check-in, a lesson artifact, an observation…" /><TextArea id="learning-check" label="Check student learning" requirement="At least 15 characters" hint="What comparable work would lead you to keep or revise the teaching move?" value={s.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} placeholder="Comparable cool-downs, the same explanation rubric…" /></div>
-    <div className="optional-support" aria-label="Optional planning details">
-    <AccessParticipation state={s} dispatch={dispatch} />
-    <EvidenceCollection state={s} dispatch={dispatch} />
-    </div></section>
-    <section className="workflow-section" aria-labelledby="agenda-title">
-    <div className="subsection-title"><div><h2 id="agenda-title">Shape the meeting agenda</h2><p className="small muted">Your approved directions become presentation sections and a printable activity handout.</p></div><span className="pill"><Icon name="clock" size={14} />50 minutes</span></div>
-    <div className="agenda-list">{s.agenda.map((activity, i) => <div className="agenda" key={i}><span className="agenda-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="minute">{minutes[i]}<small>min</small></span><div className="agenda-writing"><TextArea id={`agenda-${i}`} label={`Activity ${i + 1} · ${agendaHeadings[i]}`} requirement="At least 5 characters" hint={agendaHints[i]} value={activity} onChange={value => dispatch({ type: 'agenda', index: i, value })} />{i === 3 && <RehearsalGuide state={s} reference={reference} />}</div></div>)}</div>
-    </section>
-    <label className="approval"><input id="consent" type="checkbox" checked={s.consent} aria-invalid={consentError.invalid || undefined} aria-describedby={consentError.describedBy} onChange={event => dispatch({ type: 'consent', value: event.target.checked })} /><span><strong>I reviewed and own this plan.</strong><span id="consent-hint">These decisions reflect my team's judgment. Editing the plan will require approval again.</span></span></label><FieldError id="consent" />
-    <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 1 })}>Revisit reasoning</button><button className="btn" onClick={() => submit('plan')}>Approve plan & continue<Icon name="arrow" size={16} /></button></div>
-  </>;
-}
-function FollowUp({ state: s, dispatch, submit, download }: { state: PlanState; dispatch: Dispatch; submit: (kind: 'focus' | 'plan' | 'reflection') => void; download: () => void }) {
-  const assessment = incompleteFollowUpComparison;
-  const statusError = useFieldError('implementation-yes');
-  const messages = { '': 'Choose an implementation status before interpreting the next learning evidence.', yes: 'Inspect subsequent work and implementation fidelity before evaluating the strategy.', partial: 'Record which classes used the routine and how. Aggregate results may conceal different experiences.', no: 'Start with implementation barriers. The agreed strategy has not yet been tested in classrooms.' };
-  return <>
-    <div className="summary"><div className="kicker"><Icon name="check" size={15} />Agreed teaching action</div><p>{s.action}</p><p className="small muted">Owner: {s.owner}</p><dl className="checks"><dt>Implementation check</dt><dd>{s.implementationCheck}</dd><dt>Learning check</dt><dd>{s.learningCheck}</dd>{s.accessParticipation.trim() && <><dt>Access & participation plan</dt><dd>{s.accessParticipation}</dd></>}</dl></div>
-    {plannedCollection(s) && <section className="collection-summary"><h2>Planned evidence collection</h2><p>{plannedCollection(s)}</p><p className="caption">These are your planned commitments. They do not date or verify the fictional comparison below.</p></section>}
-    <fieldset className="implementation" aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy}><legend>Was the strategy used?</legend><div className="optionrow">{([['yes', 'Used as planned'], ['partial', 'Partially used'], ['no', 'Not yet used']] as const).map(([id, label]) => <label className={`option ${s.implementation === id ? 'selected' : ''}`} key={id}><input id={`implementation-${id}`} type="radio" name="implementation" value={id} checked={s.implementation === id} aria-invalid={statusError.invalid || undefined} aria-describedby={statusError.describedBy} onChange={() => dispatch({ type: 'implementation', value: id })} />{label}</label>)}</div></fieldset><FieldError id="implementation-yes" />
-    <Notice>{messages[s.implementation]}</Notice><div className="subsection-title section-start"><h2>Practice reading incomplete evidence</h2><span className="pill">Fictional illustration</span></div>
-    <p className="caption">Separate Oct 28 case · This incomplete comparison stays the same for every plan and evidence snapshot. It is not a result of your teaching action.</p>
-    <div className="metrics grid2"><Metric label="Initial adequate explanations" value={assessment.explanations} total={assessment.total} detail={assessment.date} /><Metric label="Unverified follow-up illustration" value={assessment.followUp} total={assessment.total} detail="Date not supplied" secondary /></div>
-    <details className="task-context"><summary>Inspect follow-up context & initial task</summary><div className="source-blocks">
-      {followUpSourceBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
-      <p className="caption">Initial reference only. These are not verified follow-up materials.</p>
-      {taskBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
-    </div></details>
-    <Notice tone="warning"><strong>Check comparability before drawing a conclusion.</strong> The follow-up task, scoring, cohort and missing responses are not supplied. A higher count does not establish learning progress or causality.</Notice>
-    <WorkedFollowUp />
-    <section className="workflow-section" aria-labelledby="reflection-label">
-    <TextArea id="reflection" heading label="Interpret the follow-up" requirement="At least 30 characters" hint="What can you conclude, what remains unknown, and what should the PLC examine next?" value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })} placeholder="Given these limits, I can say… Before concluding, we need…" />
-    <TextArea id="next-cycle-question" label="Question for the next PLC" requirement="Optional" hint="Name one question to revisit. This is recorded with your reflection; it does not start a new evidence cycle." value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} placeholder="At our next PLC, what do we need to learn about…?" />
-    </section>
-    {hasReflection(s) && <div role="status"><Notice tone="success"><strong>Reflection recorded.</strong> Your interpretation is linked to this plan in the Decision Thread. Download the text plan from Meeting kit to keep this reflection and its comparison context.</Notice></div>}
-    <div className="section-footer"><button className="btn secondary" onClick={() => dispatch({ type: 'go', step: 2 })}>Edit meeting</button><div className="button-group"><button className="btn secondary" onClick={download}><Icon name="book" size={16} />Open meeting kit</button><button className="btn" onClick={() => submit('reflection')}>{hasReflection(s) ? 'Reflection recorded' : 'Save reflection'}<Icon name="check" size={16} /></button></div></div>
-  </>;
-}
-function DecisionThread({ state: s }: { state: PlanState }) {
-  const { labels } = useReference();
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const focus = hasFocus(s), plan = hasPlan(s), reflection = hasReflection(s);
-  const items = [
-    { label: 'Evidence selected', value: s.selected.map(id => labels[id]).join('\n'), done: true },
-    { label: 'Educator interpretation', value: focus ? s.interpretation : 'Awaiting your confirmation', done: focus },
-    { label: 'Instructional focus', value: focus ? s.focus : 'Not yet confirmed', done: focus },
-    { label: 'Classroom action', value: plan ? s.action : 'Awaiting plan approval', done: plan },
-    { label: 'Follow-up measures', value: plan ? `Implementation: ${s.implementationCheck}\nLearning: ${s.learningCheck}${plannedCollection(s) ? `\n${plannedCollection(s)}` : ''}` : 'Not yet agreed', done: plan },
-    { label: 'Recorded reflection', value: reflection ? `${s.reflection}${s.nextCycleQuestion.trim() ? `\nQuestion for the next PLC: ${s.nextCycleQuestion}` : ''}` : 'Not yet recorded', done: reflection },
-  ];
-  const captured = items.filter(item => item.done).length;
-  const next = !focus ? 'Interpret your evidence and confirm one instructional focus.' : !plan ? 'Shape the meeting around your focus, then review and approve the plan.' : !reflection ? 'Record what was implemented and what the next evidence suggests.' : 'Your decisions are connected. Export the plan or start another cycle.';
-  return <aside className="decision-sidebar" aria-label="Decision Thread">
-    <section className="thread"><div className="thread-heading"><h2>Decision Thread</h2><span className="thread-count" aria-label={`${captured} of 6 items captured`}>{captured}/6</span></div>
-      <div className="next-step"><span className="kicker">{reflection ? 'Cycle captured' : 'Up next'}</span><p>{next}</p></div>
-      <ol className="thread-list">{items.map((item, i) => <li className={`threaditem ${item.done ? 'captured' : 'empty'}`} key={item.label}><span className="thread-number" aria-hidden="true">{item.done ? <Icon name="check" size={12} /> : i + 1}</span><div className="thread-content"><h3>{item.label}</h3>{item.done ? <p>{item.value.length > 150 ? `${item.value.slice(0, 150)}…` : item.value}</p> : <span className="thread-pending">Pending</span>}{item.done && item.value.length > 150 && <button className="textlink" onClick={() => setExpanded(i)} aria-label={`Read full ${item.label.toLowerCase()}`}>Read full decision<Icon name="chevron" size={13} /></button>}</div></li>)}</ol>
-    </section>
-    {expanded !== null && items[expanded].done && <Modal title={items[expanded].label} onClose={() => setExpanded(null)}><p className="full-decision">{items[expanded].value}</p><div className="modal-actions"><button className="btn secondary" data-autofocus onClick={() => setExpanded(null)}>Close</button></div></Modal>}
-  </aside>;
 }
 function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; reading: ReadingController; learning: LearningController }) {
   const { state, snapshot, notice, setNotice, saveError } = workspace;
   const reference = useReference();
   const [error, setError] = useState(''), [errorField, setErrorField] = useState('');
+  const [errorAttempt, setErrorAttempt] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false), [examplesOpen, setExamplesOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false), [reloadOpen, setReloadOpen] = useState(false), [freshOpen, setFreshOpen] = useState(false), [guideOpen, setGuideOpen] = useState(false);
   const [lockNotice, setLockNotice] = useState('');
   const [guideEntry, setGuideEntry] = useState<{ view: 'home' | 'walkthrough'; step?: number }>({ view: 'home' });
@@ -206,7 +67,8 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); return workspace.dispatch(action); };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
   const requestReload = () => workspace.dirty ? setReloadOpen(true) : reloadSaved();
-  const submit = (kind: 'focus' | 'plan' | 'reflection') => {
+  const clearError = () => { setError(''); setErrorField(''); };
+  const submit = (kind: 'focus' | 'plan' | 'reflection'): boolean => {
     const message = kind === 'focus' ? focusError(state) : kind === 'plan' ? planError(state) : reflectionError(state);
     if (message) {
       const field = kind === 'focus'
@@ -218,18 +80,18 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         : state.learningCheck.trim().length < 15 ? 'learning-check'
         : state.collectionDate && !isCalendarDate(state.collectionDate) ? 'collection-date'
         : state.reviewDate && (!isCalendarDate(state.reviewDate) || (state.collectionDate && state.reviewDate < state.collectionDate)) ? 'review-date' : 'consent';
-      setErrorField(field); setError(message); window.requestAnimationFrame(() => focusField(field)); return;
+      setErrorField(field); setError(message); setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(field)); return false;
     }
-    act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
+    return act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
   };
   const download = () => {
     try { const url = URL.createObjectURL(new Blob([exportMeetingNotes(state, reference)], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Throughline_PLC_Meeting_Plan.txt'; document.body.append(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
     catch (caught) { setErrorField(''); setError(caught instanceof Error ? caught.message : 'The plan could not be exported. Please try again.'); window.requestAnimationFrame(() => errorBox.current?.focus()); }
   };
-  const savedLabel = workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
+  const savedLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
-    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><div className="topbar-context"><span>PLC workbook</span><strong>{snapshot.reference.workspace.name}</strong></div><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><span className="demo-badge">Fictional demo</span><ReadingSettings reading={reading} /><button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}><Icon name="info" size={16} /><span>Guide</span></button></div></header>
+    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)} /><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><button className="guide-button" onClick={() => setHistoryOpen(true)}>Decisions</button><ReadingSettings reading={reading} /><button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}><span>Guide</span></button></div></header>
     <div className="app-shell"><div className="workflow-rail">
       <nav className="path" aria-label="Planning stages">{stages.map((stage, i) => {
         const locked = (i === 2 && !focus) || (i === 3 && !plan);
@@ -239,34 +101,34 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       })}</nav>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
-      <CycleManager workspace={workspace} onReset={() => setResetOpen(true)} />
       <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>
-        {state.step === 0 && !learning.progress.welcomeDismissed && <section className="learning-invitation" aria-label="Getting started"><div><h2>New to this workbook?</h2><p>Explore the workflow, practice with fictional evidence, or look up a term. You choose where to start.</p></div><div className="button-group"><button className="btn secondary compact" onClick={() => openGuide()}>Explore the guide</button><button className="textlink" onClick={() => learning.dispatch({ type: 'dismissWelcome' })}>Dismiss introduction</button></div></section>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
         {workspace.externalChanged && !saveError && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>Another tab changed this workspace. Reload to see its saved cycles.</span><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div>}
         {workspace.operationError && <Notice tone="warning"><span role="alert">{workspace.operationError}</span><div className="button-group"><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div></Notice>}
         <EvidenceUpdate state={state} base={snapshot.reference} dispatch={act} onRevise={workspace.reviseWithLatest} error={workspace.operationError} saveError={saveError} onRetrySave={workspace.retrySave} />
-        <div className={`layout ${state.step === 1 || state.step === 2 ? 'with-evidence-dock' : ''}`}><main id="workspace" className="main" tabIndex={-1}>
+        <main id="workspace" className="main focused-workspace" tabIndex={-1}>
           {state.review && <div role="status"><Notice tone="warning"><strong>Review required.</strong> A source or decision changed. Your drafts are preserved; reconfirm the affected decisions.</Notice></div>}
-          {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => focusField(errorField)}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
-          {state.step === 0 && <Evidence state={state} dispatch={act} />}
-          {state.step === 1 && <Reasoning state={state} dispatch={act} submit={submit} />}
-          {state.step === 2 && <Meeting state={state} dispatch={act} submit={submit} />}
-          {state.step === 3 && <FollowUp state={state} dispatch={act} submit={submit} download={() => setKitOpen(true)} />}
-        </main><div className="workspace-sidebar">{state.step === 1 || state.step === 2 ? <><EvidenceDock state={state} reference={reference} /><details className="thread-disclosure"><summary>Review the Decision Thread</summary><DecisionThread state={state} /></details></> : <DecisionThread state={state} />}</div></div>
-        <footer className="footnote"><span>Throughline / PLC planning workbook</span><span>{savedLabel}</span></footer>
+          {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => { setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(errorField)); }}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
+          {state.step === 0 && <EvidenceWorkspace state={state} reference={reference} dispatch={act} />}
+          {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
+          {state.step === 2 && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} />}
+          {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} />}
+        </main>
+        <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>
       </div>
     </div></div>
     {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} downloadNotes={download} />}
+    {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty} onClose={() => setHistoryOpen(false)} />}
+    {examplesOpen && <FollowUpExamples onClose={() => setExamplesOpen(false)} />}
     {resetOpen && <ConfirmationDialog title="Reset this cycle?" confirmLabel="Reset cycle" error={workspace.operationError} onClose={() => setResetOpen(false)} onConfirm={() => { if (workspace.resetCycle(snapshot.activeCycleId)) { setResetOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } }}><p>This clears this cycle's draft, approvals, and reflection. Other saved cycles stay unchanged.</p></ConfirmationDialog>}
     {reloadOpen && <ConfirmationDialog title="Reload saved data?" confirmLabel="Reload saved data" error={workspace.saveError || workspace.operationError} onClose={() => setReloadOpen(false)} onConfirm={reloadSaved}><p>This replaces unsaved edits on this page with the latest saved workspace. Copy any work you want to keep before continuing.</p></ConfirmationDialog>}
     {freshOpen && <ConfirmationDialog title="Start a fresh demo?" confirmLabel="Reset all cycles" error={workspace.operationError} onClose={() => setFreshOpen(false)} onConfirm={() => { if (workspace.resetDatabase()) setFreshOpen(false); }}><p>This removes all saved PLC cycles from this browser and starts one fresh cycle.</p></ConfirmationDialog>}
     {guideOpen && <LearningGuide learning={learning} currentStep={state.step} canEnter={canEnterStage}
       onNavigate={step => { if (!canEnterStage(step)) return; setGuideOpen(false); act({ type: 'go', step }); window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }); }}
-      onClose={() => setGuideOpen(false)} initialView={guideEntry.view} initialStep={guideEntry.step}
-      about={<><section className="pilot-notes"><h4>Who this pilot serves</h4><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h4>Assumptions to test</h4><p>Aim to prepare an evidence-grounded plan within 20 minutes for a 50-minute meeting; this target has not been validated with educators. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Keep selected evidence beside your writing, or use View evidence on a smaller screen without leaving your draft. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice></>} presenterTools={<details className="guide-reset support-disclosure"><summary>Presenter tools</summary><p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></details>} />}
+      onClose={() => setGuideOpen(false)} onOpenExamples={() => { setGuideOpen(false); setExamplesOpen(true); }} initialView={guideEntry.view} initialStep={guideEntry.step}
+      about={<><section className="pilot-notes"><h4>Who this pilot serves</h4><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h4>Assumptions to test</h4><p>Aim to prepare an evidence-grounded plan within 20 minutes for a 50-minute meeting; this target has not been validated with educators. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Keep selected evidence beside your writing, or use View evidence on a smaller screen without leaving your draft. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice></>} presenterTools={<details className="guide-reset support-disclosure"><summary>Presenter tools</summary><p>Show how a new snapshot is reviewed without replacing an existing plan.</p>{state.evidenceVersion === 'oct28' && <button className="btn secondary" onClick={() => { if (act({ type: 'simulate-evidence-update' })) setGuideOpen(false); }}>Simulate new results</button>}{saveError && <p role="alert">{saveError}</p>}<p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></details>} />}
 
   </FieldErrorProvider>;
 }

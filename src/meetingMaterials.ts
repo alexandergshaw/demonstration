@@ -1,7 +1,7 @@
 import { exportPlan, hasPlan, hasReflection, minutes, type PlanState } from './model';
 import type { ReferenceData } from './data/seed';
 import { evidenceSnapshotDescription, referenceForVersion } from './data/evidenceSnapshots';
-import { followUpSourceBlocks, selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
+import { selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
 
 export const agendaHeadings = ['Connect to the goal', 'Examine student work', 'Test the interpretation', 'Design & rehearse the teaching move', 'Plan implementation', 'Choose the next evidence'];
 export const agendaHints = [
@@ -62,7 +62,7 @@ export function exportMeetingNotes(state: PlanState, reference: ReferenceData): 
   const plan = exportPlan(state, reference.labels);
   const sources = [{ heading: 'Evidence snapshot used for this plan', text: evidenceSnapshotDescription(state.evidenceVersion) }, ...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)];
   const recordedContext = hasReflection(state)
-    ? '\n\nRECORDED FOLLOW-UP COMPARISON CONTEXT\n\n' + followUpSourceBlocks().map(block => block.heading + '\n' + block.text).join('\n\n')
+    ? '\n\nFOLLOW-UP EVIDENCE STATUS\n\nNo collected follow-up dataset is attached to this cycle. Implementation is leader-reported; planned checks and dates do not establish that collection occurred. Worked examples in the Guide are separate fictional cases, not outcomes of this plan. Obtain dated student work, its task and rubric, response coverage, and implementation records before judging the effect of the teaching move.'
     : '';
   return plan + '\n\nSOURCE PACKET\n\n' + sources.map(block => block.heading + '\n' + block.text).join('\n\n') + recordedContext;
 }

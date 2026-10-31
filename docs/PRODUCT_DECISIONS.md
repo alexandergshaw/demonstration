@@ -1,77 +1,88 @@
 # Throughline product decisions
 
-**Purpose:** An educator-owned AI planning partner for a fictional grade-four math PLC. This is an interview concept, not a production or district-tested product.
+**Purpose:** An educator-owned planning partner for a fictional grade-four math PLC. This is an interview concept, not a production or district-tested product. The thinking-partner questions are scripted.
 
-| Decision | Rejected approach | Reason |
+## Workspace design
+
+The interface gives each stage a distinct working composition while keeping one cycle, one evidence version and the same approval model. A compact header holds the cycle selector, save state, Decisions, Reading and Guide. Decision history opens on demand; it does not compete with the current task in a permanent sidebar. Help is available from the header and each stage without a required welcome flow.
+
+| Stage | Primary work | Supporting information |
 | --- | --- | --- |
-| Selected source excerpts, an on-demand source reader and Decision Thread | Chat-first scrollback | Educators need to inspect sources while interpreting results |
-| Educator's interpretation before AI challenge | AI-authored diagnosis | Supports the brief's “do with, never do for” instruction |
-| Selected evidence plus sample responses | Exhaustive dashboard | Targets a 20-minute preparation window while retaining source inspection |
-| Observation date and scope shown | Treat observations as current proof | Observations happen approximately quarterly |
-| One grade in pilot | Full multi-grade analysis | Proves the complete workflow first |
-| Reapproval after edits | Silent reuse of approved plan | Maintains clear educator ownership |
-| Separate implementation and learning checks | Single achievement score | Avoids conflating teaching changes with student outcomes |
+| Evidence | Compare two measures beside original student responses and select work | By-class counts and task/source details replace the comparison within its area; the historical observation opens separately |
+| Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; a dialog provides the source on smaller screens; earlier writing has summary/Edit controls |
+| Plan | One teaching move and owner, a six-part outline, and one selected activity editor | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval |
+| Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
 
-## Fictional evidence
+This organization addresses scrolling and visual overload through stable source access and progressive disclosure. There is no live conversation or generated-chart runtime. The design demonstrates how a workflow can keep evidence and authored decisions available without relying on chat scrollback.
 
-- October 28 assessment: 120 responses, 89 selected the correct fraction; 46 met the explanation rubric.
-- September 9 observation: one classroom; not a causal explanation for October results.
-- Follow-up demonstration: a fixed fictional 56/120 adequate explanations. The follow-up task/date, scoring, matched cohort, response coverage and observed implementation evidence are not supplied, so comparable progress is unverified.
+## Decision principles
 
-## Pilot hypotheses
+| Decision | Alternative considered | Reason |
+| --- | --- | --- |
+| Leader-authored interpretation before acknowledging a scripted question | An AI-authored diagnosis | Preserves the brief's “do with, never do for” instruction |
+| Two comparable measures with inspectable work and class detail | An exhaustive dashboard | Supports the 20-minute preparation target while retaining source inspection |
+| Dates, scope and evidence version travel with the plan | A single undifferentiated evidence feed | Quarterly observations cannot become current proof when daily results change |
+| One concrete teaching move with separate implementation and learning checks | A single achievement indicator | Makes the action testable without conflating implementation and student outcomes |
+| Complete draft preview, ownership confirmation and reapproval after edits | Approval without a consolidated review | Makes the decision being approved inspectable |
+| An explicit unavailable-evidence state in Reflect | Example results presented alongside the active plan | Prevents invented follow-up from becoming evidence for a leader's action |
+| One grade in the pilot | Full multi-grade analysis | Keeps the complete instructional cycle narrow enough to test |
 
-Compare preparation time, educator ability to explain decisions, evidence traceability, whether a strategy was implemented, and whether comparable student responses improve. Set baselines with educators before establishing numerical success thresholds.
+## Evidence amount and provenance
 
-## Outside the initial scope
+The October 28 fixture contains 120 responses: 89 correct fraction selections and 46 adequate explanations. They are separate aggregate scores, not linked student-level records. Two student responses illustrate possible reasoning without establishing prevalence. The learning goal, original fraction prompt and scoring criteria are explicit prototype assumptions; they were not supplied district curriculum.
 
-Multi-grade comparisons, real student record integrations, production security, large dashboards, AI-authored slides or instructional conclusions. Privacy, role permissions, evidence validity, and accessibility require real district validation.
+The Evidence workspace starts with the aggregate comparison and original work. Leaders can inspect class counts, task, rubric and source limitations when those details matter. Interpret keeps one source beside writing; Plan provides the confirmed focus and source packet through **View focus & sources**. Suggested diagnoses do not precede the original student responses.
 
-## Research-informed access and learning
+The September 9 observation covers one classroom. Its date and caution remain visible even when its quotation is collapsed. Selecting it adds historical context; it does not establish current teaching practice across the grade.
 
-The October 31 accessibility/equity and onboarding passes use public Leading Educators positions as evidence for product hypotheses, with W3C/WAI, CAST and professional-learning guidance supplying complementary design principles. They do not represent a feature list approved by LE. Full source matrices, assumptions, alternatives and acceptance records are in `accessibility-equity/` and `onboarding/`.
+## Fresh and stale sources
 
-Reading preferences improve access to the workbook without revising a cycle. The optional access/participation plan connects consideration of strengths, language and missing perspectives to an educator-authored action and meeting materials. No student identity is inferred from a quotation, no subgroup data is invented, and no score certifies equity. A backward-compatible database migration protects this new text from older app clients.
+A cycle uses a fixed dated evidence version. **Guide → About this demo → Presenter tools → Simulate new results** exposes a fictional October 29 collection for comparison. The leader can keep the current snapshot or create a revised draft. The original cycle and approvals survive. A revision retains authored writing for reconsideration, resets selected student work because the samples differ, and clears approvals and recorded follow-up.
 
-Onboarding combines navigation guidance with practice in the judgments this task requires. The walkthrough is optional, replayable and available directly from each step; the practice cases explain aggregate overlap, observation date/scope and distinct implementation/learning checks. A glossary supports unfamiliar terms. Learning metadata is local and separate from instructional approvals. Reviewing content means engagement with the guide, not demonstrated proficiency. Explicit navigation back into the workbook still obeys its existing stage gates.
+The newer collection has 116 of 120 expected responses, with four students absent, and repeats the same task and rubric. The coverage and practice-effect limits remain explicit in the source packet. Newer results do not turn the September observation into current evidence. This is a demonstration of update handling, with no live integration.
 
-The next validation step is observation with educators across data/AI comfort and access needs: can they locate sources, explain uncertainty, author a facilitation activity and return after an interruption? Completion counts and untested time-saving claims are insufficient evidence of impact. Full assistive-technology testing, multilingual localization and individual accommodations require further co-design and review.
+## Educator ownership and instructional work
 
-## Requirements repair
+Interpretation follows three local steps: Notice, Test an alternative and Choose a focus. The scripted question is visible as a question to consider; the educator explicitly acknowledges it. Editing the interpretation or changing the question angle revokes that acknowledgement through the existing model. Earlier writing stays editable, and the educator confirms the focus in their own words.
 
-The pilot serves a single-grade math PLC leader examining student work, including leaders who want guided steps for data or AI. It targets preparation within 20 minutes for a 50-minute meeting; that target has not been validated with educators.
+Plan begins with one concrete teaching move and owner. The six fixed activities total 50 minutes. Selecting an outline item opens its facilitation directions rather than presenting six large editors simultaneously. Activity 4 includes optional prepare/rehearse/feedback/revise support grounded in the selected work and fraction rubric, plus access/participation notes. The support does not fill the agenda or certify instructional quality.
 
-The lesson context, original fraction prompt and scoring criteria are explicit prototype assumptions. They were not supplied by the district or the assignment. They clarify the fictional aggregate counts without inventing matched student records. The sample responses are illustrative, not representative. The source reader returns the leader to the same draft and focus; selected source labels remain visible during interpretation, with full quotations in an adjacent disclosure. The subsequent core-decisions pass adds a persistent selected-source view beside drafting and a compact evidence view on smaller screens.
+Implementation and student-learning checks remain separate. Optional collector and dates live with the learning check; incomplete date drafts can save, while approval checks valid dates and review order. Planned commitments do not establish that teaching, collection or review occurred.
 
-The six existing agenda fields now support multiline facilitation directions. After the educator approves the plan, Throughline assembles six presentation sections, a complete selected-source packet and an evidence-to-action activity handout. Directions, focus, teaching action and checks come from the approved plan; fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. The downloaded HTML works offline and can be printed or saved as PDF through the browser. Editing any plan field revokes access until reapproval. Existing saved plans and the versioned local database remain compatible.
+**Review meeting plan** gathers the confirmed focus, teaching move, six activities, checks, selected sources and optional commitments into one preview. Edit controls return to the relevant authoring area. The ownership checkbox and approval action stay in that review. Edits retain the existing invalidation rules; they do not silently reuse an earlier approval.
 
-The default activity no longer selects a partner-discussion strategy before the leader has reasoned from the evidence. Existing cycles retain their own wording. Multi-grade analysis, configurable meeting durations, lesson-planning-first workflows and real curriculum integrations remain deliberate deferrals.
+## Reflection and worked cases
 
-## Follow-up evidence limits
+Reflect displays the agreed teaching move and asks whether it was used as planned, partially used or not yet used. These are leader reports. The active cycle has no collected follow-up dataset, and the interface says so. **Review what to collect** exposes planned checks and commitments. The main writing task asks what can be concluded and what to check next; an optional next-PLC question remains part of the recorded reflection rather than automatically starting a linked cycle.
 
-The next-count illustration stays the same for every plan and implementation choice. It is neither a forecast nor an observed outcome of the educator's action. Rather than inventing a subsequent task or cohort, the comparison disclosure identifies the missing context and keeps the original task/rubric available as an initial reference only. This demonstrates how a leader can withhold a conclusion and name the evidence needed next.
+Worked examples are separate from this cycle. **Reflect → Explore a worked example** and **Guide → Explore worked examples** open a dialog with two cases. Documented follow-up includes a specific routine, implementation records, dated tasks, shared scoring criteria, matched coverage and a qualified keep/revise decision. Missing evidence uses the fixed 46/120 → 56/120 illustration to demonstrate withholding judgment when task, date, scoring, cohort, coverage and implementation evidence are unknown. Neither case is a forecast or a result attached to the active plan.
 
-Saving a reflection records the educator's own interpretation and reported implementation status. The text plan serves as a cycle record and includes that reflection's comparison limits only while the reflection remains current. Editing reflection/status removes the recorded follow-up from export until it is saved again; editing upstream decisions retains the existing reapproval requirements. The HTML meeting kit and participant handout remain preimplementation meeting materials and do not present the illustrative future result as an observed outcome.
+Saving a reflection records the educator's text and self-reported implementation. A text export includes that reflection only while current, with explicit no-dataset and planned-check limits. It does not append the unrelated example as the cycle's outcome. Editing reflection/status removes the recorded follow-up from export until recorded again; upstream edits retain existing reapproval requirements.
 
-## Instructional-practice review
+## Meeting materials
 
-Public work from [Leading Educators' MathAI Impact Network](https://leadingeducators.org/partnership/mathai-impact-network/), [instructional decision-making guidance](https://leadingeducators.org/blog/strengthening-instructional-decision-making-and-practice-for-the-age-of-ai/) and [rural educator co-design](https://leadingeducators.org/blog/how-rural-educators-are-co-designing-the-future-of-ai-in-learning/) informed a narrower implementation: strengthen the instructional work within this existing sequence and make its value testable. These are design inferences, not endorsements or a claim that this prototype implements those programs.
+After approval, Throughline assembles six presentation sections, a selected-source packet and an evidence-to-action participant handout. Directions, focus, action and checks come from the exact approved plan. Fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship.
 
-The learning goal remains visible in the first three stages. Rationale and lesson connection belong in the existing focus/action prompts instead of additional required forms. The action comes before agenda writing; an optional 15-minute rehearsal helper uses selected fictional responses and the fraction rubric to guide teacher questioning, anticipated responses, feedback and revision. Planned collection commitments are optional and never become evidence of implementation. A next-PLC question is part of the recorded reflection rather than an automatically linked cycle over unchanged evidence.
+Activity 2 and Activity 4 directions carry into the handout. The self-contained HTML works offline and supports printing or saving as PDF through the browser. Exports are snapshots. The HTML meeting kit remains the initial meeting materials; the text export can also carry a current recorded reflection. Plan edits revoke access until reapproval. Existing saved plans and the versioned local database remain compatible.
 
-Guide → About contains a proposed small formative comparison with the existing process, independent mathematics review, manual workload observations and later implementation evidence. The printable proposal has no collected results or telemetry. Saved routine libraries, linked cycles, live AI and new integrations remain deferred until evidence justifies their additional work.
+## Typography, access and learning
 
-## Reading hierarchy and working sequence
+At standard reading size, the hierarchy is 36px page titles, 24px section headings, 18px task labels, 16px body/input text and 13px metadata, with 14px supporting instructions. Spacing, restrained borders and distinct working compositions separate source context from authoring. Self-hosted IBM Plex Sans avoids external font requests. Reading preferences provide 100/125/150% text and expanded spacing independently of cycle decisions.
 
-Use distinct type roles for page, section, task, body, support and metadata. Instructional directions stay at readable body/support sizes on mobile; spacing and headings separate decisions from source context. Interpretation follows interpret → test an alternative → choose a focus. Meeting preparation follows teaching action → evidence and participation → agenda. Optional access notes and collection planning share a supporting area, with existing notes exposed on entry. Full source text and errors remain reachable through native controls.
+Native controls, stage-lock explanations, field-specific errors, focus movement into revealed editors and modal source readers support navigation. These are implementation choices, not a claim of accessibility certification. Browser use was unavailable for this pass; rendered layout, actual keyboard behavior and assistive-technology coverage still require hands-on verification.
 
-The Decision Thread leads with the next action and distinguishes captured decisions from compact pending entries. About explains purpose and limits before its optional evaluation proposal, followed by presenter controls. The live proposal uses stacked questions instead of a wide table. Downloaded meeting-kit section labels use the same readable hierarchy. These changes leave the model, approval requirements and stored records unchanged.
+Optional interpretation prompts ask about strengths, task access, language and missing perspectives. An educator-authored access/participation plan travels into approved materials. No identity or subgroup result is inferred from a sample response, and no score certifies equity.
 
-## Core-decisions implementation
+Guide offers a replayable walkthrough, three authored practice cases with feedback, a glossary and worked examples. Learning metadata is browser-local and separate from instructional approvals. Reviewed or attempted topics indicate engagement, not proficiency. Learning support never fills or approves the leader's plan.
 
-The working surface keeps evidence beside interpretation and planning. The right-hand evidence view supports source switching without a modal; its compact counterpart preserves the writing position. Decision history is secondary and expandable during drafting. Suggested interpretations follow, rather than precede, inspection of the original response. There is still no live conversation or generated-chart runtime: this demonstrates a workflow-first alternative with contextual scripted support.
+## Research and validation
 
-A cycle uses a fixed dated evidence version. An incoming fictional collection creates a choice, not a silent replacement: keep the current snapshot or create a revised draft. The original cycle remains intact. A revision resets selected student work because October 29 examples are different responses, clears approvals and follow-up, and retains authored writing to reconsider. Date, scope, missing responses and repeated-task limitations remain explicit. Newer results never turn the September observation into current teaching evidence.
+Public work from [Leading Educators' MathAI Impact Network](https://leadingeducators.org/partnership/mathai-impact-network/), [instructional decision-making guidance](https://leadingeducators.org/blog/strengthening-instructional-decision-making-and-practice-for-the-age-of-ai/) and [rural educator co-design](https://leadingeducators.org/blog/how-rural-educators-are-co-designing-the-future-of-ai-in-learning/) informed design hypotheses. W3C/WAI, CAST and professional-learning research provide complementary principles. These are design inferences, not endorsements or a feature list approved by Leading Educators. Source matrices remain in `accessibility-equity/` and `onboarding/`.
 
-Two separate follow-up cases serve distinct purposes. The incomplete case demonstrates withholding judgment when comparability is unknown. The complete worked case demonstrates an evidence-informed decision to keep and revise a particular teaching routine, while acknowledging implementation and causal limits. Both are fictional teaching examples, not outcomes attached to the active plan.
+The pilot targets a single-grade math PLC leader preparing within 20 minutes for a 50-minute meeting. That target has not been validated. Evaluate total workload, evidence traceability, the leader's ability to explain the conclusion, whether the strategy was tried and whether comparable work supports the next decision. Completion counts and attractive screens cannot establish ownership or instructional quality.
 
-The next validation task is a 20-minute preparation session followed by a short explanation in the leader's own words. Automated tests cannot establish speed, ownership or instructional quality; see CORE_DECISIONS_VERIFICATION.md.
+**Guide → About this demo → How we would test this** contains a proposed small formative comparison with the current workflow, independent mathematics review, manual workload observations, implementation follow-up and adopt/revise/stop criteria. The printable proposal has no collected findings or telemetry. Historical review records describe their own checkpoints; the current verification record should be used for this implementation's checks and limits.
+
+## Deferred scope
+
+Multi-grade comparisons, configurable meeting duration, lesson-planning-first workflows, real curriculum and student-record integrations, production security, live AI, routine libraries and linked evidence cycles remain deferred. Privacy, permissions, evidence validity, multilingual support, individual accommodations and accessibility require district co-design and validation.

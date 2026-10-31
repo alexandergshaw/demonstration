@@ -32,13 +32,14 @@ interface LearningGuideProps {
   initialStep?: number;
   about?: ReactNode;
   presenterTools?: ReactNode;
+  onOpenExamples?: () => void;
 }
 const views: { id: LearningView; label: string }[] = [
   { id: 'home', label: 'Start here' }, { id: 'walkthrough', label: 'Walkthrough' },
   { id: 'practice', label: 'Practice' }, { id: 'glossary', label: 'Glossary' }, { id: 'about', label: 'About this demo' },
 ];
 
-export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onClose, initialView = 'home', initialStep, about, presenterTools }: LearningGuideProps) {
+export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onClose, initialView = 'home', initialStep, about, presenterTools, onOpenExamples }: LearningGuideProps) {
   const [view, setView] = useState<LearningView>(initialView);
   const [lessonId, setLessonId] = useState<LessonId>(isLessonId(initialStep) ? initialStep : learning.progress.lastLesson);
   const [practiceIndex, setPracticeIndex] = useState(0);
@@ -82,6 +83,7 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
         <h3 ref={heading} tabIndex={-1} className="learning-heading">Choose the support you need</h3>
         <p className="learning-lead">Learn the workflow, practice a decision, or look up a term. Everything is optional and can be revisited.</p>
         <div className="learning-routes">
+          {onOpenExamples && <article><div className="learning-route-copy"><span className="kicker">Separate fictional cases</span><h4>Follow a decision through to reflection</h4><p>Compare a documented follow-up with a case missing key evidence.</p></div><button className="btn secondary" onClick={onOpenExamples}>Explore worked examples</button></article>}
           <article><div className="learning-route-copy"><span className="kicker">Four short lessons</span><h4>Walk through the planning cycle</h4><p>See what to do at each stage and why it matters.</p>
             <span className="caption">{learning.progress.reviewedLessons.length} of 4 lessons marked reviewed</span></div>
             <button className="btn secondary" onClick={() => openLesson(learning.progress.lastLesson)}>Open walkthrough · Lesson {learning.progress.lastLesson + 1}</button></article>

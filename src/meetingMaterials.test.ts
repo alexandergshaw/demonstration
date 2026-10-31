@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createReferenceData } from './data/seed';
 import { buildMeetingKit, exportMeetingHtml, exportMeetingNotes } from './meetingMaterials';
-import { followUpSourceBlocks, lessonContext, selectedSourceBlocks } from './lessonContext';
+import { lessonContext, selectedSourceBlocks } from './lessonContext';
 import { hasPlan, hasReflection, initialState, parseStoredState, reducer, type Action, type PlanState } from './model';
 
 const reference = createReferenceData();
@@ -45,8 +45,8 @@ describe('meeting materials preserve educator ownership', () => {
     const reflected = apply(revised, { type: 'implementation', value: 'partial' }, { type: 'text', field: 'reflection', value: 'These separate fictional cases do not supply results for our own teaching action.' }, { type: 'save-reflection' });
     const recorded = exportMeetingNotes(reflected, reference);
     expect(recorded).toContain('52/116');
-    expect(recorded).toContain('Separate Oct 28 case');
-    expect(recorded).toContain('Follow-up illustration: 56/120');
+    expect(recorded).toContain('No collected follow-up dataset is attached to this cycle.');
+    expect(recorded).not.toContain('56/120');
     expect(recorded).not.toContain('56/116');
   });
 
@@ -210,19 +210,19 @@ describe('meeting materials preserve educator ownership', () => {
     expect(hasPlan(state)).toBe(true);
     expect(initialState().agenda[3]).not.toContain('partner-discussion');
   });
-  it('carries comparison limits with exact recorded reflection text, without adding future results to the meeting kit', () => {
+  it('exports the exact reflection and missing-evidence status without borrowing example outcomes', () => {
     const reflection = 'We cannot call this progress yet. Check the task and missing responses before attributing change. <note>Keep my wording & uncertainty.</note>';
     const state = apply(approved(), { type: 'implementation', value: 'partial' }, { type: 'text', field: 'reflection', value: reflection }, { type: 'save-reflection' });
     const before = JSON.stringify(state), notes = exportMeetingNotes(state, reference);
     expect(hasReflection(state)).toBe(true);
     expect(notes).toContain('Implementation: partial');
     expect(notes).toContain('Recorded reflection: ' + reflection);
-    expect(notes).toContain('Follow-up illustration: 56/120');
-    for (const block of followUpSourceBlocks()) {
-      expect(notes).toContain(block.heading + '\n' + block.text);
-    }
-    expect(notes).toContain('not a prediction or an observed outcome of your plan');
-    expect(notes).toContain('Equal denominators do not establish the same students or complete coverage');
+    expect(notes).not.toContain('56/120');
+    expect(notes).not.toContain('76/120');
+    expect(notes).toContain('No collected follow-up dataset is attached to this cycle.');
+    expect(notes).toContain('Implementation is leader-reported');
+    expect(notes).toContain('planned checks and dates do not establish that collection occurred');
+    expect(notes).toContain('Worked examples in the Guide are separate fictional cases, not outcomes of this plan');
     expect(buildMeetingKit(state, reference)).toHaveLength(8);
     for (const prospective of [JSON.stringify(buildMeetingKit(state, reference)), exportMeetingHtml(state, reference)]) {
       expect(prospective).not.toContain(reflection);
@@ -239,13 +239,13 @@ describe('meeting materials preserve educator ownership', () => {
     for (const state of [approved(), draft, edited, statusChanged]) {
       expect(hasReflection(state)).toBe(false);
       const notes = exportMeetingNotes(state, reference);
-      expect(notes).not.toContain('RECORDED FOLLOW-UP COMPARISON CONTEXT');
+      expect(notes).not.toContain('FOLLOW-UP EVIDENCE STATUS');
       expect(notes).not.toContain('Follow-up illustration:');
       if (state.reflection) expect(notes).not.toContain(state.reflection);
     }
     const savedAgain = apply(edited, { type: 'save-reflection' });
     expect(exportMeetingNotes(savedAgain, reference)).toContain('Recorded reflection: ' + edited.reflection);
-    expect(exportMeetingNotes(savedAgain, reference)).toContain('RECORDED FOLLOW-UP COMPARISON CONTEXT');
+    expect(exportMeetingNotes(savedAgain, reference)).toContain('FOLLOW-UP EVIDENCE STATUS');
     expect(exportMeetingNotes(savedAgain, reference)).not.toContain(recorded.reflection);
     const upstreamEdit = apply(recorded, { type: 'text', field: 'action', value: 'A changed teaching action needs fresh approval before this cycle can be exported.' });
     expect(() => exportMeetingNotes(upstreamEdit, reference)).toThrow(/Approve/);
