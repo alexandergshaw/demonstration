@@ -1,0 +1,5 @@
+# Visual refinement scope
+
+Replace the generic green-card dashboard structure with an ink/white/cobalt evidence workbook, preserving the existing functional prototype. Actual UX discovery (discovery-review.md, SHA256 3a46e0a63952242077c3fb3d5fda68da1aade94526f04e97d0cfc85215402154) identifies six concrete priorities: a shared-scale comparison, purposeful surfaces, less duplicated navigation, stronger type/alignment, cited response rows, and document-like meeting materials. These are observed design symptoms, not claims about authorship.
+
+Use a numbered horizontal four-stage workflow, shared 0–120 assessment bars, open ruled source rows and Decision Thread, clearer writable agenda and kit hierarchy, and fewer decorative badges/icons. Self-host official IBM Plex Sans Regular/SemiBold with its original OFL; retain existing Inter files. Export changes are CSS only. Exact source paths are the bootstrap grant. Model/database/seed/hook/context/tests/dependencies/tools remain protected. The user’s Always push and existing Vercel release requirements persist: complete local review first, then root commits/pushes and verifies actual production.

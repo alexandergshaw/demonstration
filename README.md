@@ -49,7 +49,7 @@ This repository includes the local backend, deployment configuration, and review
 
 ## Interface redesign
 
-The app includes a professional UI pass informed by official Linear, Notion, and Panorama product imagery. A compact workflow rail and cycle toolbar keep evidence prominent. Field-specific errors, explained stage locks, full-text decision readers, keyboard-safe dialogs, and responsive layouts preserve the existing planning model. Inter is bundled locally with its SIL Open Font License.
+The interface is an evidence workbook: a numbered horizontal workflow, counts on a shared scale, cited student responses, a ruled agenda, and an open Decision Thread. Ink and cobalt distinguish source material, editable work, and decisions. Field-specific errors, explained stage locks, full-text source readers, keyboard-safe dialogs, and responsive layouts preserve the planning model. IBM Plex Sans is hosted locally with its original SIL Open Font License; there are no external font requests. The earlier Inter assets remain available with their license.
 
 Use **New cycle** for a fresh plan and **Cycle actions** for rename, duplicate, reset, and delete. **Guide** explains the fictional/scripted demonstration and contains presenter reset tools. Unsaved edits prompt before a browser refresh. On a stale workspace or failed operation, **Reload saved data** restores durable data after confirmation when needed.
 
@@ -62,3 +62,9 @@ After completed repository changes pass the appropriate checks, commit and push 
 ## Requirements audit
 
 The deployed flow was audited against the performance-task brief. Source inspection now carries the original fictional task/rubric, class counts and selected quotations into interpretation and meeting preparation. The meeting kit assembles exact approved educator decisions into six presentation sections and an activity handout; it does not generate instructional decisions. The Guide exposes the pilot target, assumptions and deferred workflows. Audit and independent acceptance records are in `docs/requirements-pass/`.
+
+## Visual identity pass
+
+The workbook treatment replaces repetitive rounded score cards, tinted panels, decorative badges and duplicate progress summaries. The comparison shows 89/120 correct selections and 46/120 adequate explanations on the same count scale; it does not imply linked pupil-level data. Source dates, sample limitations, approval states and all saved-cycle behavior remain intact. Meeting-kit previews and portable HTML share the document hierarchy.
+
+The self-hosted font files come from the official [IBM Plex repository](https://github.com/IBM/plex), with `public/fonts/IBM-Plex-OFL.txt` preserved. Design decisions, asset provenance, and independent visual/functional verification are in `docs/visual-identity-pass/`.

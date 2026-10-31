@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 const shapes = {
-  mark: <><path d="M5 18V6h6v12h8V6" /><path d="m15 10 4-4 3 4" /></>,
+  mark: <><path d="M3 5h18M3 12h18M12 5v14h9" /></>,
   evidence: <><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h4M8 16h6" /></>,
   reasoning: <><path d="M9 18h6M10 21h4M8 14a7 7 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z" /></>,
   meeting: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2" /></>,

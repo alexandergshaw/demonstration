@@ -3,7 +3,7 @@ import { focusError, hasFocus, hasPlan, hasReflection, minutes, planError, refle
 import { useWorkspace, type ReadyWorkspace, type WorkspaceController } from './useWorkspace';
 import { CycleManager, ConfirmationDialog, Modal } from './components/CycleManager';
 import { FieldErrorProvider, FieldError, TextArea, TextInput, useFieldError } from './components/Field';
-import { Icon, type IconName } from './components/Icon';
+import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
 import { EvidenceInspector, TaskContext } from './components/EvidenceInspector';
 import { MeetingKit } from './components/MeetingKit';
@@ -16,14 +16,14 @@ function useReference() {
   return reference;
 }
 type Dispatch = (action: Action) => void;
-const stages: { label: string; short: string; icon: IconName; detail: string }[] = [
-  { label: 'Evidence', short: 'Evidence', icon: 'evidence', detail: 'Inspect the sources' },
-  { label: 'Interpretation', short: 'Interpret', icon: 'reasoning', detail: 'Choose a teaching focus' },
-  { label: 'Meeting plan', short: 'Plan', icon: 'meeting', detail: 'Turn the focus into action' },
-  { label: 'Reflection', short: 'Reflect', icon: 'reflection', detail: 'Revisit the next evidence' },
+const stages: { label: string; short: string; detail: string }[] = [
+  { label: 'Evidence', short: 'Evidence', detail: 'Inspect the sources' },
+  { label: 'Interpretation', short: 'Interpret', detail: 'Choose a teaching focus' },
+  { label: 'Meeting plan', short: 'Plan', detail: 'Turn the focus into action' },
+  { label: 'Reflection', short: 'Reflect', detail: 'Revisit the next evidence' },
 ];
-const titles = ['Evidence overview', 'Make sense of the evidence', 'Build the meeting plan', 'Reflect on what changed'];
-const subtitles = ['Look at the work behind the scores. Choose what your team should discuss.', 'Form your interpretation, test an alternative, and choose one instructional focus.', 'Connect one teaching action to a clear agenda and meaningful follow-up.', 'Separate what was implemented from what students learned.'];
+const titles = ['Read the student work', 'Choose a teaching focus', 'Prepare the PLC meeting', 'Review the next evidence'];
+const subtitles = ['Start with the task. Compare answers with explanations, then choose the work to discuss.', 'Form your interpretation, test an alternative, and choose one instructional focus.', 'Connect one teaching action to a clear agenda and meaningful follow-up.', 'Separate what was implemented from what students learned.'];
 function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?: 'info' | 'warning' | 'success' }) {
   return <div className={`notice ${tone}`}><Icon name={tone === 'success' ? 'check' : tone === 'warning' ? 'warning' : 'info'} size={18} /><div>{children}</div></div>;
 }
@@ -34,19 +34,37 @@ function EvidenceButton({ id, state, dispatch }: { id: EvidenceId; state: PlanSt
   const selected = state.selected.includes(id);
   return <button className={`selectbtn ${selected ? 'chosen' : ''}`} aria-pressed={selected} onClick={() => dispatch({ type: 'evidence', id })}><Icon name={selected ? 'check' : 'plus'} size={15} />{selected ? 'Added to thread' : id === 'observation' ? 'Add as context' : 'Add as evidence'}</button>;
 }
+function AssessmentComparison({ assessment }: { assessment: ReferenceData['assessment'] }) {
+  const rows = [
+    { label: 'Correct fraction selected', value: assessment.correct, kind: 'answers' },
+    { label: 'Explanation meets rubric', value: assessment.explanations, kind: 'explanations' },
+  ];
+  const gap = Math.round((assessment.correct - assessment.explanations) / assessment.total * 100);
+  return <figure className="assessment-chart" aria-label="Answer and explanation counts on the same scale">
+    {rows.map(row => <div className={`chart-row ${row.kind}`} key={row.kind}>
+      <span className="chart-label">{row.label}</span>
+      <div className="chart-track" aria-hidden="true"><div className="chart-bar" style={{ width: `${row.value / assessment.total * 100}%` }} /></div>
+      <div className="chart-value"><strong>{row.value}</strong><span>/{assessment.total}</span><small>{Math.round(row.value / assessment.total * 100)}%</small></div>
+    </div>)}
+    <div className="chart-scale" aria-hidden="true">{[0, .25, .5, .75, 1].map(tick => <span key={tick}>{assessment.total * tick}</span>)}</div>
+    <figcaption className="chart-note"><strong>{gap} pp difference</strong><span>Between aggregate rates. These counts do not identify which students met both criteria.</span></figcaption>
+  </figure>;
+}
 function Evidence({ state, dispatch }: { state: PlanState; dispatch: Dispatch }) {
   const [examples, setExamples] = useState(true), [classes, setClasses] = useState(false);
   const { workspace, assessment, responses, observation, classes: results } = useReference();
-  const gap = Math.round((assessment.correct - assessment.explanations) / assessment.total * 100);
   return <>
-    <div className="evidence-heading"><div><h2>{workspace.unit}</h2><p className="source-meta">End-of-lesson cool-down <span>·</span> {assessment.total} responses <span>·</span> {results.length} classes</p></div><span className="pill"><Icon name="meeting" size={14} />{assessment.date}</span></div>
-    <div className="metrics evidence-metrics"><Metric label="Correct fraction selected" value={assessment.correct} total={assessment.total} detail={assessment.date} /><Metric label="Explanation meets rubric" value={assessment.explanations} total={assessment.total} detail={assessment.date} secondary /><div className="stat gap-stat"><span className="stat-label">Selection–explanation gap</span><div className="statnum">{gap}<span>pp</span></div><p>Percentage points · an aggregate comparison, not a student-level diagnosis.</p></div></div>
+    <div className="evidence-heading"><div><h2>{workspace.unit}</h2><p className="source-meta">End-of-lesson cool-down <span>·</span> {assessment.total} students <span>·</span> {results.length} classes</p></div><span className="source-date">{assessment.date}</span></div>
+    <AssessmentComparison assessment={assessment} />
     <TaskContext />
     <div className="subsection-title"><div><h2>Student work</h2><p className="small muted">Two illustrative responses, not a representative sample.</p></div><button className="textlink" aria-expanded={examples} aria-controls="student-examples" onClick={() => setExamples(!examples)}>{examples ? 'Hide examples' : 'Show examples'}</button></div>
-    {examples && <div className="grid2" id="student-examples">{responses.map(response => <article className={`work ${state.selected.includes(response.id) ? 'work-selected' : ''}`} key={response.id}><div className="workheader"><span className="source-avatar" aria-hidden="true">{response.id === 'responseB' ? 'B' : 'C'}</span><strong>{response.label}</strong></div><span className={`pill ${response.tone}`}>{response.category}</span><blockquote>“{response.quote}”</blockquote><p>{response.interpretation}</p><div className="evidence-action"><EvidenceButton id={response.id} state={state} dispatch={dispatch} /></div></article>)}</div>}
+    {examples && <div className="student-work" id="student-examples">{responses.map(response => <article className={`work ${state.selected.includes(response.id) ? 'work-selected' : ''}`} key={response.id}>
+      <div className="source-label"><span className="source-avatar" aria-hidden="true">{response.id === 'responseB' ? 'B' : 'C'}</span><strong>{response.label}</strong></div>
+      <div className="work-body"><blockquote>“{response.quote}”</blockquote><p>{response.interpretation}</p><div className="work-meta"><span className="source-category">{response.category}</span><div className="evidence-action"><EvidenceButton id={response.id} state={state} dispatch={dispatch} /></div></div></div>
+    </article>)}</div>}
     <div className="class-disclosure"><div><h3>Across-class variation</h3><p>Compare responses, not teacher performance.</p></div><button className="selectbtn" aria-expanded={classes} aria-controls="class-results" onClick={() => setClasses(!classes)}>{classes ? 'Hide class results' : 'View class results'}<Icon name="chevron" size={15} /></button></div>
     {classes && <div className="class-results" id="class-results"><table><caption>{assessment.date} · Fictional responses by class</caption><thead><tr><th scope="col">Class</th><th scope="col">Correct fraction</th><th scope="col">Adequate explanation</th></tr></thead><tbody>{results.map(result => <tr key={result.id}><th scope="row">{result.label}</th><td>{result.correct}/{result.total}<div className="mini-bar" aria-hidden="true"><i style={{ width: `${result.correct / result.total * 100}%` }} /></div></td><td>{result.explanations}/{result.total}<div className="mini-bar" aria-hidden="true"><i className="two" style={{ width: `${result.explanations / result.total * 100}%` }} /></div></td></tr>)}</tbody></table><p className="caption">Task conditions and missing context may explain variation. These totals do not measure teacher effectiveness.</p></div>}
-    <article className="observation"><div className="observation-icon"><Icon name="clock" /></div><div className="observation-copy"><div className="workheader"><h3>Classroom observation</h3><span className="pill amber">{observation.age}</span></div><p className="caption">{observation.date} · {observation.scope}</p><blockquote>“{observation.quote}”</blockquote><p className="caution-text">{observation.caution}</p><EvidenceButton id={observation.id} state={state} dispatch={dispatch} /></div></article>
+    <article className="observation"><div className="observation-stamp"><span>Observation</span><strong>{observation.date}</strong></div><div className="observation-copy"><div className="workheader"><h3>Classroom notes</h3><span className="pill amber">{observation.age}</span></div><p className="caption">{observation.scope}</p><blockquote>“{observation.quote}”</blockquote><p className="caution-text">{observation.caution}</p><EvidenceButton id={observation.id} state={state} dispatch={dispatch} /></div></article>
     <p className="evidence-caution"><Icon name="info" size={16} /><span>A single observation cannot establish causality. Keep source dates and scope in view.</span></p>
     <div className="section-footer"><span className="caption">{state.selected.length} {state.selected.length === 1 ? 'source' : 'sources'} in your decision thread</span><button className="btn" onClick={() => dispatch({ type: 'go', step: 1 })}>Continue to interpretation<Icon name="arrow" size={16} /></button></div>
   </>;
@@ -111,10 +129,10 @@ function DecisionThread({ state: s }: { state: PlanState }) {
   const captured = items.filter(item => item.done).length;
   const next = !focus ? 'Interpret your evidence and confirm one instructional focus.' : !plan ? 'Shape the meeting around your focus, then review and approve the plan.' : !reflection ? 'Record what was implemented and what the next evidence suggests.' : 'Your decisions are connected. Export the plan or start another cycle.';
   return <aside className="decision-sidebar" aria-label="Decision Thread">
-    <section className="thread"><div className="thread-heading"><Icon name="mark" size={19} /><h2>Decision Thread</h2><span className="thread-count" aria-label={`${captured} of 6 items captured`}>{captured}/6</span></div><p className="thread-intro">A record of your team's reasoning.</p>
+    <section className="thread"><div className="thread-heading"><h2>Decision Thread</h2><span className="thread-count" aria-label={`${captured} of 6 items captured`}>{captured}/6</span></div>
       <ol className="thread-list">{items.map((item, i) => <li className={`threaditem ${item.done ? 'captured' : 'empty'}`} key={item.label}><span className="thread-number" aria-hidden="true">{item.done ? <Icon name="check" size={12} /> : i + 1}</span><div className="thread-content"><h3>{item.label}</h3><p>{item.value.length > 150 ? `${item.value.slice(0, 150)}…` : item.value}</p>{item.done && item.value.length > 150 && <button className="textlink" onClick={() => setExpanded(i)} aria-label={`Read full ${item.label.toLowerCase()}`}>Read full decision<Icon name="chevron" size={13} /></button>}</div></li>)}</ol>
       <div className="next-step"><span className="kicker">{reflection ? 'Cycle captured' : 'Up next'}</span><p>{next}</p></div>
-    </section><div className="trust-note"><Icon name="shield" size={16} /><p>Fictional evidence. Educator decisions.<br />Your drafts stay in this browser.</p></div>
+    </section>
     {expanded !== null && items[expanded].done && <Modal title={items[expanded].label} onClose={() => setExpanded(null)}><p className="full-decision">{items[expanded].value}</p><div className="modal-actions"><button className="btn secondary" data-autofocus onClick={() => setExpanded(null)}>Close</button></div></Modal>}
   </aside>;
 }
@@ -126,7 +144,6 @@ function Planner({ workspace }: { workspace: ReadyWorkspace }) {
   const [kitOpen, setKitOpen] = useState(false);
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
   const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
-  const milestones = Number(focus) + Number(plan) + Number(reflection);
   useEffect(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }, [state.step]);
   useEffect(() => {
     if (!workspace.dirty) return;
@@ -158,19 +175,18 @@ function Planner({ workspace }: { workspace: ReadyWorkspace }) {
   const savedLabel = workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
-    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline<span>.</span></span></div><div className="topbar-context"><span>Workspace</span><Icon name="chevron" size={13} /><strong>{snapshot.reference.workspace.name}</strong></div><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><span className="demo-badge">Fictional demo</span><button className="guide-button" aria-label="Open guide" onClick={() => setGuideOpen(true)}><Icon name="info" size={16} /><span>Guide</span></button></div></header>
-    <div className="app-shell"><aside className="workflow-rail" aria-label="Cycle workflow"><div className="workspace-label"><span className="workspace-icon"><Icon name="book" size={20} /></span><div><strong>{snapshot.reference.workspace.name}</strong><span>{snapshot.reference.workspace.unit}</span></div></div><div className="rail-heading">Planning workflow</div>
+    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><div className="topbar-context"><span>PLC workbook</span><strong>{snapshot.reference.workspace.name}</strong></div><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><span className="demo-badge">Fictional demo</span><button className="guide-button" aria-label="Open guide" onClick={() => setGuideOpen(true)}><Icon name="info" size={16} /><span>Guide</span></button></div></header>
+    <div className="app-shell"><div className="workflow-rail">
       <nav className="path" aria-label="Planning stages">{stages.map((stage, i) => {
         const locked = (i === 2 && !focus) || (i === 3 && !plan);
         const detail = i === 2 && !focus ? 'Confirm a focus first' : i === 3 && !plan ? 'Approve a plan first' : stage.detail;
         const complete = i < 2 ? focus : i === 2 ? plan : reflection;
-        return <button key={stage.label} className={`step ${state.step === i ? 'active' : ''} ${complete ? 'done' : ''}`} aria-current={state.step === i ? 'step' : undefined} aria-disabled={locked || undefined} aria-describedby={`stage-note-${i}`} onClick={() => locked ? setLockNotice(i === 2 ? 'Confirm your instructional focus in Interpretation to unlock the meeting plan.' : 'Approve your meeting plan to unlock Reflection.') : act({ type: 'go', step: i })}><Icon name={stage.icon} size={19} /><span className="step-copy"><span className="nav-wide">{stage.label}</span><span className="nav-short">{stage.short}</span><span className="step-note" id={`stage-note-${i}`}>{detail}</span></span><span className="step-state">{locked ? <Icon name="lock" size={13} /> : complete ? <Icon name="check" size={14} /> : null}</span></button>;
+        return <button key={stage.label} className={`step ${state.step === i ? 'active' : ''} ${complete ? 'done' : ''}`} aria-current={state.step === i ? 'step' : undefined} aria-disabled={locked || undefined} aria-describedby={`stage-note-${i}`} onClick={() => locked ? setLockNotice(i === 2 ? 'Confirm your instructional focus in Interpretation to unlock the meeting plan.' : 'Approve your meeting plan to unlock Reflection.') : act({ type: 'go', step: i })}><span className="step-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="step-copy"><span className="nav-wide">{stage.label}</span><span className="nav-short">{stage.short}</span><span className="step-note" id={`stage-note-${i}`}>{detail}</span></span><span className="step-state">{locked ? <Icon name="lock" size={13} /> : complete ? <Icon name="check" size={14} /> : null}</span></button>;
       })}</nav>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
-      <div className="rail-progress"><div><span>Cycle progress</span><strong>{milestones}/3</strong></div><progress value={milestones} max={3} aria-label="Confirmed cycle milestones" /><p>Focus, plan, and reflection</p></div><div className="rail-footer"><span className="rail-foot-mark"><Icon name="mark" size={16} />Evidence into action.</span><p>You make the instructional decisions.</p></div>
-    </aside><div className="workspace-shell">
+    </div><div className="workspace-shell">
       <CycleManager workspace={workspace} onReset={() => setResetOpen(true)} />
-      <div className="page"><header className="intro"><div><div className="eyebrow">{String(state.step + 1).padStart(2, '0')} <span>/</span> {stages[state.step].label}</div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</header>
+      <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</header>
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
         {workspace.externalChanged && !saveError && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>Another tab changed this workspace. Reload to see its saved cycles.</span><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div>}
@@ -183,7 +199,7 @@ function Planner({ workspace }: { workspace: ReadyWorkspace }) {
           {state.step === 2 && <Meeting state={state} dispatch={act} submit={submit} />}
           {state.step === 3 && <FollowUp state={state} dispatch={act} submit={submit} download={() => setKitOpen(true)} />}
         </main><DecisionThread state={state} /></div>
-        <footer className="footnote"><span>Throughline · A fictional PLC planning workspace</span><span>{savedLabel}</span></footer>
+        <footer className="footnote"><span>Throughline / PLC planning workbook</span><span>{savedLabel}</span></footer>
       </div>
     </div></div>
     {kitOpen && plan && <MeetingKit state={state} reference={snapshot.reference} onClose={() => setKitOpen(false)} downloadNotes={download} />}
