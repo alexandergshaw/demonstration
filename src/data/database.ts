@@ -14,7 +14,7 @@ export interface CycleRecord {
   id: string; title: string; createdAt: string; updatedAt: string; revision: number; state: PlanState;
 }
 interface Database {
-  version: 1; revision: number; activeCycleId: string; reference: ReferenceData; cycles: CycleRecord[];
+  version: 2; revision: number; activeCycleId: string; reference: ReferenceData; cycles: CycleRecord[];
 }
 export interface WorkspaceSnapshot extends Database { notice: string }
 const copy = <T,>(value: T): T => structuredClone(value);
@@ -36,8 +36,8 @@ function parseDatabase(raw: string): { database: Database; notice: string } {
     if (raw.length > MAX_DATABASE_LENGTH) throw new Error('Oversized database');
     const input: unknown = JSON.parse(raw);
     if (!isObject(input)) throw new Error('Invalid database');
-    if (input.version !== 1) {
-      if (typeof input.version === 'number' && Number.isInteger(input.version) && input.version > 1) throw new DatabaseError('unsupported-version', 'These saved cycles use a newer version of Throughline. Your stored data has not been changed.');
+    if (input.version !== 1 && input.version !== 2) {
+      if (typeof input.version === 'number' && Number.isInteger(input.version) && input.version > 2) throw new DatabaseError('unsupported-version', 'These saved cycles use a newer version of Throughline. Your stored data has not been changed.');
       throw new Error('Invalid version');
     }
     if (!isRevision(input.revision) || !isId(input.activeCycleId) || !Array.isArray(input.cycles) || input.cycles.length < 1 || input.cycles.length > MAX_CYCLES) throw new Error('Invalid database fields');
@@ -55,7 +55,9 @@ function parseDatabase(raw: string): { database: Database; notice: string } {
       return { id: value.id, title, createdAt: value.createdAt, updatedAt: value.updatedAt, revision: value.revision, state: parsed.state };
     });
     if (!ids.has(input.activeCycleId)) throw new Error('Missing active cycle');
-    return { database: { version: 1, revision: input.revision, activeCycleId: input.activeCycleId, reference, cycles }, notice: stale ? 'Saved decisions changed. Your drafts are available; review and approve them again.' : '' };
+    // Read v1 without rewriting it. The next explicit mutation writes v2, which
+    // older clients already reject rather than silently dropping access notes.
+    return { database: { version: 2, revision: input.revision, activeCycleId: input.activeCycleId, reference, cycles }, notice: stale ? 'Saved decisions changed. Your drafts are available; review and approve them again.' : '' };
   } catch (error) {
     if (error instanceof DatabaseError && error.code === 'unsupported-version') throw error;
     throw new DatabaseError('corrupt-data', 'The saved workspace could not be read safely. Your stored data has not been changed. Retry or start a fresh demo.');
@@ -88,7 +90,7 @@ export function createLocalBackend(storageGetter: () => StorageLike, options: { 
   }
   function fresh(state = initialState()): Database {
     const id = idFor([]), time = timestamp();
-    return { version: 1, revision: 0, activeCycleId: id, reference: createReferenceData(), cycles: [{ id, title: 'Fraction equivalence · Cycle 1', createdAt: time, updatedAt: time, revision: 0, state }] };
+    return { version: 2, revision: 0, activeCycleId: id, reference: createReferenceData(), cycles: [{ id, title: 'Fraction equivalence · Cycle 1', createdAt: time, updatedAt: time, revision: 0, state }] };
   }
   function write(adapter: StorageLike, database: Database, notice = ''): WorkspaceSnapshot {
     const raw = JSON.stringify(database);

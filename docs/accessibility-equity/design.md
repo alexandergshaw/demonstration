@@ -1,0 +1,5 @@
+# Design
+
+Use a separate versioned preferences store with explicit safe outcomes for bad/unavailable/future storage, and a ReadingSettings control. Relative CSS scales text with spacious layout overrides; respect OS media preferences. Modal defaults to title focus; only NameDialog/ConfirmationDialog explicitly choose control focus. Improve semantic names and associated hints without changing workflow decisions.
+
+EquitySupport supplies an optional reflection disclosure and optional accessParticipation field. Extend model parsing compatibly: missing becomes empty; empty uses the old signature, nonempty contributes to the signature, and edits clear downstream authority. Carry authored text through materials with existing escaping and approval checks. Keep fixed seed/schema references unchanged and retain legal maximum storage capacity. Root owns App integration and shared candidate; equity contributor edits only its named files. Existing educator control and privacy boundaries remain visible.

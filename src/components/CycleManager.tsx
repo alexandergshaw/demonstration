@@ -3,7 +3,7 @@ import { MAX_CYCLES } from '../data/database';
 import type { ReadyWorkspace } from '../useWorkspace';
 import { Icon } from './Icon';
 
-export function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+export function Modal({ title, children, onClose, initialFocus = 'title' }: { title: string; children: ReactNode; onClose: () => void; initialFocus?: 'title' | 'control' }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -11,7 +11,9 @@ export function Modal({ title, children, onClose }: { title: string; children: R
     const trigger = document.activeElement;
     if (node && !node.open) {
       node.showModal();
-      node.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+      const target = initialFocus === 'control' ? node.querySelector<HTMLElement>('[data-autofocus]') : node.querySelector<HTMLElement>('.modal-heading h2');
+      target?.focus({ preventScroll: true });
+      node.scrollTop = 0;
     }
     return () => {
       if (node?.open) node.close();
@@ -19,12 +21,12 @@ export function Modal({ title, children, onClose }: { title: string; children: R
     };
   }, []);
   return <dialog ref={dialog} onCancel={event => { event.preventDefault(); onClose(); }} aria-labelledby={titleId}>
-    <div className="modal-heading"><h2 id={titleId}>{title}</h2><button className="icon-button" aria-label="Close dialog" onClick={onClose}><Icon name="close" /></button></div>
+    <div className="modal-heading"><h2 id={titleId} tabIndex={-1}>{title}</h2><button className="icon-button" aria-label="Close dialog" onClick={onClose}><Icon name="close" /></button></div>
     {children}
   </dialog>;
 }
 export function ConfirmationDialog({ title, children, confirmLabel, error, onClose, onConfirm }: { title: string; children: ReactNode; confirmLabel: string; error?: string; onClose: () => void; onConfirm: () => void }) {
-  return <Modal title={title} onClose={onClose}>
+  return <Modal title={title} onClose={onClose} initialFocus="control">
     <div className="dialog-description">{children}</div>
     {error && <p role="alert" className="dialog-error">{error}</p>}
     <div className="button-group modal-actions"><button className="btn secondary" data-autofocus onClick={onClose}>Cancel</button><button className="btn" onClick={onConfirm}>{confirmLabel}</button></div>
@@ -32,7 +34,7 @@ export function ConfirmationDialog({ title, children, confirmLabel, error, onClo
 }
 function NameDialog({ mode, initialName, error, onClose, onSave }: { mode: 'create' | 'rename'; initialName: string; error: string; onClose: () => void; onSave: (name: string) => void }) {
   const [name, setName] = useState(initialName);
-  return <Modal title={mode === 'create' ? 'Start a new PLC cycle' : 'Rename this cycle'} onClose={onClose}>
+  return <Modal title={mode === 'create' ? 'Start a new PLC cycle' : 'Rename this cycle'} onClose={onClose} initialFocus="control">
     <form onSubmit={event => { event.preventDefault(); onSave(name); }}>
       <label className="field" htmlFor="cycle-name">Cycle name</label>
       <input id="cycle-name" type="text" value={name} onChange={event => setName(event.target.value)} maxLength={80} required data-autofocus aria-invalid={Boolean(error && !name.trim()) || undefined} aria-describedby={`cycle-name-hint${error ? ' cycle-name-error' : ''}`} />

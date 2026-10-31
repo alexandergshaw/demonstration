@@ -90,11 +90,82 @@ const mutations: Array<[string, (backend: Backend, snapshot: Snapshot) => Snapsh
   ['reset', (db, s) => db.resetCycle(s.activeCycleId, s.revision)],
 ];
 
+describe('optional access plan persistence', () => {
+  it('upgrades v1 only on a successful mutation so older clients cannot erase the new access plan', () => {
+    const { storage, backend } = setup();
+    backend.load();
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = 1;
+    delete legacy.cycles[0].state.accessParticipation;
+    const original = JSON.stringify(legacy);
+    storage.setItem(DATABASE_KEY, original);
+    const loaded = backend.load();
+    expect(loaded.version).toBe(2);
+    expect(storage.getItem(DATABASE_KEY)).toBe(original);
+    const note = 'Offer words or diagrams while preserving the same mathematical goal.';
+    const state = reducer(active(loaded).state, { type: 'text', field: 'accessParticipation', value: note });
+    storage.failWrite = new Error('storage unavailable');
+    expectCode(() => backend.saveCycle(loaded.activeCycleId, state, loaded.revision), 'storage-unavailable');
+    expect(storage.getItem(DATABASE_KEY)).toBe(original);
+    storage.failWrite = null;
+    const saved = backend.saveCycle(loaded.activeCycleId, state, loaded.revision);
+    const stored = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    expect(stored.version).toBe(2);
+    expect(active(saved).id).toBe(active(loaded).id);
+    expect(active(backend.load()).state.accessParticipation).toBe(note);
+    expect(stored.cycles[0].state.interpretation).toBe(legacy.cycles[0].state.interpretation);
+  });
+
+  it('loads old saved cycles with their approvals and leaves the original bytes untouched', () => {
+    const { storage, backend } = setup();
+    const first = backend.load();
+    const saved = backend.saveCycle(first.activeCycleId, completedState(), first.revision);
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = 1;
+    const oldState = legacy.cycles[0].state;
+    oldState.planStamp = JSON.stringify([oldState.focusStamp, oldState.agenda, oldState.action, oldState.owner, oldState.implementationCheck, oldState.learningCheck, oldState.consent]);
+    oldState.reflectionStamp = JSON.stringify([oldState.planStamp, oldState.implementation, oldState.reflection]);
+    delete oldState.accessParticipation;
+    const oldBytes = JSON.stringify(legacy);
+    storage.setItem(DATABASE_KEY, oldBytes);
+    const writes = storage.writes;
+    const loaded = backend.load();
+    expect(loaded.revision).toBe(saved.revision);
+    expect(active(loaded).state.accessParticipation).toBe('');
+    expect(hasReflection(active(loaded).state)).toBe(true);
+    expect(loaded.notice).toBe('');
+    expect(storage.getItem(DATABASE_KEY)).toBe(oldBytes);
+    expect(storage.writes).toBe(writes);
+  });
+
+  it('retains authored access notes across saving, reload, switching and duplication without transferring approval to the copy', () => {
+    const { backend } = setup();
+    let snapshot = backend.load();
+    const originalId = snapshot.activeCycleId;
+    const note = 'Keep the same fraction goal and allow words or a labeled drawing. Ask whose perspective is missing.';
+    let state = reducer(completedState(), { type: 'text', field: 'accessParticipation', value: note });
+    state = reducer(state, { type: 'consent', value: true });
+    state = reducer(state, { type: 'confirm-plan' });
+    snapshot = backend.saveCycle(originalId, state, snapshot.revision);
+    snapshot = backend.load();
+    expect(active(snapshot).state.accessParticipation).toBe(note);
+    expect(hasPlan(active(snapshot).state)).toBe(true);
+    snapshot = backend.createCycle('Another cycle', snapshot.revision);
+    expect(active(snapshot).state.accessParticipation).toBe('');
+    snapshot = backend.selectCycle(originalId, snapshot.revision);
+    expect(active(snapshot).state.accessParticipation).toBe(note);
+    snapshot = backend.duplicateCycle(originalId, snapshot.revision);
+    expect(active(snapshot).state.accessParticipation).toBe(note);
+    expect(hasPlan(active(snapshot).state)).toBe(false);
+    expect(snapshot.cycles.find(cycle => cycle.id === originalId)?.state.planStamp).toBe(state.planStamp);
+  });
+});
+
  describe('local database initialization and copy isolation', () => {
   it('persists a usable seed once and returns the same durable workspace on repeated loads', () => {
     const { storage, backend } = setup();
     const first = backend.load();
-    expect(first.version).toBe(1);
+    expect(first.version).toBe(2);
     expect(first.cycles).toHaveLength(1);
     expect(active(first).state).toEqual(initialState());
     expect(active(first).id.length).toBeGreaterThan(0);
@@ -415,7 +486,7 @@ describe('untrusted database and save boundaries', () => {
   it('rejects a future database version without downgrading or overwriting it', () => {
     const { backend, storage } = setup();
     const seed = backend.load();
-    const raw = JSON.stringify({ ...seed, version: 2 });
+    const raw = JSON.stringify({ ...seed, version: 3 });
     storage.data.set(DATABASE_KEY, raw);
     expectCode(() => backend.load(), 'unsupported-version');
     expect(storage.data.get(DATABASE_KEY)).toBe(raw);

@@ -22,6 +22,33 @@ function approved(): PlanState {
 }
 
 describe('meeting materials preserve educator ownership', () => {
+  it('carries the current approved access plan into the teaching section, handout and exports with escaped HTML', () => {
+    const note = 'Keep the fraction goal. Offer writing or drawing; ask whose voice is missing. <script>unsafe</script> & "quoted"';
+    const state = apply(approved(), { type: 'text', field: 'accessParticipation', value: note }, { type: 'consent', value: true }, { type: 'confirm-plan' });
+    const pages = buildMeetingKit(state, reference);
+    expect(pages).toHaveLength(8);
+    for (const page of [pages[3], pages[7]]) {
+      expect(page.blocks.some(block => block.heading === 'Access & participation · leader plan' && block.text === note)).toBe(true);
+    }
+    expect(exportMeetingNotes(state, reference)).toContain(note);
+    const html = exportMeetingHtml(state, reference);
+    expect(html).toContain('&lt;script&gt;unsafe&lt;/script&gt; &amp; &quot;quoted&quot;');
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}');
+    const changed = reducer(state, { type: 'text', field: 'accessParticipation', value: 'A revised support needs renewed approval.' });
+    expect(() => buildMeetingKit(changed, reference)).toThrow(/Approve/);
+    expect(() => exportMeetingNotes(changed, reference)).toThrow(/Approve/);
+    expect(() => exportMeetingHtml(changed, reference)).toThrow(/Approve/);
+  });
+
+  it('does not invent an access commitment when optional notes were left blank', () => {
+    const state = approved();
+    expect(state.accessParticipation).toBe('');
+    expect(buildMeetingKit(state, reference).some(page => page.blocks.some(block => block.heading === 'Access & participation · leader plan'))).toBe(false);
+    expect(exportMeetingNotes(state, reference)).not.toContain('Access & participation plan:');
+    expect(hasPlan(state)).toBe(true);
+  });
+
   it('rejects unapproved and edited plans for both portable formats and preview', () => {
     const valid = approved();
     const changed = reducer(valid, { type: 'agenda', index: 3, value: 'Changed rehearsal directions needing a fresh approval.' });

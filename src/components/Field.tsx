@@ -17,19 +17,19 @@ interface FieldProps {
   hint?: string; placeholder?: string;
 }
 export function TextArea({ id, label, value, onChange, hint, placeholder }: FieldProps) {
-  const error = useFieldError(id, hint ? `${id}-hint` : undefined);
+  const error = useFieldError(id, `${id}-hint`);
   return <div className="field-group">
     <label className="field" htmlFor={id}>{label}</label>
-    {hint && <p className="field-hint" id={`${id}-hint`}>{hint}</p>}
+    <p className="field-hint" id={`${id}-hint`}>{hint} Up to 4,000 characters.</p>
     <textarea id={id} value={value} maxLength={4000} aria-invalid={error.invalid || undefined} aria-describedby={error.describedBy} onChange={event => onChange(event.target.value)} placeholder={placeholder} />
     <FieldError id={id} />
   </div>;
 }
 export function TextInput({ id, label, value, onChange, hint, hiddenLabel = false }: FieldProps & { hiddenLabel?: boolean }) {
-  const error = useFieldError(id, hint ? `${id}-hint` : undefined);
+  const error = useFieldError(id, `${id}-hint`);
   return <div className="field-group text-input-group">
     <label className={hiddenLabel ? 'sr-only' : 'field'} htmlFor={id}>{label}</label>
-    {hint && <p className="field-hint" id={`${id}-hint`}>{hint}</p>}
+    <p className="field-hint" id={`${id}-hint`}>{hint} Up to 4,000 characters.</p>
     <input type="text" id={id} value={value} maxLength={4000} aria-invalid={error.invalid || undefined} aria-describedby={error.describedBy} onChange={event => onChange(event.target.value)} />
     <FieldError id={id} />
   </div>;

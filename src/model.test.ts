@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   decodeDraft, encodeDraft, exportPlan, focusError, hasFocus, hasPlan,
-  hasReflection, initialState, minutes, planError, reducer, reflectionError,
+  hasReflection, initialState, minutes, parseStoredState, planError, reducer, reflectionError,
   type Action, type PlanState,
 } from './model';
 
@@ -123,6 +123,7 @@ describe('downstream invalidation', () => {
     ['owner', { type: 'text', field: 'owner', value: 'Grade 4 coaches and teachers' }],
     ['implementation measure', { type: 'text', field: 'implementationCheck', value: implementationCheck + ' Use a shared checklist.' }],
     ['learning measure', { type: 'text', field: 'learningCheck', value: learningCheck + ' Include missing responses.' }],
+    ['access and participation plan', { type: 'text', field: 'accessParticipation', value: 'Offer thinking time and written or drawn explanations while keeping the same fraction goal.' }],
     ['withdrawn consent', { type: 'consent', value: false }],
   ];
   it.each(planChanges)('changing %s keeps the focus but revokes plan and reflection acceptance', (_name, change) => {
@@ -208,6 +209,43 @@ describe('input boundaries and failure recovery', () => {
 });
 
 describe('versioned draft restore', () => {
+  it('preserves the exact approvals of an older completed cycle without optional access notes', () => {
+    const legacy: Record<string, unknown> = { ...completed() };
+    // Construct the original contract independently of the current signature function.
+    legacy.planStamp = JSON.stringify([legacy.focusStamp, legacy.agenda, legacy.action, legacy.owner, legacy.implementationCheck, legacy.learningCheck, legacy.consent]);
+    legacy.reflectionStamp = JSON.stringify([legacy.planStamp, legacy.implementation, legacy.reflection]);
+    delete legacy.accessParticipation;
+    const restored = parseStoredState(legacy);
+    expect(restored.stale).toBe(false);
+    expect(restored.state.accessParticipation).toBe('');
+    expect(restored.state.planStamp).toBe(legacy.planStamp);
+    expect(restored.state.reflectionStamp).toBe(legacy.reflectionStamp);
+    expect(hasPlan(restored.state)).toBe(true);
+    expect(hasReflection(restored.state)).toBe(true);
+  });
+
+  it.each([null, 7, [], 'x'.repeat(4001)])('rejects a present invalid access note instead of silently treating it as absent', value => {
+    expect(() => parseStoredState({ ...completed(), accessParticipation: value })).toThrow(/Invalid field/);
+  });
+
+  it('binds optional access notes to approval and requires approval again after editing or clearing them', () => {
+    const note = 'Build on visible strategies. Offer writing and drawing, and ask participants which language supports help.';
+    const approved = apply(completed(), { type: 'text', field: 'accessParticipation', value: note }, { type: 'consent', value: true }, { type: 'confirm-plan' }, { type: 'save-reflection' });
+    const restored = parseStoredState(approved);
+    expect(restored.stale).toBe(false);
+    expect(hasReflection(restored.state)).toBe(true);
+    expect(exportPlan(restored.state)).toContain(note);
+    for (const value of [note + ' Seek another perspective.', '']) {
+      const changed = reducer(approved, { type: 'text', field: 'accessParticipation', value });
+      expect(hasFocus(changed)).toBe(true);
+      expect(hasPlan(changed)).toBe(false);
+      expect(hasReflection(changed)).toBe(false);
+      expect(changed.reflection).toBe(reflection);
+      expect(() => exportPlan(changed)).toThrow(/Approve/);
+      expect(parseStoredState({ ...approved, accessParticipation: value }).stale).toBe(true);
+    }
+  });
+
   it.each([focusDraft, planDraft, approvedPlan, completed])('roundtrips authored work and its current approvals', factory => {
     const original = factory();
     const restored = decodeDraft(encodeDraft(original));
@@ -330,7 +368,7 @@ describe('maximum supported draft persistence', () => {
       { type: 'challenge' },
       { type: 'confirm-focus' },
     );
-    for (const field of ['action', 'owner', 'implementationCheck', 'learningCheck'] as const) {
+    for (const field of ['action', 'owner', 'implementationCheck', 'learningCheck', 'accessParticipation'] as const) {
       original = reducer(original, { type: 'text', field, value });
     }
     for (let index = 0; index < 6; index++) original = reducer(original, { type: 'agenda', index, value });

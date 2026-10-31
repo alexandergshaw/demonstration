@@ -19,18 +19,19 @@ export interface PlanState {
   step: number; selected: EvidenceId[]; interpretation: string; lens: Lens;
   challenged: boolean; focus: string; confidence: 'tentative' | 'moderate' | 'strong';
   focusStamp: string | null; agenda: string[]; action: string; owner: string;
-  implementationCheck: string; learningCheck: string; consent: boolean;
+  implementationCheck: string; learningCheck: string; accessParticipation: string; consent: boolean;
   planStamp: string | null; implementation: '' | 'yes' | 'partial' | 'no';
   reflection: string; reflectionStamp: string | null; review: boolean;
 }
 export const initialState = (): PlanState => ({
   step: 0, selected: ['assessment'], interpretation: '', lens: 'wording', challenged: false,
   focus: '', confidence: 'moderate', focusStamp: null, agenda: [...initialAgenda],
-  action: '', owner: 'Grade 4 teaching team', implementationCheck: '', learningCheck: '',
+  action: '', owner: 'Grade 4 teaching team', implementationCheck: '', learningCheck: '', accessParticipation: '',
   consent: false, planStamp: null, implementation: '', reflection: '', reflectionStamp: null, review: false,
 });
 const focusSignature = (s: PlanState) => JSON.stringify([s.selected, s.interpretation, s.lens, s.challenged, s.focus, s.confidence]);
-const planSignature = (s: PlanState) => JSON.stringify([s.focusStamp, s.agenda, s.action, s.owner, s.implementationCheck, s.learningCheck, s.consent]);
+// Empty optional notes retain the original signature so existing approvals remain valid.
+const planSignature = (s: PlanState) => JSON.stringify([s.focusStamp, s.agenda, s.action, s.owner, s.implementationCheck, s.learningCheck, s.consent, ...(s.accessParticipation ? [s.accessParticipation] : [])]);
 const reflectionSignature = (s: PlanState) => JSON.stringify([s.planStamp, s.implementation, s.reflection]);
 export function focusError(s: PlanState): string {
   if (s.interpretation.trim().length < 30) return 'Write an interpretation of at least 30 characters in your own words.';
@@ -57,7 +58,7 @@ export function reflectionError(s: PlanState): string {
   return '';
 }
 export const hasReflection = (s: PlanState) => !reflectionError(s) && s.reflectionStamp === reflectionSignature(s);
-type TextField = 'interpretation' | 'focus' | 'action' | 'owner' | 'implementationCheck' | 'learningCheck' | 'reflection';
+type TextField = 'interpretation' | 'focus' | 'action' | 'owner' | 'implementationCheck' | 'learningCheck' | 'accessParticipation' | 'reflection';
 export type Action =
   | { type: 'text'; field: TextField; value: string }
   | { type: 'evidence'; id: EvidenceId }
@@ -114,6 +115,7 @@ export function exportPlan(s: PlanState, labels = evidenceLabels): string {
     ...s.agenda.map((text, i) => `${minutes[i]} min · ${text}`), '',
     'Teaching action: ' + s.action, 'Owner: ' + s.owner,
     'Implementation check: ' + s.implementationCheck, 'Student learning check: ' + s.learningCheck,
+    ...(s.accessParticipation.trim() ? ['Access & participation plan: ' + s.accessParticipation] : []),
     '', 'FOLLOW-UP', hasReflection(s) ? 'Implementation: ' + s.implementation : 'Implementation: Not yet recorded',
     hasReflection(s) ? 'Recorded reflection: ' + s.reflection : 'Reflection: Not yet recorded (draft edits are not included)',
     '', 'Evidence does not establish causality. Observation notes describe one classroom on Sep 9.',
@@ -122,7 +124,9 @@ export function exportPlan(s: PlanState, labels = evidenceLabels): string {
 // Shared trust boundary for legacy drafts and database cycle records.
 export function parseStoredState(value: unknown): { state: PlanState; stale: boolean } {
   if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(value).length > MAX_DRAFT_LENGTH) throw new Error('Invalid draft');
-  const input = value as Record<string, unknown>;
+  const source = value as Record<string, unknown>;
+  // A missing optional field is an older cycle, while a present invalid value remains an error.
+  const input = Object.hasOwn(source, 'accessParticipation') ? source : { ...source, accessParticipation: '' };
   const base = initialState();
   for (const [key, expected] of Object.entries(base)) {
     const actual = input[key];
