@@ -14,23 +14,26 @@ export function FieldError({ id }: { id: string }) {
 }
 interface FieldProps {
   id: string; label: string; value: string; onChange: (value: string) => void;
-  hint?: string; placeholder?: string;
+  hint?: string; placeholder?: string; requirement?: string; heading?: boolean;
 }
-export function TextArea({ id, label, value, onChange, hint, placeholder }: FieldProps) {
-  const error = useFieldError(id, `${id}-hint`);
+export function TextArea({ id, label, value, onChange, hint, placeholder, requirement, heading = false }: FieldProps) {
+  const error = useFieldError(id, [`${id}-hint`, `${id}-limit`, requirement && `${id}-requirement`].filter(Boolean).join(' '));
+  const fieldLabel = <label id={`${id}-label`} className="field" htmlFor={id}>{label}</label>;
   return <div className="field-group">
-    <label className="field" htmlFor={id}>{label}</label>
-    <p className="field-hint" id={`${id}-hint`}>{hint} Up to 4,000 characters.</p>
+    <div className="field-heading">{heading ? <h2>{fieldLabel}</h2> : fieldLabel}{requirement && <span className="field-requirement" id={`${id}-requirement`}>{requirement}</span>}</div>
+    <p className="field-hint" id={`${id}-hint`}>{hint}</p>
     <textarea id={id} value={value} maxLength={4000} aria-invalid={error.invalid || undefined} aria-describedby={error.describedBy} onChange={event => onChange(event.target.value)} placeholder={placeholder} />
+    <p className="field-limit" id={`${id}-limit`}>Up to 4,000 characters</p>
     <FieldError id={id} />
   </div>;
 }
-export function TextInput({ id, label, value, onChange, hint, hiddenLabel = false }: FieldProps & { hiddenLabel?: boolean }) {
-  const error = useFieldError(id, `${id}-hint`);
+export function TextInput({ id, label, value, onChange, hint, requirement, hiddenLabel = false }: FieldProps & { hiddenLabel?: boolean }) {
+  const error = useFieldError(id, [`${id}-hint`, `${id}-limit`, requirement && `${id}-requirement`].filter(Boolean).join(' '));
   return <div className="field-group text-input-group">
-    <label className={hiddenLabel ? 'sr-only' : 'field'} htmlFor={id}>{label}</label>
-    <p className="field-hint" id={`${id}-hint`}>{hint} Up to 4,000 characters.</p>
+    <div className="field-heading"><label className={hiddenLabel ? 'sr-only' : 'field'} htmlFor={id}>{label}</label>{requirement && <span className="field-requirement" id={`${id}-requirement`}>{requirement}</span>}</div>
+    <p className="field-hint" id={`${id}-hint`}>{hint}</p>
     <input type="text" id={id} value={value} maxLength={4000} aria-invalid={error.invalid || undefined} aria-describedby={error.describedBy} onChange={event => onChange(event.target.value)} />
+    <p className="field-limit" id={`${id}-limit`}>Up to 4,000 characters</p>
     <FieldError id={id} />
   </div>;
 }

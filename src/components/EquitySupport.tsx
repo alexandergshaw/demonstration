@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Action, PlanState } from '../model';
 import { TextArea } from './Field';
 
@@ -18,8 +19,11 @@ export function EquityLens() {
 }
 
 export function AccessParticipation({ state, dispatch }: { state: PlanState; dispatch: (action: Action) => void }) {
-  return <section className="access-planning" aria-label="Access and participation">
-    <TextArea id="access-participation" label="Access & participation plan (optional)"
+  const [open, setOpen] = useState(Boolean(state.accessParticipation.trim()));
+  return <details className="access-planning support-disclosure" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary>Access & participation <span className="disclosure-meta">Optional</span></summary>
+    <div className="support-disclosure-body">
+    <TextArea id="access-participation" label="Your participation plan"
       hint="Keep the learning goal challenging. Name a participation or language support, the strengths it builds on, and what you still need to learn. Use fictional or non-identifying notes."
       value={state.accessParticipation}
       onChange={value => dispatch({ type: 'text', field: 'accessParticipation', value })}
@@ -33,5 +37,6 @@ export function AccessParticipation({ state, dispatch }: { state: PlanState; dis
       </ul>
       <p className="caption">Choose what fits your context. A planning note is not evidence that access improved; revisit it alongside the next evidence.</p>
     </details>
-  </section>;
+    </div>
+  </details>;
 }

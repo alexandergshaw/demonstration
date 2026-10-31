@@ -79,6 +79,8 @@ The workbook treatment replaces repetitive rounded score cards, tinted panels, d
 
 The self-hosted font files come from the official [IBM Plex repository](https://github.com/IBM/plex), with `public/fonts/IBM-Plex-OFL.txt` preserved. Design decisions, asset provenance, and independent visual/functional verification are in `docs/visual-identity-pass/`.
 
+The subsequent hierarchy pass centralizes type roles: 40px page titles, 24px section headings, 18px task labels, 16px body/input text, 14px support and 12px brief metadata at standard reading size. Mobile layouts reflow without shrinking instructions, and the existing 125/150% reading settings still apply. Interpretation and meeting preparation have explicit working sections; selected-source labels remain visible with full excerpts one click away. Optional planning details use disclosures, historical context is separate from current work, and the Decision Thread leads with the next action. Guide/About places purpose before evaluation and presenter controls. This pass passed the 241-test suite, production compilation and independent static review; browser rendering could not be checked because local browser use was disabled in Work settings.
+
 ## Brief re-audit
 
 The follow-up count is a fixed fictional illustration, independent of the chosen teaching action or reported implementation. Reflection now exposes the missing date, follow-up task, verified rubric, matched cohort, response coverage and implementation evidence, with the original task available as a baseline only. A higher count does not establish comparable learning progress. The same context travels with a recorded reflection in the text download; drafts and invalidated reflections are excluded. Review evidence is in `docs/brief-reaudit/`.

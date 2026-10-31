@@ -7,11 +7,11 @@ import { Icon } from './Icon';
 
 export function LearningGoal() {
   return <section className="learning-goal-context" aria-label="Lesson learning goal">
-    <p className="caption">Learning goal · fictional lesson</p>
+    <p className="context-label">Learning goal <span className="caption">Fictional lesson</span></p>
     <p className="lesson-goal">{lessonContext.goal}</p>
     <details className="task-context">
       <summary>Inspect task & rubric</summary>
-      <div className="source-blocks">{taskBlocks().map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}</div>
+      <div className="source-blocks"><section><h3>Lesson context · prototype assumption</h3><p>{lessonContext.provenance + '\n' + lessonContext.lesson}</p></section>{taskBlocks().slice(1).map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}</div>
     </details>
   </section>;
 }
@@ -26,11 +26,16 @@ export function EvidenceInspector({ state, reference, showQuotes = false }: { st
   const [open, setOpen] = useState(false);
   const responses = reference.responses.filter(response => state.selected.includes(response.id));
   const observation = state.selected.includes('observation') ? reference.observation : null;
+  const excerptCount = responses.length + (observation ? 1 : 0);
   return <div className="evidence-inspector">
-    {showQuotes && (responses.length > 0 || observation) && <div className="selected-source-strip" aria-label="Selected source excerpts">
+    <ul className="selected-source-list" aria-label="Selected sources">{state.selected.map(id => <li key={id}>{reference.labels[id]}</li>)}</ul>
+    {showQuotes && excerptCount > 0 && <details className="source-excerpts support-disclosure">
+      <summary>Selected source excerpts <span className="disclosure-meta">{excerptCount} {excerptCount === 1 ? 'excerpt' : 'excerpts'}</span></summary>
+      <div className="selected-source-strip" aria-label="Selected source excerpts">
       {responses.map(response => <div key={response.id}><span className="caption">{response.label} · {reference.assessment.date}</span><blockquote>“{response.quote}”</blockquote></div>)}
       {observation && <div><span className="caption">{observation.date} · {observation.scope} · Historical context</span><blockquote>“{observation.quote}”</blockquote><p className="caption">{observation.caution}</p></div>}
-    </div>}
+      </div>
+    </details>}
     <button className="textlink" onClick={() => setOpen(true)}><Icon name="evidence" size={16} />Inspect selected evidence & task</button>
     {open && <Modal title="Evidence & original task" onClose={() => setOpen(false)}>
       <div className="source-reader source-blocks">

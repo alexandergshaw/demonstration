@@ -31,13 +31,14 @@ interface LearningGuideProps {
   initialView?: LearningView;
   initialStep?: number;
   about?: ReactNode;
+  presenterTools?: ReactNode;
 }
 const views: { id: LearningView; label: string }[] = [
   { id: 'home', label: 'Start here' }, { id: 'walkthrough', label: 'Walkthrough' },
   { id: 'practice', label: 'Practice' }, { id: 'glossary', label: 'Glossary' }, { id: 'about', label: 'About this demo' },
 ];
 
-export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onClose, initialView = 'home', initialStep, about }: LearningGuideProps) {
+export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onClose, initialView = 'home', initialStep, about, presenterTools }: LearningGuideProps) {
   const [view, setView] = useState<LearningView>(initialView);
   const [lessonId, setLessonId] = useState<LessonId>(isLessonId(initialStep) ? initialStep : learning.progress.lastLesson);
   const [practiceIndex, setPracticeIndex] = useState(0);
@@ -79,18 +80,18 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
 
       {view === 'home' && <section className="learning-section">
         <h3 ref={heading} tabIndex={-1} className="learning-heading">Choose the support you need</h3>
-        <p>Learn the workflow, practice a decision, or look up a term. Everything is optional and can be revisited.</p>
-        <p className="learning-boundary">Your current cycle is at <strong>{currentStage}</strong>. Guide activities leave its evidence, writing and approvals unchanged.</p>
+        <p className="learning-lead">Learn the workflow, practice a decision, or look up a term. Everything is optional and can be revisited.</p>
         <div className="learning-routes">
-          <article><span className="kicker">Four short lessons</span><h4>Walk through the planning cycle</h4><p>See what to do at each stage and why it matters.</p>
-            <button className="btn secondary" onClick={() => openLesson(learning.progress.lastLesson)}>Open walkthrough · Lesson {learning.progress.lastLesson + 1}</button>
-            <span className="caption">{learning.progress.reviewedLessons.length} of 4 lessons marked reviewed</span></article>
-          <article><span className="kicker">Three fictional scenarios</span><h4>Practice reading evidence</h4><p>Try a choice and read its explanation. You can retry freely.</p>
-            <button className="btn secondary" onClick={() => openPractice(0)}>Open practice</button>
-            <span className="caption">{learning.progress.practiced.length} of 3 scenarios tried · no proficiency score</span></article>
-          <article><span className="kicker">Plain-language reference</span><h4>Look up a term</h4><p>Definitions for the data and planning terms used in this workbook.</p>
+          <article><div className="learning-route-copy"><span className="kicker">Four short lessons</span><h4>Walk through the planning cycle</h4><p>See what to do at each stage and why it matters.</p>
+            <span className="caption">{learning.progress.reviewedLessons.length} of 4 lessons marked reviewed</span></div>
+            <button className="btn secondary" onClick={() => openLesson(learning.progress.lastLesson)}>Open walkthrough · Lesson {learning.progress.lastLesson + 1}</button></article>
+          <article><div className="learning-route-copy"><span className="kicker">Three fictional scenarios</span><h4>Practice reading evidence</h4><p>Try a choice and read its explanation. You can retry freely.</p>
+            <span className="caption">{learning.progress.practiced.length} of 3 scenarios tried · no proficiency score</span></div>
+            <button className="btn secondary" onClick={() => openPractice(0)}>Open practice</button></article>
+          <article><div className="learning-route-copy"><span className="kicker">Plain-language reference</span><h4>Look up a term</h4><p>Definitions for the data and planning terms used in this workbook.</p></div>
             <button className="btn secondary" onClick={() => setView('glossary')}>Open glossary</button></article>
         </div>
+        <p className="learning-boundary">Your current cycle is at <strong>{currentStage}</strong>. Guide activities leave its evidence, writing and approvals unchanged.</p>
         <p className="caption">This prototype offers written guidance and authored practice explanations. There is no live tutor or coaching service.</p>
       </section>}
 
@@ -139,9 +140,9 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
           : <div className="glossary-empty"><p>No matching term. Try a shorter word, or browse the full glossary.</p><button className="btn secondary" onClick={() => { setTermQuery(''); search.current?.focus(); }}>Show all terms</button></div>}
       </section>}
 
-      {view === 'about' && <section className="learning-section"><h3 ref={heading} tabIndex={-1} className="learning-heading">About this demonstration</h3>
-        <PilotEvaluation />
-        {about ?? <p>Throughline is a fictional grade-four math PLC workbook. Evidence and thinking prompts are scripted. You write and approve your own decisions; no live AI creates the plan.</p>}</section>}
+      {view === 'about' && <section className="learning-section learning-about"><h3 ref={heading} tabIndex={-1} className="learning-heading">About this demonstration</h3>
+        <div className="learning-about-overview">{about ?? <p>Throughline is a fictional grade-four math PLC workbook. Evidence and thinking prompts are scripted. You write and approve your own decisions; no live AI creates the plan.</p>}</div>
+        <PilotEvaluation />{presenterTools}</section>}
 
       <p className="learning-storage caption" role="status">{learning.message || 'Reviewed topics and practice attempts save only on this browser. They are separate from your planning decisions.'}</p>
       <div className="modal-actions"><button className="btn" onClick={onClose}>Return to my {currentStage} stage</button></div>
