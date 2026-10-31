@@ -25,11 +25,13 @@ Relevant implementation: [StepCoach](../src/components/StepCoach.tsx), [Evidence
 
 The integration run completed with:
 
-- `npm test`: 296 passing tests across 10 files.
+- `npm test`: 303 passing tests across 11 files, including the subsequent compact Evidence views.
 - `npm run build`: production TypeScript/Vite build passed.
 - `git diff --check`: passed.
 
 Regression coverage includes the approved ready landing and reload, existing cycles saved at Reflect, collection edits that require reapproval while preserving reflection text as an unrecorded draft, optional coaching, the collection-editor entry route, the approval guard on MeetingReady, and implementation-specific reflection prompts. Controller tests exercise save-failure policy against the local backend. Server-render and controller checks do not exercise a real browser DOM or replace interaction testing.
+
+The compact Evidence pass adds seven source-render regressions for both dated snapshots: exact aggregate and class counts, independently specified rounded percentages, each class's denominator, stable class order, table caption and header scopes, unchanged task/rubric/source wording, collapsed detail and escaped source labels. Existing workspace contracts still check source selection and date/coverage boundaries. The three view controls remain ordinary pressed buttons associated with one labelled content region; keyboard focus uses their native button behavior. Switching views only updates local presentation state.
 
 ## Verification limits
 

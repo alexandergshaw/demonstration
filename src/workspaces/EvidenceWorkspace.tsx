@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
-import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
 import type { Action, PlanState } from '../model';
+import { AssessmentResults, ClassResults, TaskSources } from './EvidenceViews';
 import './EvidenceWorkspace.css';
 
 interface EvidenceWorkspaceProps {
@@ -17,14 +17,11 @@ type EvidenceView = 'results' | 'classes' | 'task';
 
 export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorkspaceProps) {
   const [view, setView] = useState<EvidenceView>('results');
+  const viewId = useId();
   const { assessment, classes, responses, observation } = reference;
   const isRepeat = state.evidenceVersion === 'oct29';
   const observationSelected = state.selected.includes('observation');
   const selectedWork = responses.filter(response => state.selected.includes(response.id)).length;
-  const results = [
-    { label: 'Selected the correct fraction', count: assessment.correct, tone: 'answer' },
-    { label: 'Explained why the amounts are equal', count: assessment.explanations, tone: 'explanation' },
-  ];
 
   return <div className="evidence-workspace">
     <p className="evidence-goal"><span>Learning goal</span>{lessonContext.goal}</p>
@@ -32,49 +29,25 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
     <div className="evidence-composition">
       <section className="evidence-results" aria-labelledby="evidence-results-title">
         <div className="evidence-section-heading">
-          <div>
-            <p className="evidence-kicker">The class picture</p>
-            <h2 id="evidence-results-title">Answers and explanations</h2>
-          </div>
+          <h2 id="evidence-results-title">Assessment</h2>
           <span className="evidence-included"><Icon name="check" size={15} />Included</span>
         </div>
-        <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {classes.length} classes</p>
+        <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {assessment.total} responses · {classes.length} classes</p>
 
         <div className="evidence-view-switch" role="group" aria-label="View assessment evidence">
           {([
             ['results', 'Results'],
             ['classes', 'By class'],
             ['task', 'Task & sources'],
-          ] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={view === id} onClick={() => setView(id)}>{label}</button>)}
+          ] as const).map(([id, label]) => <button type="button" key={id} id={`${viewId}-${id}`} aria-pressed={view === id} aria-controls={`${viewId}-content`} onClick={() => setView(id)}>{label}</button>)}
         </div>
 
-        <div className="evidence-view-content">
-          {view === 'results' && <>
-            <figure className="evidence-chart" aria-label={`Of ${assessment.total} responses, ${assessment.correct} selected the correct fraction and ${assessment.explanations} gave an adequate explanation.`}>
-              {results.map(result => <div className="evidence-chart-row" key={result.tone}>
-                <div className="evidence-chart-label"><span>{result.label}</span><strong>{result.count}<span> / {assessment.total}</span></strong></div>
-                <div className="evidence-chart-track" aria-hidden="true"><div className={`evidence-chart-fill ${result.tone}`} style={{ width: `${result.count / assessment.total * 100}%` }} /></div>
-              </div>)}
-              <div className="evidence-chart-scale" aria-hidden="true"><span>0 responses</span><span>{assessment.total} responses</span></div>
-              <figcaption>Both measures use the same scale. Totals do not tell us which students met both criteria.</figcaption>
-            </figure>
-          </>}
+        {isRepeat && <p className="evidence-repeat-limit"><strong>Repeated task · 116 of 120 expected responses; 4 absent.</strong> Practice may affect results. These are not matched student-level gains or evidence of a teaching action’s effect.</p>}
 
-          {view === 'classes' && <div className="evidence-class-view">
-            <table>
-              <caption>Response counts by class · {assessment.date}</caption>
-              <thead><tr><th scope="col">Class</th><th scope="col">Responses</th><th scope="col">Correct fraction</th><th scope="col">Adequate explanation</th></tr></thead>
-              <tbody>{classes.map(item => <tr key={item.id}><th scope="row">{item.label}</th><td>{item.total}</td><td>{item.correct}</td><td>{item.explanations}</td></tr>)}</tbody>
-            </table>
-            <p className="evidence-note">Compare each count with its class response total. These descriptive counts do not measure teacher effectiveness.</p>
-          </div>}
-
-          {view === 'task' && <div className="evidence-task-view">
-            <section><h3>Original task</h3><p>{lessonContext.prompt}</p></section>
-            <section><h3>What the scores mean</h3><p>{lessonContext.selection}</p><p>{lessonContext.rubric}</p></section>
-            <section><h3>Lesson context</h3><p>{lessonContext.lesson}</p></section>
-            <section><h3>Source and limits</h3><p>{evidenceSnapshotDescription(state.evidenceVersion)}</p><p>{lessonContext.provenance}</p><p>{lessonContext.limits}</p></section>
-          </div>}
+        <div className="evidence-view-content" id={`${viewId}-content`} role="region" aria-labelledby={`${viewId}-${view}`}>
+          {view === 'results' && <AssessmentResults reference={reference} />}
+          {view === 'classes' && <ClassResults reference={reference} />}
+          {view === 'task' && <TaskSources reference={reference} version={state.evidenceVersion} />}
         </div>
 
         <StepCoach question="What pattern is worth bringing to the team?" ready="You can point to a pattern, name its source, and say what it does not tell you.">
@@ -85,12 +58,10 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           </ul>
           <p>Select work that helps you examine the pattern. You can also start your interpretation with the class results alone.</p>
         </StepCoach>
-
-        {isRepeat && <p className="evidence-repeat-limit"><strong>Repeated task · 116 of 120 expected responses; 4 absent.</strong> Practice may affect results. These samples do not establish student gains or the effect of a teaching action. <button type="button" onClick={() => setView('task')}>Inspect source details</button></p>}
       </section>
 
       <section className="evidence-student-work" aria-labelledby="evidence-work-title">
-        <div className="evidence-section-heading"><div><p className="evidence-kicker">Look closer</p><h2 id="evidence-work-title">Student work</h2></div></div>
+        <div className="evidence-section-heading"><h2 id="evidence-work-title">Student work</h2></div>
         <p className="evidence-source-date">Two illustrative samples · {assessment.date}</p>
         <p className="evidence-rubric-anchor">Look for equal amounts of the same whole.</p>
         <div className="evidence-response-list">

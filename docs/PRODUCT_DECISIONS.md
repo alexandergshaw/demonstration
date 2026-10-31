@@ -8,7 +8,7 @@ The interface gives each stage a distinct working composition while keeping one 
 
 | Stage | Primary work | Supporting information |
 | --- | --- | --- |
-| Evidence | Compare two measures beside original student responses and select work | By-class counts and task/source details replace the comparison within its area; the historical observation opens separately |
+| Evidence | Compare two measures beside original student responses and select work | A shared assessment/date/coverage frame supports compact Results, By class and Task & sources views; the historical observation opens separately |
 | Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; a dialog provides the source on smaller screens; earlier writing has summary/Edit controls |
 | Plan | One teaching move and owner, a six-part outline, and one selected activity editor; after approval, a meeting-ready handoff | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval; the kit is the next action |
 | Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
@@ -33,7 +33,21 @@ This organization addresses scrolling and visual overload through stable source 
 
 The October 28 fixture contains 120 responses: 89 correct fraction selections and 46 adequate explanations. They are separate aggregate scores, not linked student-level records. Two student responses illustrate possible reasoning without establishing prevalence. The learning goal, original fraction prompt and scoring criteria are explicit prototype assumptions; they were not supplied district curriculum.
 
-The Evidence workspace starts with the aggregate comparison and original work. Leaders can inspect class counts, task, rubric and source limitations when those details matter. Interpret keeps one source beside writing; Plan provides the confirmed focus and source packet through **View focus & sources**. Suggested diagnoses do not precede the original student responses.
+The Evidence workspace starts with the aggregate comparison and original work. The compact view design gives each view one question to answer while keeping the assessment date, response coverage and class scope in a shared frame:
+
+| View | Main information | Detail available without adding another dashboard |
+| --- | --- | --- |
+| Results | Two directly labeled bars for correct fraction and adequate explanation, with exact count/denominator and percentage to one decimal place | A brief comparison prompt and a visible reminder that the totals do not identify which students met both criteria |
+| By class | A semantic three-column table: class and the two separate measures; stable A–D order | Each measure includes its own exact denominator and a bar on the same 0–100% scale, so differing response totals remain interpretable |
+| Task & sources | The exact student-facing prompt and two concise scoring definitions | Full scoring rubric, lesson context and source provenance in native disclosures that begin collapsed |
+
+Repeated-task and missing-response cautions stay above the view content rather than disappearing into a source disclosure. Original sample quotations and selection controls remain alongside the views. A response's letter is not a link to a class with the same letter. Differences between aggregate scores are not counts of particular students, and class comparisons do not rank teachers or explain causes. Percentages are display calculations, not new evidence.
+
+This plan aims to reduce repeated reading while preserving substantive interpretation. Leading Educators' [AI principles](https://leadingeducators.org/ai-at-le/) emphasize teacher-led judgment and intellectual engagement, while its [mathematics approach](https://leadingeducators.org/mathematics/) connects conceptual understanding, student-work routines and instructional improvement. The design inference is to make the task, criteria and work easier to inspect rather than supply a diagnosis. These sources do not establish that this layout improves educator performance or represent an endorsement.
+
+The class table retains row/column headers and a caption following [W3C/WAI's table guidance](https://www.w3.org/WAI/tutorials/tables/). Supplemental detail uses native show/hide controls; [WAI's disclosure pattern](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/) informs the need for a clear control, visible state and keyboard operation. These are implementation principles, not completed accessibility verification. Browser use remains disabled, so visual density, responsive layout, keyboard flow and assistive-technology behavior still need hands-on checks. Faster comprehension and lower reading burden remain hypotheses to test with leaders.
+
+Interpret keeps one source beside writing; Plan provides the confirmed focus and source packet through **View focus & sources**. Suggested diagnoses do not precede the original student responses.
 
 The September 9 observation covers one classroom. Its date and caution remain visible even when its quotation is collapsed. Selecting it adds historical context; it does not establish current teaching practice across the grade.
 
