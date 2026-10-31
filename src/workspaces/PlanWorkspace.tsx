@@ -125,6 +125,14 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   }
 
   return <div className="plan-workspace">
+    <section className="pw-focus-context" aria-labelledby="pw-focus-heading">
+      <div className="pw-section-heading">
+        <h2 id="pw-focus-heading">Your confirmed focus</h2>
+        <button className="textlink" onClick={() => { clearError(); setSourcesOpen(true); }}><Icon name="evidence" size={16} />Read full focus & sources</button>
+      </div>
+      <p className="pw-focus-preview">{state.focus}</p>
+    </section>
+
     <section className="pw-teaching-move" aria-labelledby="pw-move-heading">
       <div className="pw-section-heading">
         <h2 id="pw-move-heading">One teaching move</h2>
@@ -143,11 +151,6 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
         <p className="pw-owner">{state.owner.trim() || 'Name who will try the strategy'}</p>
       </>}
     </section>
-
-    <div className="pw-context-row">
-      <span>Grounded in your confirmed focus</span>
-      <button className="textlink" onClick={() => { clearError(); setSourcesOpen(true); }}><Icon name="evidence" size={16} />View focus & sources</button>
-    </div>
 
     <div className="pw-agenda-workspace">
       <section className="pw-outline" aria-labelledby="pw-outline-heading">

@@ -86,7 +86,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         <p>Before comparing results, inspect the dated tasks, rubric, response coverage and teaching conditions. If these differ, describe what the current work shows and limit claims about change.</p>
         <p>Needing more evidence is a valid decision. Make it actionable by naming what to collect, who will bring it and the next review point.</p>
       </StepCoach>
-      <TextArea id="reflection" heading label="What can you conclude, and what will you check next?"
+      <TextArea id="reflection" heading label={reflectionQuestion}
         hint="Record the supported conclusion or implementation barrier, then name the next action, owner and review point in your own words."
         value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })}
         placeholder={s.implementation === 'no' ? 'The move was not tried because… Next, [who] will… We will revisit this on…' : 'We can say… We still need… [Who] will collect… We will revisit this on…'} />

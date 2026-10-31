@@ -139,6 +139,9 @@ describe('workspace defaults keep one decision in view', () => {
     expect(markup.match(/<textarea\b[^>]*id="agenda-\d"/g)).toHaveLength(1);
     expect(markup).toContain('id="agenda-3"');
     expect(markup.match(/class="pw-agenda-choice"/g)).toHaveLength(6);
+    expect(markup).toContain(state.focus);
+    expect(markup.indexOf(state.focus)).toBeLessThan(markup.indexOf('id="pw-move-heading"'));
+    expect(markup).toContain('Read full focus &amp; sources');
     expect(markup).toContain(state.action);
     expect(markup).toContain(state.implementationCheck);
     expect(markup).toContain(state.learningCheck);
@@ -189,6 +192,9 @@ describe('workspace defaults keep one decision in view', () => {
       expect(markup.match(/class="step-coach"/g)).toHaveLength(1);
       expect(markup).toContain('<details class="step-coach-help">');
       expect(markup).not.toMatch(/<details\b[^>]*class="step-coach-help"[^>]*\bopen/);
+      const coaching = markup.match(/<section class="step-coach"[\s\S]*?<\/section>/)?.[0];
+      expect(coaching).toBeDefined();
+      expect(coaching).toMatch(/<details class="step-coach-help">[\s\S]*?<\/summary>[\s\S]*?class="step-coach-question"/);
     }
     expect(options.dispatch).not.toHaveBeenCalled();
     expect(options.submit).not.toHaveBeenCalled();
@@ -263,6 +269,8 @@ describe('Reflect separates this cycle from demonstration outcomes', () => {
     const options = props({ ...planned(), implementation });
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
     expect(markup).toContain(question);
+    const fieldLabel = markup.match(/<label id="reflection-label"[^>]*>([^<]+)<\/label>/)?.[1];
+    expect(fieldLabel).toContain(question);
     expect(markup).toContain('no collected follow-up dataset');
     expect(markup).toContain('Draft report');
     expect(markup).not.toContain('Reflection recorded with this plan.');

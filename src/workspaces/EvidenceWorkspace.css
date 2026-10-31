@@ -64,7 +64,7 @@
 .evidence-workspace .evidence-source-date {
   margin: .65rem 0 0;
   color: var(--muted, #526170);
-  font-size: .8125rem;
+  font-size: var(--text-support, .875rem);
   line-height: 1.6;
 }
 
@@ -273,7 +273,7 @@
 }
 
 .evidence-workspace .evidence-task-provenance {
-  font-size: .8125rem;
+  font-size: var(--text-support, .875rem);
   color: var(--muted, #526170);
   line-height: 1.6;
 }
@@ -486,7 +486,7 @@
 .evidence-workspace .evidence-history-meta,
 .evidence-workspace .evidence-history-status {
   color: var(--muted, #526170);
-  font-size: .8125rem;
+  font-size: var(--text-support, .875rem);
   line-height: 1.5;
 }
 
