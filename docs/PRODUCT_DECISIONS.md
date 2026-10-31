@@ -10,7 +10,7 @@ The interface gives each stage a distinct working composition while keeping one 
 | --- | --- | --- |
 | Evidence | Compare two measures beside original student responses and select work | By-class counts and task/source details replace the comparison within its area; the historical observation opens separately |
 | Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; a dialog provides the source on smaller screens; earlier writing has summary/Edit controls |
-| Plan | One teaching move and owner, a six-part outline, and one selected activity editor | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval |
+| Plan | One teaching move and owner, a six-part outline, and one selected activity editor; after approval, a meeting-ready handoff | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval; the kit is the next action |
 | Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
 
 This organization addresses scrolling and visual overload through stable source access and progressive disclosure. There is no live conversation or generated-chart runtime. The design demonstrates how a workflow can keep evidence and authored decisions available without relying on chat scrollback.
@@ -24,6 +24,8 @@ This organization addresses scrolling and visual overload through stable source 
 | Dates, scope and evidence version travel with the plan | A single undifferentiated evidence feed | Quarterly observations cannot become current proof when daily results change |
 | One concrete teaching move with separate implementation and learning checks | A single achievement indicator | Makes the action testable without conflating implementation and student outcomes |
 | Complete draft preview, ownership confirmation and reapproval after edits | Approval without a consolidated review | Makes the decision being approved inspectable |
+| A durable meeting-ready state before reflection | Sending a leader directly to reflection on approval | Separates preparing materials from trying the teaching move and observing what happened |
+| A short task question with optional help and an educator self-check | More mandatory guidance or automatic readiness scores | Supports a decision without adding another completion exercise or claiming instructional quality |
 | An explicit unavailable-evidence state in Reflect | Example results presented alongside the active plan | Prevents invented follow-up from becoming evidence for a leader's action |
 | One grade in the pilot | Full multi-grade analysis | Keeps the complete instructional cycle narrow enough to test |
 
@@ -43,17 +45,23 @@ The newer collection has 116 of 120 expected responses, with four students absen
 
 ## Educator ownership and instructional work
 
-Interpretation follows three local steps: Notice, Test an alternative and Choose a focus. The scripted question is visible as a question to consider; the educator explicitly acknowledges it. Editing the interpretation or changing the question angle revokes that acknowledgement through the existing model. Earlier writing stays editable, and the educator confirms the focus in their own words.
+Interpretation follows three local steps: Notice, Test an alternative and Choose a focus. At the scripted alternative, **Revise interpretation** returns to earlier writing, **Inspect source** opens the evidence reader, and **Keep interpretation & explain uncertainty** records consideration and advances only after a successful save. The focus prompt asks for the evidence, the alternative and what would make the leader reconsider. Editing the interpretation or changing the question angle revokes consideration through the existing model. The educator still writes and confirms the focus; choosing Keep does not validate the interpretation.
 
-Plan begins with one concrete teaching move and owner. The six fixed activities total 50 minutes. Selecting an outline item opens its facilitation directions rather than presenting six large editors simultaneously. Activity 4 includes optional prepare/rehearse/feedback/revise support grounded in the selected work and fraction rubric, plus access/participation notes. The support does not fill the agenda or certify instructional quality.
+Each stage places one short question by the current task. **Help me think this through** opens additional prompts and a **Self-check** in a native disclosure. These are questions for the educator, not scores or prerequisites. Evidence asks which pattern merits discussion. Notice separates observation from explanation; the alternative step makes revising, inspecting or keeping explicit; the focus step asks what would change the decision. Plan puts a facilitator check beside the single selected activity. Reflect adapts its question to the implementation report and asks for an actionable next check. Optional help never changes authored content or approval state.
 
-Implementation and student-learning checks remain separate. Optional collector and dates live with the learning check; incomplete date drafts can save, while approval checks valid dates and review order. Planned commitments do not establish that teaching, collection or review occurred.
+Plan begins by asking what the teacher will do differently and what thinking students will do. The six fixed activities total 50 minutes. Selecting an outline item opens its facilitation directions rather than presenting six large editors simultaneously. The local guidance question changes with that activity; its facilitator self-check asks whether a colleague could tell what participants will do, which evidence they will use and what they will leave with. Activity 4 includes optional prepare/rehearse/feedback/revise support grounded in the selected work and fraction rubric, plus access/participation notes. The support does not fill the agenda or certify instructional quality.
+
+Implementation and student-learning checks remain separate: an observable teaching record is different from student work that reveals reasoning. Optional collector and dates live with the learning check. Missing arrangements remain visible in the summary, review and ready screen; leaving them empty does not block approval. Incomplete date drafts can save, while nonempty dates must be valid and review cannot precede collection when approving. Planned commitments do not establish that teaching, collection or review occurred or schedule a reminder.
 
 **Review meeting plan** gathers the confirmed focus, teaching move, six activities, checks, selected sources and optional commitments into one preview. Edit controls return to the relevant authoring area. The ownership checkbox and approval action stay in that review. Edits retain the existing invalidation rules; they do not silently reuse an earlier approval.
 
+Successful plan confirmation stores Plan as the current stage (`step: 2`) and shows **Your meeting is ready**. This handoff is derived from the saved approval and stage, so reload restores it. Its primary action opens the meeting kit; after the meeting and lesson, **Go to reflection** is a separate choice. Approval does not imply that instruction happened. Confirmation state is adopted only after persistence succeeds: a failed focus confirmation, plan approval or reflection recording keeps the previous draft available and reports failure. Retrying ordinary draft persistence does not itself confirm a decision.
+
+**Edit collection details** on the ready screen and **Update collection plan** in Reflect route back to Plan with the learning check open and collector field focused. Opening an editor alone preserves the approval. Changing a commitment invalidates plan approval and recorded reflection while retaining their text; the leader reviews and approves the revised plan, then explicitly returns to Reflect. This closes a navigation gap without manufacturing a new dataset or linked cycle.
+
 ## Reflection and worked cases
 
-Reflect displays the agreed teaching move and asks whether it was used as planned, partially used or not yet used. These are leader reports. The active cycle has no collected follow-up dataset, and the interface says so. **Review what to collect** exposes planned checks and commitments. The main writing task asks what can be concluded and what to check next; an optional next-PLC question remains part of the recorded reflection rather than automatically starting a linked cycle.
+Reflect displays the agreed teaching move and asks whether it was used as planned, partially used or not yet used. These are leader reports. When it was not tried, the prompt asks about the barrier and next opportunity; partial use asks what differed; reported use still requires comparable learning evidence. The active cycle has no collected follow-up dataset, and the interface says so. **Review what to collect** exposes checks, unset arrangements and the route to edit them. The main writing task asks for a supported conclusion or uncertainty plus the next action, owner and review point. These are authoring prompts, not semantic validation of the answer. An optional next-PLC question stays part of the recorded reflection rather than automatically starting a linked cycle.
 
 Worked examples are separate from this cycle. **Reflect → Explore a worked example** and **Guide → Explore worked examples** open a dialog with two cases. Documented follow-up includes a specific routine, implementation records, dated tasks, shared scoring criteria, matched coverage and a qualified keep/revise decision. Missing evidence uses the fixed 46/120 → 56/120 illustration to demonstrate withholding judgment when task, date, scoring, cohort, coverage and implementation evidence are unknown. Neither case is a forecast or a result attached to the active plan.
 
@@ -61,7 +69,7 @@ Saving a reflection records the educator's text and self-reported implementation
 
 ## Meeting materials
 
-After approval, Throughline assembles six presentation sections, a selected-source packet and an evidence-to-action participant handout. Directions, focus, action and checks come from the exact approved plan. Fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship.
+From **Your meeting is ready → Open meeting kit**, Throughline assembles six presentation sections, a selected-source packet and an evidence-to-action participant handout. Directions, focus, action and checks come from the exact approved plan. Fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. Kit access remains gated on a current approval; the ready component also checks that approval before offering materials.
 
 Activity 2 and Activity 4 directions carry into the handout. The self-contained HTML works offline and supports printing or saving as PDF through the browser. Exports are snapshots. The HTML meeting kit remains the initial meeting materials; the text export can also carry a current recorded reflection. Plan edits revoke access until reapproval. Existing saved plans and the versioned local database remain compatible.
 
@@ -69,7 +77,7 @@ Activity 2 and Activity 4 directions carry into the handout. The self-contained 
 
 At standard reading size, the hierarchy is 36px page titles, 24px section headings, 18px task labels, 16px body/input text and 13px metadata, with 14px supporting instructions. Spacing, restrained borders and distinct working compositions separate source context from authoring. Self-hosted IBM Plex Sans avoids external font requests. Reading preferences provide 100/125/150% text and expanded spacing independently of cycle decisions.
 
-Native controls, stage-lock explanations, field-specific errors, focus movement into revealed editors and modal source readers support navigation. These are implementation choices, not a claim of accessibility certification. Browser use was unavailable for this pass; rendered layout, actual keyboard behavior and assistive-technology coverage still require hands-on verification.
+Native controls, stage-lock explanations, field-specific errors, focus movement into revealed editors and modal source readers support navigation. These are implementation choices, not a claim of accessibility certification. Browser testing is unavailable because browser use is disabled in the app settings; rendered layout, actual keyboard behavior and assistive-technology coverage still require hands-on verification.
 
 Optional interpretation prompts ask about strengths, task access, language and missing perspectives. An educator-authored access/participation plan travels into approved materials. No identity or subgroup result is inferred from a sample response, and no score certifies equity.
 
@@ -82,6 +90,8 @@ Public work from [Leading Educators' MathAI Impact Network](https://leadingeduca
 The pilot targets a single-grade math PLC leader preparing within 20 minutes for a 50-minute meeting. That target has not been validated. Evaluate total workload, evidence traceability, the leader's ability to explain the conclusion, whether the strategy was tried and whether comparable work supports the next decision. Completion counts and attractive screens cannot establish ownership or instructional quality.
 
 **Guide → About this demo → How we would test this** contains a proposed small formative comparison with the current workflow, independent mathematics review, manual workload observations, implementation follow-up and adopt/revise/stop criteria. The printable proposal has no collected findings or telemetry. Historical review records describe their own checkpoints; the current verification record should be used for this implementation's checks and limits.
+
+[Guidance verification](GUIDANCE_VERIFICATION.md) describes the code-derived workflow, the remaining browser checks and a small proposed leader trial for this guidance pass. It does not report observed educator behavior or demonstrate the 20-minute target.
 
 ## Deferred scope
 

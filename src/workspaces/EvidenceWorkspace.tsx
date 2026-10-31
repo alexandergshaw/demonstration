@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../components/Icon';
+import { StepCoach } from '../components/StepCoach';
 import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
@@ -57,7 +58,6 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
               <div className="evidence-chart-scale" aria-hidden="true"><span>0 responses</span><span>{assessment.total} responses</span></div>
               <figcaption>Both measures use the same scale. Totals do not tell us which students met both criteria.</figcaption>
             </figure>
-            <p className="evidence-reading-cue">Look at the work alongside these counts. What can students explain about equal amounts?</p>
           </>}
 
           {view === 'classes' && <div className="evidence-class-view">
@@ -77,12 +77,22 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           </div>}
         </div>
 
+        <StepCoach question="What pattern is worth bringing to the team?" ready="You can point to a pattern, name its source, and say what it does not tell you.">
+          <ul>
+            <li>Compare the answer counts with the explanations in the work. What can each source tell you?</li>
+            <li>Notice a strength in a student response before naming what it does not yet explain.</li>
+            <li>Use Task & sources to check the prompt and scoring, or By class to inspect whether the counts vary.</li>
+          </ul>
+          <p>Select work that helps you examine the pattern. You can also start your interpretation with the class results alone.</p>
+        </StepCoach>
+
         {isRepeat && <p className="evidence-repeat-limit"><strong>Repeated task · 116 of 120 expected responses; 4 absent.</strong> Practice may affect results. These samples do not establish student gains or the effect of a teaching action. <button type="button" onClick={() => setView('task')}>Inspect source details</button></p>}
       </section>
 
       <section className="evidence-student-work" aria-labelledby="evidence-work-title">
         <div className="evidence-section-heading"><div><p className="evidence-kicker">Look closer</p><h2 id="evidence-work-title">Student work</h2></div></div>
         <p className="evidence-source-date">Two illustrative samples · {assessment.date}</p>
+        <p className="evidence-rubric-anchor">Look for equal amounts of the same whole.</p>
         <div className="evidence-response-list">
           {responses.map(response => {
             const selected = state.selected.includes(response.id);
@@ -109,10 +119,11 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         </div>
       </details>
       <p className="evidence-history-caution">{observation.caution}</p>
+      {observationSelected && <p className="evidence-history-next-check"><strong>Next check:</strong> Ask for a recent, dated observation or lesson artifact from the relevant classrooms before inferring current practice. Name what to gather in Plan’s implementation check.</p>}
     </div>
 
     <footer className="evidence-next">
-      <p aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Select work to carry into your interpretation'}{observationSelected ? ' · Historical context included' : ''}</p>
+      <p aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}{observationSelected ? ' · Historical context included' : ''}</p>
       <button type="button" className="btn" onClick={() => dispatch({ type: 'go', step: 1 })}>Interpret the evidence<Icon name="arrow" size={18} /></button>
     </footer>
   </div>;

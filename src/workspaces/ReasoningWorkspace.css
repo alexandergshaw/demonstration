@@ -43,7 +43,8 @@
 .reasoning-beat-panel .field-heading{margin-bottom:12px}
 .reasoning-beat-panel .field-hint{max-width:52ch;margin-bottom:20px}
 .reasoning-beat-panel textarea{min-height:250px;resize:vertical;line-height:1.8;padding:18px;background:#fff}
-.reasoning-beat-panel .equity-lens{margin-top:8px}
+.reasoning-beat-panel>.step-coach:first-child{margin-top:0}
+.reasoning-beat-panel>.step-coach{margin-bottom:24px}
 .reasoning-panel-help{margin-top:10px;font-size:var(--text-support);line-height:1.7;color:var(--muted);max-width:56ch}
 .reasoning-previous-writing{margin:0 0 30px;padding:0 0 24px;border-bottom:1px solid var(--border)}
 .reasoning-previous-writing>div{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:-8px}
@@ -54,14 +55,15 @@
 .reasoning-lens-choice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .reasoning-lens-choice label,.reasoning-confidence label{font-size:var(--text-support);color:var(--muted);line-height:1.6}
 .reasoning-lens-choice select{width:auto;max-width:100%;min-width:0;font-size:var(--text-support)}
-.reasoning-considered{display:flex;gap:9px;align-items:flex-start;margin-top:24px;font-size:var(--text-support);line-height:1.7;color:#235c46}
-.reasoning-considered .icon{margin-top:3px}
+.reasoning-challenge-routes{display:flex;align-items:stretch;flex-wrap:wrap;gap:12px;margin-top:26px}
+.reasoning-challenge-routes>.btn{font-size:var(--text-support);text-align:left}
 .reasoning-confidence{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;margin-top:18px}
 .reasoning-confidence select{width:auto;min-width:150px;font-size:var(--text-support)}
 .reasoning-ownership{font-size:var(--text-support);line-height:1.7;color:var(--muted);max-width:52ch;margin-top:22px}
 .reasoning-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:36px;padding-top:22px;border-top:1px solid var(--border)}
 .reasoning-footer>.textlink{text-align:left}
 .reasoning-footer>.btn{max-width:100%}
+.reasoning-footer>.reasoning-keep-interpretation{margin-left:auto;text-align:left}
 .reasoning-mobile-source{display:none}
 .reasoning-source-modal{max-width:620px}
 .reasoning-source-modal>.btn{margin-top:20px}

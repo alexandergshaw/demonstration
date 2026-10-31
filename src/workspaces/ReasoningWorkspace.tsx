@@ -4,9 +4,9 @@ import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import { hasFocus, type Action, type EvidenceId, type Lens, type PlanState } from '../model';
 import { lessonContext } from '../lessonContext';
 import { Modal } from '../components/CycleManager';
-import { EquityLens } from '../components/EquitySupport';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { Icon } from '../components/Icon';
+import { StepCoach } from '../components/StepCoach';
 import './ReasoningWorkspace.css';
 
 interface ReasoningWorkspaceProps {
@@ -139,8 +139,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
   }
   function considerQuestion() {
     if (dispatch({ type: 'challenge' })) {
-      clearError();
-      requestFocus('reasoning-choose-focus');
+      goToBeat('choose');
     }
   }
 
@@ -159,11 +158,14 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       <button className="btn secondary reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
 
       <section className="reasoning-beat-panel" hidden={beat !== 'notice'} aria-labelledby="interpretation-label">
+        <StepCoach question="What does this work show, and what might explain it?" ready="You can point to a specific part of the work and distinguish what it shows from your possible explanation.">
+          <p>Start with the learning goal and the original task. Name the source behind your claim, including the understanding already visible in the work.</p>
+          <p>Could wording, language, format or opportunities to respond be hiding understanding? Consider whose work or perspective is missing, and how students could explain the same idea in another way.</p>
+        </StepCoach>
         <TextArea id="interpretation" heading label="What do you notice?"
-          hint="Separate what the work shows from what might explain it. Name the source that supports your interpretation."
+          hint="Name the source. Separate what you observe from your explanation, and keep uncertainty visible."
           value={state.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })}
           placeholder="I notice… The work suggests… I’m still unsure about…" />
-        <EquityLens />
       </section>
 
       <section className="reasoning-beat-panel" hidden={beat !== 'test'} aria-labelledby="reasoning-test-title">
@@ -172,14 +174,21 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>{state.interpretation.trim() || 'Start with what you notice in the selected work.'}</p>
         </div>
         <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
-        <p id="reasoning-challenge-help" className="reasoning-panel-help">Consider one alternative before you choose a focus.</p>
+        <StepCoach question="How does this alternative affect your interpretation?" ready="You can explain why you revised or kept your interpretation, and what evidence could change your mind.">
+          <p>You can revise your earlier writing, inspect the source again, or keep your interpretation and explain the remaining uncertainty in your focus.</p>
+          <p>Keeping your interpretation marks this question as considered. You still write and confirm your own focus; the question is not a diagnosis or approval.</p>
+        </StepCoach>
         <div className="reasoning-question">
           <p className="reasoning-eyebrow">Thinking partner · Scripted question</p>
           <p className="reasoning-question-copy">{challenge.prompt}</p>
         </div>
         <div className="reasoning-lens-choice"><label htmlFor="reasoning-lens">Try another angle</label><select id="reasoning-lens" value={state.lens} onChange={event => dispatch({ type: 'lens', value: event.target.value as Lens })}>{reference.challenges.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
-        {!interpretationReady && <p className="reasoning-panel-help">Write at least 30 characters in your interpretation before marking the question considered.</p>}
-        {state.challenged && <p className="reasoning-considered" role="status"><Icon name="check" size={17} />Question considered. Carry any uncertainty into your focus.</p>}
+        <div className="reasoning-challenge-routes" role="group" aria-label="Respond to the alternative">
+          <button className="btn secondary" onClick={() => goToBeat('notice')}><Icon name="pencil" size={16} />Revise interpretation</button>
+          <button className="btn secondary" onClick={() => setSourceOpen(true)}><Icon name="evidence" size={16} />Inspect source</button>
+        </div>
+        <p id="reasoning-challenge-help" className="reasoning-panel-help">If you keep your interpretation, carry the alternative and remaining uncertainty into your focus.</p>
+        {!interpretationReady && <p className="reasoning-panel-help">Write at least 30 characters in your interpretation before recording how you considered this alternative.</p>}
         <FieldError id="challenge" />
       </section>
 
@@ -189,19 +198,22 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>{state.interpretation.trim() || 'Your interpretation will appear here.'}</p>
           <button className="textlink reasoning-review-question" onClick={() => goToBeat('test')}><Icon name={state.challenged ? 'check' : 'reasoning'} size={15} />{state.challenged ? 'Revisit the alternative' : 'Consider an alternative'}</button>
         </div>
+        <StepCoach question="What evidence would make you choose a different focus?" ready="You can explain one focus through its evidence, an alternative explanation and what would make you reconsider.">
+          <p>Choose one teaching focus connected to the learning goal. Explain why it is worth investigating without turning a small sample or an older observation into proof.</p>
+          <p>Use the focus below to connect the evidence, the alternative you considered and the next thing to check. A few precise sentences are enough.</p>
+        </StepCoach>
         <TextArea id="focus" heading label="Choose one teaching focus"
-          hint="Name one change in teaching, the evidence behind it, and what remains uncertain."
+          hint="Connect one teaching focus to its evidence, the alternative you considered, and what would change your mind."
           value={state.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })}
-          placeholder="Focus on… because… We still need to check…" />
+          placeholder="Focus on… The work shows… Another explanation is… I would reconsider if…" />
         <div className="reasoning-confidence"><label htmlFor="confidence">How certain are you?</label><select id="confidence" value={state.confidence} onChange={event => dispatch({ type: 'confidence', value: event.target.value as PlanState['confidence'] })}><option value="tentative">Tentative</option><option value="moderate">Moderate</option><option value="strong">Strong</option></select></div>
         <p className="reasoning-ownership">This is your working judgment. Confirm it when you can explain the evidence in your own words.</p>
       </section>
 
       <footer className="reasoning-footer">
-        <button className="textlink" onClick={() => beat === 'notice' ? dispatch({ type: 'go', step: 0 }) : goToBeat(beat === 'test' ? 'notice' : 'test')}>{beat === 'notice' ? 'Review evidence' : beat === 'test' ? 'Back to notice' : 'Revisit alternative'}</button>
+        {beat !== 'test' && <button className="textlink" onClick={() => beat === 'notice' ? dispatch({ type: 'go', step: 0 }) : goToBeat('test')}>{beat === 'notice' ? 'Review evidence' : 'Revisit alternative'}</button>}
         {beat === 'notice' ? <button className="btn" onClick={() => goToBeat('test')}>Test an alternative<Icon name="arrow" size={17} /></button>
-          : beat === 'test' && !state.challenged ? <button id="challenge" className="btn" disabled={!interpretationReady} aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={considerQuestion}>I’ve considered this question<Icon name="check" size={17} /></button>
-          : beat === 'test' ? <button id="reasoning-choose-focus" className="btn" onClick={() => goToBeat('choose')}>Choose a focus<Icon name="arrow" size={17} /></button>
+          : beat === 'test' ? <button id="challenge" className="btn reasoning-keep-interpretation" disabled={!interpretationReady} aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={considerQuestion}>Keep interpretation & explain uncertainty<Icon name="arrow" size={17} /></button>
           : <button className="btn" onClick={() => submit('focus')}>Confirm focus & continue<Icon name="arrow" size={17} /></button>}
       </footer>
     </div>

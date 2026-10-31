@@ -181,12 +181,15 @@
   line-height: 1.6;
 }
 
-.evidence-workspace .evidence-reading-cue {
+.evidence-workspace .evidence-results > .step-coach {
   margin: 2rem 0 0;
-  padding-left: 1rem;
-  border-left: 2px solid #b9cbe5;
-  font-size: 1rem;
+}
+
+.evidence-workspace .evidence-rubric-anchor {
+  margin: .75rem 0 0;
+  font-size: .875rem;
   line-height: 1.6;
+  color: var(--ink, #172637);
 }
 
 .evidence-workspace .evidence-class-view table {
@@ -421,6 +424,19 @@
   line-height: 1.6;
 }
 
+.evidence-workspace .evidence-history-next-check {
+  max-width: 85ch;
+  margin: .5rem 0 0 1.5625rem;
+  color: var(--muted, #526170);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+
+.evidence-workspace .evidence-history-next-check strong {
+  color: var(--ink, #172637);
+  font-weight: 600;
+}
+
 .evidence-workspace .evidence-next {
   display: flex;
   justify-content: space-between;
@@ -496,7 +512,8 @@
   .evidence-workspace .evidence-history-body {
     padding-left: 0;
   }
-  .evidence-workspace .evidence-history-caution {
+  .evidence-workspace .evidence-history-caution,
+  .evidence-workspace .evidence-history-next-check {
     margin-left: 0;
   }
   .evidence-workspace .evidence-next > .btn {

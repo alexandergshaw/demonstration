@@ -8,6 +8,7 @@ import { EvidenceWorkspace } from './EvidenceWorkspace';
 import { PlanWorkspace } from './PlanWorkspace';
 import { ReasoningWorkspace } from './ReasoningWorkspace';
 import { ReflectWorkspace } from './ReflectWorkspace';
+import { MeetingReady } from './MeetingReady';
 
 const apply = (state: PlanState, ...actions: Action[]) => actions.reduce(reducer, state);
 const reference = createReferenceData();
@@ -43,11 +44,25 @@ function props(state: PlanState) {
 }
 
 function visibleReasoningPanel(markup: string) {
-  const panels = [...markup.matchAll(/<section\b([^>]*class="reasoning-beat-panel"[^>]*)>([\s\S]*?)<\/section>/g)];
-  const visible = panels.filter(([, attributes]) => !/\bhidden(?:\s|=|$)/.test(attributes));
+  const panels: { attributes: string; content: string }[] = [];
+  let depth = 0;
+  let active: { attributes: string; start: number; depth: number } | undefined;
+  for (const tag of markup.matchAll(/<\/?section\b[^>]*>/g)) {
+    if (tag[0].startsWith('</')) {
+      if (active?.depth === depth) {
+        panels.push({ attributes: active.attributes, content: markup.slice(active.start, tag.index) });
+        active = undefined;
+      }
+      depth--;
+    } else {
+      depth++;
+      if (tag[0].includes('class="reasoning-beat-panel"')) active = { attributes: tag[0], start: tag.index! + tag[0].length, depth };
+    }
+  }
+  const visible = panels.filter(({ attributes }) => !/\bhidden(?:\s|=|$)/.test(attributes));
   expect(panels).toHaveLength(3);
   expect(visible).toHaveLength(1);
-  return visible[0][2];
+  return visible[0].content;
 }
 
 describe('workspace evidence belongs to the selected collection', () => {
@@ -151,6 +166,64 @@ describe('workspace defaults keep one decision in view', () => {
     expect(state.action).toBe('');
     expect(options.dispatch).not.toHaveBeenCalled();
   });
+
+  it('opens the learning and collection fields when returning to resolve missing evidence', () => {
+    const options = { ...props(planned()), initialCheckEditor: 'learning' as const };
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    for (const id of ['learning-check', 'evidence-collector', 'collection-date', 'review-date']) expect(markup).toContain(`id="${id}"`);
+    expect(markup).toContain('Still to agree: who will collect, collection date, review date.');
+    expect(markup).not.toContain('id="implementation-check"');
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
+  it('leaves coaching optional in every active workspace', () => {
+    const options = props(planned());
+    const markups = [
+      renderToStaticMarkup(createElement(EvidenceWorkspace, options)),
+      visibleReasoningPanel(renderToStaticMarkup(createElement(ReasoningWorkspace, options))),
+      renderToStaticMarkup(createElement(PlanWorkspace, options)),
+      renderToStaticMarkup(createElement(ReflectWorkspace, options)),
+    ];
+    for (const markup of markups) {
+      expect(markup.match(/class="step-coach"/g)).toHaveLength(1);
+      expect(markup).toContain('<details class="step-coach-help">');
+      expect(markup).not.toMatch(/<details\b[^>]*class="step-coach-help"[^>]*\bopen/);
+    }
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+});
+
+describe('approved meeting handoff', () => {
+  function readyProps(state: PlanState) {
+    return { state, onOpenKit: vi.fn(), onEditPlan: vi.fn(), onReflect: vi.fn(), onEditCollection: vi.fn() };
+  }
+
+  it('shows the approved move, separate checks and unresolved collection commitments before reflection', () => {
+    const state = apply(planned(), { type: 'consent', value: true }, { type: 'confirm-plan' });
+    const before = structuredClone(state);
+    const options = readyProps(state);
+    const markup = renderToStaticMarkup(createElement(MeetingReady, options));
+    for (const value of [state.action, state.owner, state.implementationCheck, state.learningCheck]) expect(markup).toContain(value);
+    expect(markup).toContain('Open meeting kit');
+    expect(markup).toContain('Not yet agreed');
+    expect(markup.match(/Date not yet agreed/g)).toHaveLength(2);
+    expect(markup.indexOf('Open meeting kit')).toBeLessThan(markup.indexOf('Go to reflection'));
+    expect(markup).toContain('After the lesson');
+    expect(markup).not.toContain('textarea');
+    expect(state).toEqual(before);
+    for (const callback of [options.onOpenKit, options.onEditPlan, options.onReflect, options.onEditCollection]) expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('withholds the kit and ready status from a draft even when directly rendered', () => {
+    const options = readyProps(planned());
+    const markup = renderToStaticMarkup(createElement(MeetingReady, options));
+    expect(markup).toContain('Review your meeting plan first.');
+    expect(markup).not.toContain('Open meeting kit');
+    expect(markup).not.toContain('Plan approved by you');
+    expect(options.onOpenKit).not.toHaveBeenCalled();
+  });
 });
 
 describe('workspace writing remains authored content', () => {
@@ -182,6 +255,21 @@ describe('workspace writing remains authored content', () => {
 });
 
 describe('Reflect separates this cycle from demonstration outcomes', () => {
+  it.each([
+    ['no', 'What prevented implementation'],
+    ['partial', 'What was tried, what prevented the rest'],
+    ['yes', 'What student work do you need'],
+  ] as const)('guides a %s implementation report without manufacturing learning evidence', (implementation, question) => {
+    const options = props({ ...planned(), implementation });
+    const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
+    expect(markup).toContain(question);
+    expect(markup).toContain('no collected follow-up dataset');
+    expect(markup).toContain('Draft report');
+    expect(markup).not.toContain('Reflection recorded with this plan.');
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
+  });
+
   it.each(['oct28', 'oct29'] as const)('does not attach example results to a recorded %s plan', version => {
     const state = apply(planned(version),
       { type: 'text', field: 'evidenceCollector', value: 'Grade 4 facilitator' },

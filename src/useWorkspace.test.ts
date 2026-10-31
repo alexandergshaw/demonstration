@@ -73,7 +73,7 @@ function beforeConfirmation(kind: 'focus' | 'plan' | 'reflection') {
     { type: 'text', field: 'learningCheck', value: 'Compare work from equivalent tasks using the same conceptual rubric.' },
     { type: 'consent', value: true });
   if (kind === 'plan') return state;
-  return apply(state, { type: 'confirm-plan' }, { type: 'implementation', value: 'partial' },
+  return apply(state, { type: 'confirm-plan' }, { type: 'go', step: 3 }, { type: 'implementation', value: 'partial' },
     { type: 'text', field: 'reflection', value: 'We need comparable dated student work and implementation records before judging this teaching move.' });
 }
 function setup(state: PlanState) {
@@ -117,6 +117,7 @@ describe('confirmation persistence', () => {
     expect(current.dispatch({ type })).toBe(true);
     current = render();
     expect(current.state).toEqual(reducer(before, { type }));
+    expect(current.state?.step).toBe(kind === 'reflection' ? 3 : 2);
     expect(current.saveError).toBe('');
     expect(current.dirty).toBe(false);
     expect(storage.getItem(DATABASE_KEY)).not.toBe(durable);

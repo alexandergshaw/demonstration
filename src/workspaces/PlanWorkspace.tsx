@@ -10,6 +10,7 @@ import { AccessParticipation } from '../components/EquitySupport';
 import { FieldError, TextArea, TextInput, useFieldError } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { RehearsalGuide } from '../components/RehearsalGuide';
+import { StepCoach } from '../components/StepCoach';
 import './PlanWorkspace.css';
 
 interface PlanWorkspaceProps {
@@ -21,9 +22,18 @@ interface PlanWorkspaceProps {
   errorAttempt: number;
   clearError: () => void;
   saveError?: string;
+  initialCheckEditor?: 'learning';
 }
 
 type CheckEditor = 'implementation' | 'learning' | null;
+const facilitationQuestions = [
+  'How will the team connect the learning goal to this focus?',
+  'What should colleagues notice and record in the student work?',
+  'How will the team test another explanation before deciding?',
+  'What will colleagues rehearse, and what reasoning will students still do?',
+  'Who will try the move, and what will show it happened?',
+  'What comparable work will the team bring back, and when?',
+];
 
 function focusVisibleField(id: string) {
   const field = document.getElementById(id);
@@ -41,10 +51,10 @@ function DraftValue({ value, empty = 'Not written yet' }: { value: string; empty
   return <p className={`pw-draft-value${value.trim() ? '' : ' pw-empty-value'}`}>{value.trim() ? value : empty}</p>;
 }
 
-export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '' }: PlanWorkspaceProps) {
+export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '', initialCheckEditor }: PlanWorkspaceProps) {
   const [actionEditing, setActionEditing] = useState(!state.action.trim() || !state.owner.trim());
   const [selectedAgenda, setSelectedAgenda] = useState(3);
-  const [checkEditor, setCheckEditor] = useState<CheckEditor>(null);
+  const [checkEditor, setCheckEditor] = useState<CheckEditor>(initialCheckEditor ?? null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState<{ id: string; attempt: number } | null>(null);
@@ -55,6 +65,12 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   function requestFocus(id: string) {
     setFocusRequest({ id, attempt: ++focusCounter.current });
   }
+
+  useEffect(() => {
+    if (initialCheckEditor !== 'learning') return;
+    setCheckEditor('learning');
+    setFocusRequest({ id: 'evidence-collector', attempt: ++focusCounter.current });
+  }, [initialCheckEditor]);
 
   // Validation can target a field in another activity or a closed editor.
   // Reveal it first, then focus after React has committed that editor.
@@ -115,7 +131,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
         {!actionEditing && <button id="pw-edit-action" className="textlink" onClick={editAction}><Icon name="pencil" size={16} />Edit teaching move</button>}
       </div>
       {actionEditing ? <div className="pw-action-editor">
-        <TextArea id="action" label="What will teachers try?" hint="Name one concrete change for the next lesson. Keep the explanation work with students."
+        <TextArea id="action" label="What will the teacher do differently—and what thinking will students do?" hint="Name one observable teaching move, then the reasoning students will do themselves."
           value={state.action} onChange={value => dispatch({ type: 'text', field: 'action', value })}
           placeholder="Teachers will… so students can…" />
         <div className="pw-action-owner">
@@ -151,7 +167,11 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       <section id="pw-agenda-editor" className="pw-agenda-editor" aria-labelledby="pw-activity-heading">
         <p className="pw-meta">Activity {selectedAgenda + 1} · {minutes[selectedAgenda]} minutes</p>
         <h2 id="pw-activity-heading">{agendaHeadings[selectedAgenda]}</h2>
-        <TextArea id={`agenda-${selectedAgenda}`} label="Facilitation directions" hint={agendaHints[selectedAgenda]}
+        <StepCoach question={facilitationQuestions[selectedAgenda]} ready="A colleague can tell what participants will do, which evidence they will use, and what they will leave with.">
+          <p>{agendaHints[selectedAgenda]}</p>
+          <p>Include a prompt or task, how the team will work together, and what they will record. Use the time shown for this activity.</p>
+        </StepCoach>
+        <TextArea id={`agenda-${selectedAgenda}`} label="Facilitation directions" hint="Write what participants will do, discuss, and record."
           value={state.agenda[selectedAgenda]} onChange={value => dispatch({ type: 'agenda', index: selectedAgenda, value })} />
         {selectedAgenda === 3 && <>
           <RehearsalGuide state={state} reference={reference} />
@@ -168,7 +188,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
             {checkEditor !== 'implementation' && <button id="pw-edit-implementation" className="textlink" onClick={() => editCheck('implementation')}>{state.implementationCheck.trim() ? 'Edit check' : 'Add check'}<span className="sr-only"> for implementation</span></button>}
           </div>
           {checkEditor === 'implementation' ? <>
-            <TextArea id="implementation-check" label="How will you check implementation?" hint="Name something the team can observe or bring back to show the teaching move happened."
+            <TextArea id="implementation-check" label="What would show that the teaching move happened?" hint="Name an observable record, such as a lesson note or a brief observation, and what it should show the teacher did."
               value={state.implementationCheck} onChange={value => dispatch({ type: 'text', field: 'implementationCheck', value })} />
             <button className="textlink" onClick={() => { clearError(); setCheckEditor(null); requestFocus('pw-edit-implementation'); }}>Done editing implementation check</button>
           </> : <DraftValue value={state.implementationCheck} empty="Choose evidence that the teaching move happened." />}
@@ -178,13 +198,18 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
             {checkEditor !== 'learning' && <button id="pw-edit-learning" className="textlink" onClick={() => editCheck('learning')}>{state.learningCheck.trim() ? 'Edit check' : 'Add check'}<span className="sr-only"> for student learning</span></button>}
           </div>
           {checkEditor === 'learning' ? <>
-            <TextArea id="learning-check" label="How will you check student learning?" hint="Choose comparable student work and the reasoning you would look for."
+            <TextArea id="learning-check" label="What student work would reveal a change in reasoning?" hint="Name the task or work to collect, the reasoning to look for, and the same scoring criteria you will use to compare it."
               value={state.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} />
             <EvidenceCollection state={state} dispatch={dispatch} />
             <button className="textlink" onClick={() => { clearError(); setCheckEditor(null); requestFocus('pw-edit-learning'); }}>Done editing learning check</button>
           </> : <>
             <DraftValue value={state.learningCheck} empty="Choose comparable work that will reveal students’ reasoning." />
-            {(state.collectionDate || state.reviewDate) && <p className="pw-check-dates">{[state.collectionDate && `Collect ${state.collectionDate}`, state.reviewDate && `Review ${state.reviewDate}`].filter(Boolean).join(' · ')}</p>}
+            <dl className="pw-collection-status" aria-label="Optional collection arrangements">
+              <div><dt>Collector</dt><dd>{state.evidenceCollector.trim() || 'Not yet agreed'}</dd></div>
+              <div><dt>Collect</dt><dd>{state.collectionDate || 'Date not yet agreed'}</dd></div>
+              <div><dt>Review</dt><dd>{state.reviewDate || 'Date not yet agreed'}</dd></div>
+            </dl>
+            <p className="pw-meta">Optional details to agree with the team.</p>
           </>}
         </section>
       </div>
@@ -221,11 +246,12 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
             <div><div className="pw-check-heading"><h4>Check implementation</h4><button className="textlink" onClick={() => editCheck('implementation')}>Edit<span className="sr-only"> implementation check</span></button></div><DraftValue value={state.implementationCheck} /></div>
             <div><div className="pw-check-heading"><h4>Check student learning</h4><button className="textlink" onClick={() => editCheck('learning')}>Edit<span className="sr-only"> learning check</span></button></div><DraftValue value={state.learningCheck} /></div>
           </div>
-          {(state.evidenceCollector.trim() || state.collectionDate || state.reviewDate) && <dl className="pw-review-collection">
-            {state.evidenceCollector.trim() && <div><dt>Who will collect</dt><dd>{state.evidenceCollector}</dd></div>}
-            {state.collectionDate && <div><dt>Planned collection</dt><dd>{state.collectionDate}</dd></div>}
-            {state.reviewDate && <div><dt>Planned review</dt><dd>{state.reviewDate}</dd></div>}
-          </dl>}
+          <dl className="pw-review-collection">
+            <div><dt>Who will collect</dt><dd>{state.evidenceCollector.trim() || 'Not yet agreed'}</dd></div>
+            <div><dt>Planned collection</dt><dd>{state.collectionDate || 'Date not yet agreed'}</dd></div>
+            <div><dt>Planned review</dt><dd>{state.reviewDate || 'Date not yet agreed'}</dd></div>
+          </dl>
+          <p className="pw-meta">These optional arrangements can remain open when you approve the meeting plan.</p>
         </section>
         {state.accessParticipation.trim() && <section className="pw-review-section"><div className="pw-check-heading"><h3>Access & participation</h3><button className="textlink" onClick={() => { editAgenda(3, false); requestFocus('access-participation'); }}>Edit</button></div><DraftValue value={state.accessParticipation} /></section>}
         <section className="pw-review-section pw-review-sources"><h3>Evidence used in this plan</h3>

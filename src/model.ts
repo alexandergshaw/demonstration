@@ -125,7 +125,7 @@ export function reducer(s: PlanState, action: Action): PlanState {
       return { ...s, step: action.step };
     case 'challenge': return s.interpretation.trim().length < 30 ? s : { ...s, challenged: true };
     case 'confirm-focus': return focusError(s) ? s : { ...s, focusStamp: focusSignature(s), step: 2 };
-    case 'confirm-plan': return planError(s) ? s : { ...s, planStamp: planSignature(s), review: false, step: 3 };
+    case 'confirm-plan': return planError(s) ? s : { ...s, planStamp: planSignature(s), review: false, step: 2 };
     case 'save-reflection': return reflectionError(s) ? s : { ...s, reflectionStamp: reflectionSignature(s) };
   }
 }

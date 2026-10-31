@@ -17,6 +17,7 @@ import { ReasoningWorkspace } from './workspaces/ReasoningWorkspace';
 import { PlanWorkspace } from './workspaces/PlanWorkspace';
 import { ReflectWorkspace } from './workspaces/ReflectWorkspace';
 import { DecisionHistory, FollowUpExamples } from './workspaces/WorkspaceReaders';
+import { MeetingReady } from './workspaces/MeetingReady';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -36,7 +37,7 @@ const stages: { label: string; short: string; detail: string }[] = [
   { label: 'Evidence', short: 'Evidence', detail: 'Inspect the sources' },
   { label: 'Interpretation', short: 'Interpret', detail: 'Choose a teaching focus' },
   { label: 'Meeting plan', short: 'Plan', detail: 'Turn the focus into action' },
-  { label: 'Reflection', short: 'Reflect', detail: 'Revisit the next evidence' },
+  { label: 'Reflection', short: 'Reflect', detail: 'Return after trying the teaching move' },
 ];
 const titles = ['What does the work show?', 'What is your interpretation?', 'Build the meeting around one move.', 'What can we decide now?'];
 const subtitles = ['Compare the results with the student work. Choose the evidence worth discussing.', 'Keep the evidence beside your reasoning. Make one decision at a time.', 'Prepare the conversation, then review the complete plan before approving it.', 'Start with what was tried. Name the evidence still needed for the next decision.'];
@@ -53,9 +54,12 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const [lockNotice, setLockNotice] = useState('');
   const [guideEntry, setGuideEntry] = useState<{ view: 'home' | 'walkthrough'; step?: number }>({ view: 'home' });
   const [kitOpen, setKitOpen] = useState(false);
+  const [editingApprovedPlan, setEditingApprovedPlan] = useState(false);
+  const [planEntry, setPlanEntry] = useState<'learning' | undefined>();
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
   const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
-  useEffect(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }, [state.step]);
+  const meetingReady = state.step === 2 && plan && !editingApprovedPlan;
+  useEffect(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }, [state.step, meetingReady]);
   useEffect(() => {
     if (!workspace.dirty) return;
     const protectDraft = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
@@ -64,7 +68,12 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   }, [workspace.dirty]);
   const openGuide = (step?: number) => { if (isLessonId(step)) learning.dispatch({ type: 'visitLesson', lesson: step }); setGuideEntry(step === undefined ? { view: 'home' } : { view: 'walkthrough', step }); setGuideOpen(true); };
   const canEnterStage = (step: number) => Number.isInteger(step) && step >= 0 && step < 4 && (step < 2 || (step === 2 ? focus : plan));
-  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); return workspace.dispatch(action); };
+  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); if (action.type === 'go') { setEditingApprovedPlan(false); setPlanEntry(undefined); } return workspace.dispatch(action); };
+  const editPlan = (collection = false) => {
+    setError(''); setErrorField(''); setLockNotice('');
+    setEditingApprovedPlan(true); setPlanEntry(collection ? 'learning' : undefined);
+    workspace.dispatch({ type: 'go', step: 2 });
+  };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
   const requestReload = () => workspace.dirty ? setReloadOpen(true) : reloadSaved();
   const clearError = () => { setError(''); setErrorField(''); };
@@ -82,7 +91,9 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         : state.reviewDate && (!isCalendarDate(state.reviewDate) || (state.collectionDate && state.reviewDate < state.collectionDate)) ? 'review-date' : 'consent';
       setErrorField(field); setError(message); setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(field)); return false;
     }
-    return act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
+    const saved = act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
+    if (saved && kind === 'plan') { setEditingApprovedPlan(false); setPlanEntry(undefined); }
+    return saved;
   };
   const download = () => {
     try { const url = URL.createObjectURL(new Blob([exportMeetingNotes(state, reference)], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Throughline_PLC_Meeting_Plan.txt'; document.body.append(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
@@ -101,7 +112,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       })}</nav>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
-      <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{titles[state.step]}</h1><p>{subtitles[state.step]}</p></div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>
+      <div className="page"><header className="intro"><div><h1 ref={title} tabIndex={-1}>{meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1><p>{meetingReady ? 'Use your approved materials with the team. Return to Reflect after trying the teaching move.' : subtitles[state.step]}</p></div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
@@ -113,8 +124,9 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
           {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => { setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(errorField)); }}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
           {state.step === 0 && <EvidenceWorkspace state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
-          {state.step === 2 && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} />}
-          {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} />}
+          {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
+          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} />}
+          {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} onEditCollection={() => editPlan(true)} />}
         </main>
         <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>
       </div>

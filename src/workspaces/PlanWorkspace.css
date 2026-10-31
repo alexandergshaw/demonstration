@@ -33,6 +33,7 @@
 .pw-agenda-editor{border:1px solid var(--border);border-radius:4px;padding:1.5rem}
 .pw-agenda-editor>h2{margin:.5rem 0 1.25rem;font-size:1.5rem}
 .pw-agenda-editor>.field-group{margin:0}
+.pw-agenda-editor>.step-coach{margin:0 0 1.25rem}
 .pw-agenda-editor textarea{min-height:10rem;line-height:1.65}
 .pw-agenda-editor :is(.planning-disclosure,.access-planning){margin:1.25rem 0 0;border-bottom:0}
 .plan-workspace .field{font-size:1rem;line-height:1.5}
@@ -49,6 +50,11 @@
 .pw-check textarea{min-height:8rem}
 .pw-check>.textlink{font-size:.8125rem}
 .pw-check-dates{margin-top:.75rem}
+.pw-collection-status{font-size:.8125rem;line-height:1.6;margin:1rem 0 .5rem}
+.pw-collection-status>div{display:grid;grid-template-columns:4.25rem minmax(0,1fr);gap:.5rem;margin:.25rem 0}
+.pw-collection-status dt{color:var(--muted)}
+.pw-collection-status dd{margin:0;white-space:pre-wrap}
+.plan-workspace .collection-arrangements-status{font-size:.8125rem;line-height:1.6;color:var(--muted);margin-top:1rem}
 .pw-check .planning-disclosure{margin:1rem 0}
 .pw-check .planning-disclosure>summary{font-size:.875rem}
 .pw-check .planning-disclosure .grid2{grid-template-columns:minmax(0,1fr);gap:0}

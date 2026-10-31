@@ -34,6 +34,7 @@ function planDraft(): PlanState {
 function approvedPlan(): PlanState { return reducer(planDraft(), { type: 'confirm-plan' }); }
 function completed(): PlanState {
   return apply(approvedPlan(),
+    { type: 'go', step: 3 },
     { type: 'implementation', value: 'yes' },
     { type: 'text', field: 'reflection', value: reflection },
     { type: 'save-reflection' },
@@ -104,6 +105,40 @@ describe('dated evidence and incoming results', () => {
 
 // These oracles come from the checked educator-ownership contract, not snapshots of JSX.
 describe('educator-owned workflow', () => {
+  it('lands on the approved meeting plan after reload without recording implementation or reflection', () => {
+    const approved = approvedPlan();
+    const restored = decodeDraft(encodeDraft(approved)).state;
+    expect(restored.step).toBe(2);
+    expect(hasPlan(restored)).toBe(true);
+    expect(restored.implementation).toBe('');
+    expect(restored.reflection).toBe('');
+    expect(hasReflection(restored)).toBe(false);
+    expect(reducer(restored, { type: 'go', step: 3 }).step).toBe(3);
+  });
+
+  it('preserves an older approved cycle already at Reflect', () => {
+    const previous = { ...approvedPlan(), step: 3 };
+    expect(parseStoredState(previous)).toEqual({ state: previous, stale: false });
+    expect(hasReflection(previous)).toBe(false);
+  });
+
+  it('returns collection changes to meeting readiness after reapproval while retaining an unrecorded reflection draft', () => {
+    const previous = completed();
+    const changed = apply(previous,
+      { type: 'go', step: 2 },
+      { type: 'text', field: 'evidenceCollector', value: 'Grade four coach' });
+    expect(changed.reflection).toBe(previous.reflection);
+    expect(changed.implementation).toBe(previous.implementation);
+    expect(hasPlan(changed)).toBe(false);
+    expect(hasReflection(changed)).toBe(false);
+    expect(changed.consent).toBe(false);
+    const approved = apply(changed, { type: 'consent', value: true }, { type: 'confirm-plan' });
+    expect(approved.step).toBe(2);
+    expect(hasPlan(approved)).toBe(true);
+    expect(hasReflection(approved)).toBe(false);
+    expect(decodeDraft(encodeDraft(approved)).state.reflection).toBe(previous.reflection);
+  });
+
   it('requires explicit decisions throughout a complete evidence-to-follow-up journey', () => {
     const draft = focusDraft();
     expect(hasFocus(draft)).toBe(false);
@@ -114,7 +149,7 @@ describe('educator-owned workflow', () => {
     expect(planError(planned)).toBe('');
     const approved = approvedPlan();
     expect(hasPlan(approved)).toBe(true);
-    expect(approved.step).toBe(3);
+    expect(approved.step).toBe(2);
     expect(hasReflection(approved)).toBe(false);
     const finished = completed();
     expect(hasReflection(finished)).toBe(true);
@@ -443,6 +478,7 @@ describe('maximum supported draft persistence', () => {
       { type: 'text', field: 'reviewDate', value: '2026-11-06' },
       { type: 'consent', value: true },
       { type: 'confirm-plan' },
+      { type: 'go', step: 3 },
       { type: 'implementation', value: 'yes' },
       { type: 'text', field: 'reflection', value },
       { type: 'text', field: 'nextCycleQuestion', value },
