@@ -159,45 +159,11 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     clearError();
     setBeat('choose');
     setFocusTask('confirm');
-    requestFocus('focus-confirm');
+    requestFocus('reasoning-confirm-title');
   }
 
-  return <div className="reasoning-workspace" ref={workspace}>
-    <aside className="reasoning-source-pane" aria-label="Original evidence beside your writing">
-      <SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} />
-      <button className="textlink reasoning-change-sources" onClick={() => dispatch({ type: 'go', step: 0 })}>Change selected evidence<Icon name="arrow" size={15} /></button>
-    </aside>
-
-    <div className="reasoning-writing">
-      <StageChecklist title="Interpretation checklist" description="Turn an observed pattern into a teaching focus you can defend."
-        currentId={beat === 'choose' ? focusTask : beat}
-        items={[
-          { id: 'notice', label: 'Write your interpretation', detail: 'Connect the pattern to a specific source.', status: interpretationReady ? 'done' : state.interpretation.trim() ? 'started' : 'todo', statusLabel: interpretationReady ? 'Drafted' : undefined, onSelect: () => goToBeat('notice', true) },
-          { id: 'test', label: 'Consider an alternative', detail: 'Decide how another explanation changes your thinking.', status: state.challenged ? 'done' : 'todo', statusLabel: state.challenged ? 'Considered by you' : undefined, onSelect: () => goToBeat('test') },
-          { id: 'focus', label: 'Write one teaching focus', detail: 'Name the learning need the meeting will investigate.', status: focusReady ? 'done' : state.focus.trim() ? 'started' : 'todo', statusLabel: focusReady ? 'Drafted' : undefined, onSelect: () => goToBeat('choose', true) },
-          { id: 'confirm', label: 'Review and confirm your focus', detail: 'Own the decision before building the meeting plan.', status: confirmedFocus ? 'done' : 'todo', statusLabel: confirmedFocus ? 'Confirmed by you' : undefined, onSelect: reviewFocus },
-        ]} note="Drafted means the writing minimum is met. Confirmation is your separate decision; edits can require it again." />
-      <aside className="reasoning-mobile-evidence" aria-label="Evidence reference while writing">
-        {selectedResponse ? <>
-          <p><strong>{selectedResponse.label} · {reference.assessment.date}</strong></p>
-          <blockquote>“{selectedResponse.quote}”</blockquote>
-          <p>Illustrative work, not a representative sample.</p>
-        </> : selectedSource === 'observation' ? <>
-          <p><strong>Historical observation · {reference.observation.date}</strong></p>
-          <blockquote>“{reference.observation.quote}”</blockquote>
-          <p>{reference.observation.caution}</p>
-        </> : selectedSource === 'task' ? <>
-          <p><strong>Original task</strong></p>
-          <blockquote>{lessonContext.prompt}</blockquote>
-        </> : <>
-          <p><strong>Assessment · {reference.assessment.date}</strong></p>
-          <p>{reference.assessment.correct}/{reference.assessment.total} correct fractions · {reference.assessment.explanations}/{reference.assessment.total} adequate explanations</p>
-          <p>Separate scores; the totals do not identify who met both criteria.</p>
-        </>}
-        <button className="textlink reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
-      </aside>
-
-      <section className="reasoning-beat-panel" hidden={beat !== 'notice'} id="reasoning-notice-guide" tabIndex={-1} aria-labelledby="interpretation-label">
+  const checklistContents = {
+    notice: (<section className="reasoning-beat-panel" hidden={beat !== 'notice'} id="reasoning-notice-guide" tabIndex={-1} aria-labelledby="interpretation-label">
         <div className="reasoning-work-area">
           <TextArea id="interpretation" heading label="What do you notice?" requirement="Required · at least 30 characters"
             hint="Write three connected parts: what the source shows, what it might mean, and what you still need to know. A few precise sentences are enough."
@@ -221,9 +187,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>Start with the learning goal and the original task. Name the source behind your claim, including the understanding already visible in the work.</p>
           <p>Could wording, language, format or opportunities to respond be hiding understanding? Consider whose work or perspective is missing, and how students could explain the same idea in another way.</p>
         </StepCoach>
-      </section>
-
-      <section className="reasoning-beat-panel" hidden={beat !== 'test'} id="reasoning-test-guide" aria-labelledby="reasoning-test-title">
+      </section>),
+    test: (<section className="reasoning-beat-panel" hidden={beat !== 'test'} id="reasoning-test-guide" aria-labelledby="reasoning-test-title">
         <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
         <div className="reasoning-previous-writing">
           <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice', true)}>{state.interpretation.trim() ? 'Edit interpretation' : 'Write interpretation'}<Icon name="pencil" size={14} /></button></div>
@@ -256,9 +221,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>You can revise your earlier writing, inspect the source again, or keep your interpretation and explain the remaining uncertainty in your focus.</p>
           <p>Keeping your interpretation marks this question as considered. You still write and confirm your own focus; the question is not a diagnosis or approval.</p>
         </StepCoach>
-      </section>
-
-      <section className="reasoning-beat-panel" hidden={beat !== 'choose'} id="reasoning-focus-guide" tabIndex={-1} aria-labelledby="focus-label">
+      </section>),
+    focus: (<section className="reasoning-beat-panel" hidden={beat !== 'choose' || focusTask !== 'focus'} id="reasoning-focus-guide" tabIndex={-1} aria-labelledby="focus-label">
         <div className="reasoning-work-area">
           <TextArea id="focus" heading label="Choose one teaching focus" requirement="Required · at least 25 characters"
             hint="Connect one teaching focus to its evidence, the alternative you considered, and what would change your mind."
@@ -277,11 +241,9 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           {state.interpretation.trim() ? <details className="reasoning-interpretation-disclosure"><summary>Read full interpretation</summary><p>{state.interpretation}</p></details> : <p>Your interpretation will appear here.</p>}
           <button className="textlink reasoning-review-question" onClick={() => goToBeat('test')}><Icon name={state.challenged ? 'check' : 'reasoning'} size={15} />{state.challenged ? 'Revisit the alternative' : 'Consider an alternative'}</button>
         </div>
-        <WorkflowActions label="Teaching focus actions"
-          description={missingFocusStep ? <p>{missingFocusStep === 'notice' ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.' : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p> : undefined}
-          status={confirmedFocus ? <p>Focus confirmed by you. Continue with this decision, or revise your writing and confirm it again.</p> : undefined}
+        <WorkflowActions label="Focus draft actions"
           secondary={<button type="button" className="btn secondary" onClick={() => goToBeat('test')}>Back to the alternative</button>}
-          primary={{ id: 'focus-confirm', label: confirmedFocus ? 'Continue to meeting plan' : missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => confirmedFocus ? dispatch({ type: 'go', step: 2 }) : missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
+          primary={{ label: focusReady ? 'Review your focus' : state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus', onClick: () => focusReady ? reviewFocus() : goToBeat('choose', true), arrow: true }} />
         <TaskExplanation title="Choose the learning need the meeting will investigate" disclosureLabel="How to choose a teaching focus"
           why="A focus narrows the team’s attention to one aspect of student thinking. The next workspace turns that focus into a specific teacher action and meeting plan."
           steps={[
@@ -295,7 +257,64 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>Choose one teaching focus connected to the learning goal. Explain why it is worth investigating without turning a small sample or an older observation into proof.</p>
           <p>Use your focus to connect the evidence, the alternative you considered and the next thing to check. A few precise sentences are enough.</p>
         </StepCoach>
-      </section>
+      </section>),
+    confirm: (<section className="reasoning-beat-panel" hidden={beat !== 'choose' || focusTask !== 'confirm'} id="reasoning-confirm-guide" aria-labelledby="reasoning-confirm-title">
+        <h2 id="reasoning-confirm-title" tabIndex={-1}>Review your teaching focus</h2>
+        <div className="reasoning-confirm-summary">
+          <h3>Your interpretation</h3><p>{state.interpretation || 'Not written yet.'}</p>
+          <button type="button" className="textlink" onClick={() => goToBeat('notice', true)}>Edit interpretation</button>
+          <h3>Alternative considered</h3><p>{challenge.prompt}</p>
+          <p>{state.challenged ? 'You recorded consideration of this alternative.' : 'Consider this alternative before confirming.'}</p>
+          <button type="button" className="textlink" onClick={() => goToBeat('test')}>Revisit the alternative</button>
+          <h3>Your teaching focus</h3><p>{state.focus || 'Not written yet.'}</p>
+          <p>Confidence: {state.confidence}</p>
+          <button type="button" className="textlink" onClick={() => goToBeat('choose', true)}>Edit teaching focus</button>
+        </div>
+        <WorkflowActions label="Teaching focus actions"
+          description={missingFocusStep ? <p>{missingFocusStep === 'notice' ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.' : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p> : undefined}
+          status={confirmedFocus ? <p>Focus confirmed by you. Continue with this decision, or revise your writing and confirm it again.</p> : undefined}
+          secondary={<button type="button" className="btn secondary" onClick={() => goToBeat('choose', true)}>Back to focus writing</button>}
+          primary={{ id: 'focus-confirm', label: confirmedFocus ? 'Continue to meeting plan' : missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => confirmedFocus ? dispatch({ type: 'go', step: 2 }) : missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
+      </section>),
+  };
+
+  return <div className="reasoning-workspace" ref={workspace}>
+    <aside className="reasoning-source-pane" aria-label="Original evidence beside your writing">
+      <SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} />
+      <button className="textlink reasoning-change-sources" onClick={() => dispatch({ type: 'go', step: 0 })}>Change selected evidence<Icon name="arrow" size={15} /></button>
+    </aside>
+
+    <div className="reasoning-writing">
+      <aside className="reasoning-mobile-evidence" aria-label="Evidence reference while writing">
+        {selectedResponse ? <>
+          <p><strong>{selectedResponse.label} · {reference.assessment.date}</strong></p>
+          <blockquote>“{selectedResponse.quote}”</blockquote>
+          <p>Illustrative work, not a representative sample.</p>
+        </> : selectedSource === 'observation' ? <>
+          <p><strong>Historical observation · {reference.observation.date}</strong></p>
+          <blockquote>“{reference.observation.quote}”</blockquote>
+          <p>{reference.observation.caution}</p>
+        </> : selectedSource === 'task' ? <>
+          <p><strong>Original task</strong></p>
+          <blockquote>{lessonContext.prompt}</blockquote>
+        </> : <>
+          <p><strong>Assessment · {reference.assessment.date}</strong></p>
+          <p>{reference.assessment.correct}/{reference.assessment.total} correct fractions · {reference.assessment.explanations}/{reference.assessment.total} adequate explanations</p>
+          <p>Separate scores; the totals do not identify who met both criteria.</p>
+        </>}
+        <button className="textlink reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
+      </aside>
+      <StageChecklist title="Interpretation checklist" description="Turn an observed pattern into a teaching focus you can defend."
+        currentId={beat === 'choose' ? focusTask : beat} contents={checklistContents}
+        items={[
+          { id: 'notice', label: 'Write your interpretation', detail: 'Connect the pattern to a specific source.', status: interpretationReady ? 'done' : state.interpretation.trim() ? 'started' : 'todo', statusLabel: interpretationReady ? 'Drafted' : undefined, onSelect: () => goToBeat('notice', true) },
+          { id: 'test', label: 'Consider an alternative', detail: 'Decide how another explanation changes your thinking.', status: state.challenged ? 'done' : 'todo', statusLabel: state.challenged ? 'Considered by you' : undefined, onSelect: () => goToBeat('test') },
+          { id: 'focus', label: 'Write one teaching focus', detail: 'Name the learning need the meeting will investigate.', status: focusReady ? 'done' : state.focus.trim() ? 'started' : 'todo', statusLabel: focusReady ? 'Drafted' : undefined, onSelect: () => goToBeat('choose', true) },
+          { id: 'confirm', label: 'Review and confirm your focus', detail: 'Own the decision before building the meeting plan.', status: confirmedFocus ? 'done' : 'todo', statusLabel: confirmedFocus ? 'Confirmed by you' : undefined, onSelect: reviewFocus },
+        ]} note="Drafted means the writing minimum is met. Confirmation is your separate decision; edits can require it again." />
+
+
+
 
     </div>
     {sourceOpen && <Modal title="Selected evidence & original task" onClose={() => setSourceOpen(false)}><div className="reasoning-source-modal"><SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} headingLevel="h3" /><button className="btn secondary" onClick={() => setSourceOpen(false)}>Return to my writing</button></div></Modal>}

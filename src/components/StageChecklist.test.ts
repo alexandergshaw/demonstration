@@ -23,4 +23,31 @@ describe('stage checklist', () => {
     expect(open).not.toHaveBeenCalled();
     expect(items[2].status).toBe('todo');
   });
+
+  it('places each action region immediately under its own task with one expanded child', () => {
+    const open = vi.fn();
+    const items: ChecklistTask[] = ['write', 'review'].map(id => ({ id, label: id, detail: `Open ${id}`, status: 'todo', onSelect: open }));
+    const html = renderToStaticMarkup(createElement(StageChecklist, {
+      title: 'Draft checklist', description: 'Write, then review.', items, currentId: 'write',
+      contents: { write: createElement('input', { id: 'draft-field', defaultValue: 'Retained draft' }), review: createElement('button', { type: 'button', onClick: open }, 'Approve explicitly') },
+    }));
+    expect(html).toContain('<section class="stage-checklist"');
+    expect(html).not.toContain('<nav');
+    expect(html.match(/aria-expanded="true"/g)).toHaveLength(1);
+    expect(html.match(/aria-expanded="false"/g)).toHaveLength(1);
+    for (const [id, control] of [['write', 'id="draft-field"'], ['review', 'Approve explicitly']]) {
+      const start = html.indexOf(`<li data-task="${id}"`);
+      const row = html.slice(start, html.indexOf('</li>', start));
+      expect(row).toMatch(/<\/button><div[^>]*class="stage-checklist-content"/);
+      expect(row).toContain(`data-task-content="${id}"`);
+      expect(row).toContain(control);
+      const target = row.match(/aria-controls="([^"]+)"/)?.[1];
+      expect(target).toBeTruthy();
+      expect(row).toContain(`id="${target}"`);
+      const body = row.match(/<div[^>]*class="stage-checklist-content"[^>]*>/)?.[0];
+      if (id === 'write') expect(body).not.toContain('hidden=');
+      else expect(body).toContain('hidden=');
+    }
+    expect(open).not.toHaveBeenCalled();
+  });
 });

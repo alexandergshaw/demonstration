@@ -68,7 +68,7 @@ function visibleWorkspacePanel(markup: string, panelClass: string, expectedCount
 }
 
 function visibleReasoningPanel(markup: string) {
-  return visibleWorkspacePanel(markup, 'reasoning-beat-panel', 3);
+  return visibleWorkspacePanel(markup, 'reasoning-beat-panel', 4);
 }
 
 function workflowActions(markup: string, label: string) {
@@ -129,7 +129,7 @@ describe('workspace evidence belongs to the selected collection', () => {
 describe('workspace defaults keep one decision in view', () => {
   it('starts Evidence with only the assessment comparison, with further inspection closed', () => {
     const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, props(initialState())));
-    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 3);
+    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 5);
     expect(panel.match(/<figure\b/g)).toHaveLength(1);
     expect(panel).not.toContain('<article');
     expect(markup.match(/<article\b/g)).toHaveLength(2);
@@ -150,10 +150,11 @@ describe('workspace defaults keep one decision in view', () => {
     expect(options.submit).not.toHaveBeenCalled();
   });
 
-  it('returns a confirmed focus to its own editor without exposing all three steps', () => {
+  it('returns a confirmed focus to its review without exposing the writing fields', () => {
     const options = props(focused());
     const panel = visibleReasoningPanel(renderToStaticMarkup(createElement(ReasoningWorkspace, options)));
-    expect(panel).toContain('id="focus"');
+    expect(panel).toContain('id="reasoning-confirm-title"');
+    expect(panel).not.toContain('id="focus"');
     expect(panel).toContain(options.state.focus);
     expect(panel).not.toContain('id="interpretation"');
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -201,10 +202,12 @@ describe('workspace defaults keep one decision in view', () => {
     expect(options.dispatch).not.toHaveBeenCalled();
   });
 
-  it('opens the learning and collection fields when returning to resolve missing evidence', () => {
+  it('opens collection fields under their own task when returning to resolve missing evidence', () => {
     const options = { ...props(planned()), initialCheckEditor: 'learning' as const };
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
-    for (const id of ['learning-check', 'evidence-collector', 'collection-date', 'review-date']) expect(markup).toContain(`id="${id}"`);
+    for (const id of ['evidence-collector', 'collection-date', 'review-date']) expect(markup).toContain(`id="${id}"`);
+    expect(markup).toContain('data-task-content="collection"');
+    expect(markup).not.toContain('id="learning-check"');
     expect(markup).toContain('Still to agree: who will collect, collection date, review date.');
     expect(markup).not.toContain('id="implementation-check"');
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -214,10 +217,10 @@ describe('workspace defaults keep one decision in view', () => {
   it('leaves coaching optional in every active workspace', () => {
     const options = props(planned());
     const markups = [
-      visibleWorkspacePanel(renderToStaticMarkup(createElement(EvidenceWorkspace, options)), 'evidence-builder-panel', 3),
-      visibleReasoningPanel(renderToStaticMarkup(createElement(ReasoningWorkspace, options))),
+      visibleWorkspacePanel(renderToStaticMarkup(createElement(EvidenceWorkspace, options)), 'evidence-builder-panel', 5),
+      visibleReasoningPanel(renderToStaticMarkup(createElement(ReasoningWorkspace, props(initialState())))),
       renderToStaticMarkup(createElement(PlanWorkspace, options)),
-      visibleWorkspacePanel(renderToStaticMarkup(createElement(ReflectWorkspace, { ...options, state: { ...options.state, implementation: 'yes' } })), 'reflect-builder-panel', 2),
+      visibleWorkspacePanel(renderToStaticMarkup(createElement(ReflectWorkspace, { ...options, state: { ...options.state, implementation: 'yes' } })), 'reflect-builder-panel', 4),
     ];
     for (const markup of markups) {
       expect(markup.match(/class="step-coach"/g)).toHaveLength(1);
@@ -237,15 +240,15 @@ describe('guidance points to required work without completing it', () => {
     const options = props(initialState());
     const before = structuredClone(options.state);
     const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, options));
-    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 3);
+    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 5);
     const actions = workflowActions(panel, 'Assessment actions');
     expect(primaryAction(actions)).toContain('Continue to task &amp; scoring');
     expect(actions).toContain('Use the task and scoring criteria to understand the counts.');
-    for (const label of ['Results', 'By class', 'Task &amp; sources']) expect(panel).toContain(label);
+    for (const label of ['Compare the results', 'Compare classes', 'Read the task and scoring']) expect(markup).toContain(label);
     expect(markup).toContain('Continue to interpretation');
     expect(markup).toContain('Student work selection is optional');
-    expect(panel.indexOf('>Results</button>')).toBeLessThan(panel.indexOf('>Task &amp; sources</button>'));
-    expect(panel.indexOf('>Task &amp; sources</button>')).toBeLessThan(panel.indexOf('>By class</button>'));
+    expect(markup.indexOf('data-task="results"')).toBeLessThan(markup.indexOf('data-task="task"'));
+    expect(markup.indexOf('data-task="task"')).toBeLessThan(markup.indexOf('data-task="classes"'));
     expect(markup).toContain('Read the task and scoring');
     expect(markup).not.toContain('disabled=');
     expect(options.state).toEqual(before);
@@ -334,9 +337,13 @@ describe('guidance points to required work without completing it', () => {
   ])('asks for the focus before offering confirmation: %s', (focus, label) => {
     const options = props({ ...focused(), focus });
     const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
-    const footer = workflowActions(visibleReasoningPanel(markup), 'Teaching focus actions');
+    const panel = visibleReasoningPanel(markup);
+    const footer = workflowActions(panel, focus.trim().length >= 25 ? 'Teaching focus actions' : 'Focus draft actions');
     expect(primaryAction(footer)).toContain(`<span>${label}</span>`);
-    expect(visibleReasoningPanel(markup)).toContain('id="focus"');
+    if (focus.trim().length >= 25) {
+      expect(panel).toContain(focus);
+      expect(panel).not.toContain('id="focus"');
+    } else expect(panel).toContain('id="focus"');
     expect(options.submit).not.toHaveBeenCalled();
   });
 
@@ -400,7 +407,7 @@ describe('guidance points to required work without completing it', () => {
   });
 
   it('keeps an incomplete learning check in its editor with the requirement beside it', () => {
-    const options = { ...props({ ...planned(), learningCheck: 'Work' }), initialCheckEditor: 'learning' as const };
+    const options = { ...props({ ...planned(), learningCheck: 'Work' }), initialTask: 'learning' as const };
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
     expect(markup).toContain('id="learning-check-requirement">Required · at least 15 characters');
     expect(primaryAction(workflowActions(markup, 'Student learning check actions'))).toContain('<span>Write the student learning check</span>');
@@ -426,9 +433,14 @@ describe('guidance points to required work without completing it', () => {
   ] as const)('directs reflection toward its next required control: %s / %s', (implementation, reflection, action) => {
     const options = props({ ...planned(), implementation, reflection });
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
-    const panel = visibleWorkspacePanel(markup, 'reflect-builder-panel', 2);
-    expect(primaryAction(workflowActions(panel, implementation ? 'Reflection actions' : 'Teaching attempt actions'))).toContain(`<span>${action}</span>`);
-    if (implementation) expect(panel).toContain('id="reflection-requirement">Required · at least 30 characters');
+    const panel = visibleWorkspacePanel(markup, 'reflect-builder-panel', 4);
+    const completeDraft = implementation && reflection.trim().length >= 30;
+    expect(primaryAction(workflowActions(panel, !implementation ? 'Teaching attempt actions' : completeDraft ? 'Reflection actions' : 'Next action drafting'))).toContain(`<span>${action}</span>`);
+    if (implementation && !completeDraft) expect(panel).toContain('id="reflection-requirement">Required · at least 30 characters');
+    else if (completeDraft) {
+      expect(panel).toContain(reflection);
+      expect(panel).not.toContain('id="reflection"');
+    }
     else {
       expect(panel).toContain('id="implementation-yes"');
       expect(panel).not.toContain('id="reflection"');
@@ -492,7 +504,8 @@ describe('workspace writing remains authored content', () => {
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
     expect(markup).toContain(escaped);
     expect(markup).not.toContain('<script>');
-    expect(markup).toMatch(/<details class="reflect-next-question" open="">/);
+    expect(markup).toContain('data-task-content="question"');
+    expect(markup).toContain('id="next-cycle-question"');
     expect(options.state.reflection).toBe(authored);
     expect(options.dispatch).not.toHaveBeenCalled();
   });

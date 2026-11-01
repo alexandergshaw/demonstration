@@ -23,15 +23,20 @@ function review(markup: string) {
 }
 
 function checklist(markup: string) {
-  const start = markup.indexOf('<nav class="stage-checklist"');
+  const start = markup.indexOf('<section class="stage-checklist"');
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(start, markup.indexOf('</nav>', start));
+  return markup.slice(start);
 }
 
 function task(markup: string, id: string) {
   const start = markup.indexOf(`<li data-task="${id}"`);
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(start, markup.indexOf('</li>', start));
+  let depth = 0;
+  for (const match of markup.slice(start).matchAll(/<\/?li\b[^>]*>/g)) {
+    depth += match[0].startsWith('</') ? -1 : 1;
+    if (depth === 0) return markup.slice(start, start + match.index! + match[0].length);
+  }
+  throw new Error(`Unclosed checklist task: ${id}`);
 }
 
 const escaped = (text: string) => renderToStaticMarkup(createElement('span', null, text)).slice(6, -7);
@@ -40,7 +45,7 @@ describe('guided evidence review', () => {
   it('opens one assessment task and preserves the optional path straight to interpretation', () => {
     const { markup } = renderEvidence();
     const panels = [...markup.matchAll(/<section\b[^>]*class="evidence-builder-panel [^"]+"[^>]*>/g)].map(match => match[0]);
-    expect(panels).toHaveLength(3);
+    expect(panels).toHaveLength(5);
     const visible = panels.filter(tag => !/\bhidden(?:=|\s)/.test(tag));
     expect(visible).toHaveLength(1);
     expect(visible[0]).toContain('id="evidence-assessment-panel"');
@@ -61,6 +66,34 @@ describe('guided evidence review', () => {
     expect(markup).toContain('Continue to task &amp; scoring');
     expect(markup).toContain('Review selected evidence');
     expect(markup).toContain('Interpret the evidence');
+  });
+
+  it('places each review and its actions inside its own checklist child region', () => {
+    const { markup } = renderEvidence();
+    const tasks = checklist(markup);
+    const mappings = [
+      ['results', 'evidence-assessment-panel', 'Assessment actions', 'I reviewed the results and their limits.'],
+      ['task', 'evidence-task-panel', 'Task and scoring actions', 'I reviewed the task and scoring criteria.'],
+      ['classes', 'evidence-classes-panel', 'Class comparison actions', 'I reviewed the class comparison.'],
+      ['work', 'evidence-work-panel', 'Student work actions', 'I examined the student work and its limits.'],
+      ['selection', 'evidence-review-panel', 'Evidence actions', 'I reviewed the evidence I am taking forward.'],
+    ];
+    for (const [id, panel, actions, acknowledgment] of mappings) {
+      const row = task(tasks, id);
+      expect(row).toContain(`data-task-content="${id}"`);
+      expect(row.indexOf(`data-task-content="${id}"`)).toBeGreaterThan(row.indexOf('</button>'));
+      expect(row).toContain(`id="${panel}"`);
+      expect(row).toContain(`aria-label="${actions}"`);
+      expect(row).toContain(acknowledgment);
+      expect(row).toContain(`aria-expanded="${id === 'results'}"`);
+      const contentTag = row.match(/<div\b[^>]*data-task-content="[^"]+"[^>]*>/)?.[0];
+      expect(Boolean(contentTag?.includes(' hidden='))).toBe(id !== 'results');
+      for (const [, otherPanel] of mappings) {
+        if (otherPanel !== panel) expect(row).not.toContain(`id="${otherPanel}"`);
+      }
+    }
+    expect(markup).not.toContain('class="evidence-view-switch"');
+    expect(markup.match(/class="evidence-review-acknowledgment"/g)).toHaveLength(5);
   });
 
   it.each(['oct28', 'oct29'] as const)('reviews only selected %s sources with exact dated evidence and scope', evidenceVersion => {

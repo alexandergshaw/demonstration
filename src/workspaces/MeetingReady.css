@@ -32,3 +32,6 @@
 @media(max-width:420px){.meeting-ready-move{padding:1rem}.meeting-ready-materials>.btn,.meeting-ready-next>.btn{width:100%}.meeting-ready-arrangements>div{grid-template-columns:minmax(0,1fr);gap:.125rem}}
 :root[data-text-size=largest] .meeting-ready-materials,:root[data-text-size=largest] .meeting-ready-next{align-items:flex-start;flex-direction:column}
 :root[data-text-size=largest] .meeting-ready-checks,:root[data-text-size=largest] .meeting-ready-arrangements{grid-template-columns:minmax(0,1fr)}
+.meeting-ready .stage-checklist-content :is(.meeting-ready-move,.meeting-ready-collection,.meeting-ready-materials){margin:0;padding:0;border:0;border-radius:0;background:transparent}
+.meeting-ready .stage-checklist-content .meeting-ready-materials{display:block}
+.meeting-ready .stage-checklist-content .btn{max-width:100%;margin:8px 12px 0 0}

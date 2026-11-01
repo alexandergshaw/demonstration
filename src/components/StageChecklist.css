@@ -16,10 +16,17 @@
 .stage-checklist-copy>span,.stage-checklist-state,.stage-checklist-note{font-size:var(--text-body)}
 .stage-checklist-state{max-width:16ch;overflow-wrap:anywhere}
 .stage-checklist-note{margin:12px 0 0;max-width:76ch}
+.stage-checklist-content{min-width:0;margin:0 8px 20px 18px;padding:16px 0 0 38px;border-left:2px solid var(--border);overflow-wrap:anywhere}
+.stage-checklist-content[hidden]{display:none}
+.stage-checklist-content>:first-child{margin-top:0}
+.stage-checklist-content :is(.pw-builder-panel,.evidence-builder-panel,.reflect-builder-panel,.reasoning-beat-panel){min-width:0;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0}
+.stage-checklist-content .workflow-actions{margin-bottom:0}
+.stage-checklist-task[aria-expanded=true]>.icon{transform:rotate(90deg)}
+@media(max-width:700px){.stage-checklist-content{margin-left:18px;margin-right:0;padding-left:26px;padding-top:12px}}
 @media(max-width:700px){.stage-checklist{padding:16px}.stage-checklist-task{grid-template-columns:20px minmax(0,1fr) 16px;gap:4px 10px;padding:12px 8px}.stage-checklist-mark{grid-column:1;grid-row:1;align-self:start;margin-top:3px}.stage-checklist-copy{grid-column:2;grid-row:1}.stage-checklist-task>.icon{grid-column:3;grid-row:1;align-self:start;margin-top:4px}.stage-checklist-state{grid-column:2;grid-row:2;max-width:none}.stage-checklist-heading{display:block}.stage-checklist-heading p{margin-top:4px}}
 :root[data-text-size=largest] .stage-checklist-task{grid-template-columns:20px minmax(0,1fr) 16px;gap:4px 10px}
 :root[data-text-size=largest] .stage-checklist-copy{grid-column:2;grid-row:1}
 :root[data-text-size=largest] .stage-checklist-task>.icon{grid-column:3;grid-row:1}
 :root[data-text-size=largest] .stage-checklist-mark{grid-column:1;grid-row:1}
 :root[data-text-size=largest] .stage-checklist-state{grid-column:2;grid-row:2;max-width:none}
-@media print{.stage-checklist{display:none}}
+@media print{.stage-checklist{display:block;border:0;padding:0;margin:0}.stage-checklist-heading,.stage-checklist-purpose,.stage-checklist-note,.stage-checklist-task{display:none}.stage-checklist-items,.stage-checklist-items>li{border:0}.stage-checklist-content{margin:0;padding:0;border:0}}

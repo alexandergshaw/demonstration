@@ -110,7 +110,7 @@ describe('planning and reflection task checklists', () => {
     const options = { state, reference: createReferenceData(), dispatch: vi.fn(() => true), submit: vi.fn(() => true), clearError: vi.fn(), errorField: '', errorAttempt: 0 };
     for (const [initialTask, panel, field] of [
       ['move', 'pw-move-panel', 'action'], ['activities', 'pw-activities-panel', 'agenda-0'],
-      ['implementation', 'pw-checks-panel', 'implementation-check'], ['learning', 'pw-checks-panel', 'learning-check'], ['review', 'pw-review-panel', 'consent'],
+      ['implementation', 'pw-implementation-panel', 'implementation-check'], ['learning', 'pw-learning-panel', 'learning-check'], ['review', 'pw-review-panel', 'consent'],
     ] as [PlanTaskEntry, string, string][]) {
       const markup = renderToStaticMarkup(createElement(PlanWorkspace, { ...options, initialTask }));
       expect(markup).toContain(`id="${panel}"`);

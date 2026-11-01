@@ -67,6 +67,12 @@ All **436 tests across 25 files passed**. TypeScript/Vite production build and `
 
 The source-only release exception still applies. The local server and automated checks do not replace browser verification. Remaining hands-on checks include checklist row focus and scroll on desktop/phone, review-checkbox saving and undo, switching cycles, reopening saved reviews, direct task entry from an approved plan, and checkbox/row behavior with keyboard, screen readers and enlarged text.
 
+## Nested checklist actions — October 31, 2026
+
+Checklist task content is now inside the corresponding list item, immediately after its parent button. Fields and actions are indented as children; one child is expanded, with `aria-expanded`, a labelled region and a matching control target. Evidence has five source/review children; Interpret separates focus writing from confirmation; Plan separates implementation, learning and collection; Reflect separates writing, optional questions and reviewed recording. Approved-plan summaries and kit actions follow the same hierarchy.
+
+All **447 tests across 26 files passed**, including new parent/child containment, expanded-state, correct action placement and draft-review checks. TypeScript/Vite build and `git diff --check` passed. The local Vite app and nested checklist module returned HTTP 200. Source review corrected the inherited print rule that hid nested content and removed redundant padding around Reasoning. The user's source-only exception applies: these checks do not verify rendered indentation, keyboard focus, responsive layout or print output in a browser.
+
 ## Verification limits
 
 Browser testing was unavailable because browser use is disabled in the app settings. This pass therefore has no observed browser-rendered layout, keyboard-flow, screen-reader, text-zoom or pointer-interaction results. Source inspection and server-render tests can establish content and state contracts, but cannot demonstrate those interactive behaviors.

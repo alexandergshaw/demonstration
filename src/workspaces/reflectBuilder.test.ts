@@ -17,10 +17,10 @@ function approvedPlan() {
     { type: 'consent', value: true },
     { type: 'confirm-plan' });
 }
-function render(state: PlanState, unsaved = false) {
+function render(state: PlanState, unsaved = false, errorField = '') {
   const before = structuredClone(state);
   const callbacks = { dispatch: vi.fn(() => true), submit: vi.fn(() => true), openExamples: vi.fn(), onEditCollection: vi.fn(), onOpenRecord: vi.fn(), onBackToPlan: vi.fn() };
-  const markup = renderToStaticMarkup(createElement(ReflectWorkspace, { state, unsaved, errorField: '', errorAttempt: 0, ...callbacks }));
+  const markup = renderToStaticMarkup(createElement(ReflectWorkspace, { state, unsaved, errorField, errorAttempt: 0, ...callbacks }));
   expect(state).toEqual(before);
   for (const callback of Object.values(callbacks)) expect(callback).not.toHaveBeenCalled();
   return markup;
@@ -29,6 +29,12 @@ function panelTag(markup: string, id: string) {
   const tag = markup.match(new RegExp(`<section id="${id}"[^>]*>`))?.[0];
   expect(tag).toBeDefined();
   return tag!;
+}
+function taskRow(markup: string, id: string) {
+  const start = markup.indexOf(`<li data-task="${id}"`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const next = markup.indexOf('<li data-task="', start + 1);
+  return markup.slice(start, next < 0 ? markup.length : next);
 }
 
 describe('guided reflection builder', () => {
@@ -40,6 +46,8 @@ describe('guided reflection builder', () => {
     expect(markup).toContain('1 of 3 core tasks checked');
     expect(panelTag(markup, 'reflect-attempt-panel')).not.toContain('hidden=');
     expect(panelTag(markup, 'reflect-next-panel')).toContain('hidden=""');
+    expect(panelTag(markup, 'reflect-question-panel')).toContain('hidden=""');
+    expect(panelTag(markup, 'reflect-record-panel')).toContain('hidden=""');
     expect(markup).toContain('Report implementation first');
     expect(markup).toContain(state.reflection);
     expect(markup).not.toContain('aria-label="Step progress"');
@@ -65,7 +73,7 @@ describe('guided reflection builder', () => {
     expect(hasReflection(state)).toBe(false);
   });
 
-  it('keeps the same closed collection reference available outside both task panels', () => {
+  it('keeps the same closed collection reference available outside the task panels', () => {
     for (const implementation of ['', 'no'] as const) {
       const markup = render({ ...approvedPlan(), implementation });
       expect(markup).toContain('<details class="reflect-collection-disclosure">');
@@ -75,6 +83,44 @@ describe('guided reflection builder', () => {
       expect(markup).toContain('Edit collection details');
       expect(markup).toContain('Your reflection draft stays available.');
     }
+  });
+
+  it('nests each editor and its actions inside the matching checklist row', () => {
+    const markup = render(approvedPlan());
+    const attempt = taskRow(markup, 'attempt');
+    expect(attempt).toContain('data-task-content="attempt"');
+    expect(attempt).toContain('id="implementation-yes"');
+    expect(attempt).toContain('aria-label="Teaching attempt actions"');
+    expect(attempt).not.toContain('id="reflection"');
+    const writing = taskRow(markup, 'next-step');
+    expect(writing).toContain('data-task-content="next-step"');
+    expect(writing).toContain('id="reflection"');
+    expect(writing).toContain('aria-label="Next action drafting"');
+    expect(writing).not.toContain('id="next-cycle-question"');
+    expect(writing).not.toContain('id="reflect-record"');
+    const question = taskRow(markup, 'question');
+    expect(question).toContain('data-task-content="question"');
+    expect(question).toContain('id="next-cycle-question"');
+    expect(question).toContain('aria-label="Next PLC question actions"');
+    const record = taskRow(markup, 'record');
+    expect(record).toContain('data-task-content="record"');
+    expect(record).toContain('id="reflect-record"');
+    expect(record).toContain('aria-label="Reflection actions"');
+    expect(record).not.toContain('id="reflection"');
+  });
+
+  it('resumes a complete authored draft at its review and opens an optional-field correction in its own task', () => {
+    const state = { ...approvedPlan(), implementation: 'no' as const, reflection: 'The materials were unavailable. The team will prepare them before the next lesson.', nextCycleQuestion: 'What representation will help the team see equal amounts?' };
+    const markup = render(state);
+    expect(markup).toMatch(/<li data-task="record" data-status="todo"><button[^>]*aria-current="step"/);
+    expect(panelTag(markup, 'reflect-record-panel')).not.toContain('hidden=');
+    expect(taskRow(markup, 'record')).toContain(state.reflection);
+    expect(taskRow(markup, 'record')).toContain(state.nextCycleQuestion);
+    expect(hasReflection(state)).toBe(false);
+    const correction = render(state, false, 'next-cycle-question');
+    expect(panelTag(correction, 'reflect-question-panel')).not.toContain('hidden=');
+    expect(panelTag(correction, 'reflect-record-panel')).toContain('hidden=""');
+    expect(correction).toMatch(/<li data-task="question"[^>]*><button[^>]*aria-current="step"/);
   });
 
   it('offers the decision record only after a current saved recording and keeps an unsaved draft explicit', () => {

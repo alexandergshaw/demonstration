@@ -39,6 +39,7 @@
 }
 
 .evidence-workspace .evidence-builder-panel[hidden] { display: none; }
+.evidence-workspace .stage-checklist .evidence-builder-panel{padding:0;border:0;border-radius:0;background:transparent}
 .evidence-review-acknowledgment{display:flex;align-items:flex-start;gap:12px;min-height:44px;margin:20px 0 0;padding:12px 0;border-top:1px solid var(--border);font-size:var(--text-body);line-height:var(--line-body);cursor:pointer}
 .evidence-review-acknowledgment input{flex:0 0 auto;width:20px;height:20px;margin:3px 0 0;accent-color:var(--ink)}
 .evidence-workspace .evidence-builder-status {

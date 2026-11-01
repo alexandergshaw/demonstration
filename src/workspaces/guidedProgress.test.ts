@@ -61,15 +61,27 @@ function renderWorkspace(Component: ComponentType<ReturnType<typeof workspacePro
 }
 
 // Checklist rows navigate; their statuses distinguish authored drafts from explicit decisions.
-function checklist(markup: string, title: string, current: string, count: string) {
-  const start = markup.indexOf('<nav class="stage-checklist"');
+function balancedElement(markup: string, start: number, tagName: string) {
   expect(start).toBeGreaterThanOrEqual(0);
-  const nav = markup.slice(start, markup.indexOf('</nav>', start) + '</nav>'.length);
+  let depth = 0;
+  for (const tag of markup.slice(start).matchAll(new RegExp(`<\\/?${tagName}\\b[^>]*>`, 'g'))) {
+    depth += tag[0].startsWith('</') ? -1 : 1;
+    if (depth === 0) return markup.slice(start, start + tag.index! + tag[0].length);
+  }
+  throw new Error(`Unclosed ${tagName} element`);
+}
+
+function checklist(markup: string, title: string, current: string, count: string) {
+  const start = markup.indexOf('<section class="stage-checklist"');
+  expect(start).toBeGreaterThanOrEqual(0);
+  const nav = balancedElement(markup, start, 'section');
   expect(nav).toContain(`>${title}</h2>`);
   expect(nav).toContain(`${count} core tasks checked`);
   expect(nav.match(/aria-current="step"/g)).toHaveLength(1);
   expect(item(nav, current)).toContain('aria-current="step"');
-  expect(nav).not.toContain('disabled=');
+  const rowButtons = nav.match(/<button\b[^>]*class="stage-checklist-task"[^>]*>/g) ?? [];
+  expect(rowButtons.length).toBeGreaterThan(0);
+  for (const button of rowButtons) expect(button).not.toContain('disabled=');
   expect(nav).not.toContain('role="progressbar"');
   expect(nav).not.toContain('aria-live=');
   return nav;
@@ -96,7 +108,7 @@ function activityOutline(markup: string) {
 function item(markup: string, id: string) {
   const start = markup.indexOf(`<li data-task="${id}"`);
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(start, markup.indexOf('</li>', start));
+  return balancedElement(markup, start, 'li');
 }
 
 describe('guided progress distinguishes navigation, drafts, approvals and saving', () => {

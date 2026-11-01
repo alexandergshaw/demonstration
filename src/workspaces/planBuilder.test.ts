@@ -114,10 +114,15 @@ describe('meeting plan builder', () => {
     expect(implementation).toContain('id="implementation-check"');
     expect(implementation).not.toContain('id="learning-check"');
     expect(implementation).toContain('Back to meeting activities');
-    const learning = render(written(), { initialCheckEditor: 'learning' });
+    const collection = render(written(), { initialCheckEditor: 'learning' });
+    expect(collection).toContain('id="pw-collection-panel"');
+    expect(collection).toContain('id="evidence-collector"');
+    expect(collection).not.toContain('id="learning-check"');
+    expect(collection).not.toContain('id="implementation-check"');
+    expect(collection).toContain('Back to student learning check');
+    const learning = render(written(), { errorField: 'learning-check' });
     expect(learning).toContain('id="learning-check"');
-    expect(learning).toContain('id="evidence-collector"');
-    expect(learning).not.toContain('id="implementation-check"');
+    expect(learning).not.toContain('id="evidence-collector"');
     expect(learning).toContain('Back to implementation check');
     expect(render(written(), { errorField: 'implementation-check' })).toContain('id="implementation-check"');
     expect(render(written(), { errorField: 'access-participation' })).toContain('id="access-participation"');

@@ -14,9 +14,9 @@ function renderReasoning(state = initialState(), reference = createReferenceData
 }
 
 function checklist(markup: string) {
-  const start = markup.indexOf('<nav class="stage-checklist"');
+  const start = markup.indexOf('<section class="stage-checklist"');
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(start, markup.indexOf('</nav>', start));
+  return markup.slice(start, markup.indexOf('<p class="stage-checklist-note"', start)) + markup.slice(markup.indexOf('<p class="stage-checklist-note"', start), markup.indexOf('</p>', markup.indexOf('<p class="stage-checklist-note"', start)) + 4);
 }
 
 function mobileEvidence(markup: string) {
@@ -62,7 +62,7 @@ describe('reasoning guidance and source clarity', () => {
     expect(resumedChecklist).toContain('1 of 4 core tasks checked');
   });
 
-  it('keeps one labelled action group after the task and before closed help in all three reasoning panels', () => {
+  it('nests writing and its actions under each task, with separate review before confirmation', () => {
     const state = initialState();
     const before = structuredClone(state);
     const dispatch = vi.fn(() => true), submit = vi.fn(() => true);
@@ -70,11 +70,11 @@ describe('reasoning guidance and source clarity', () => {
       state, reference: createReferenceData(), dispatch, submit, clearError: vi.fn(), errorField: '', errorAttempt: 0,
     }));
     const starts = [...markup.matchAll(/<section\b[^>]*class="reasoning-beat-panel"[^>]*>/g)];
-    expect(starts).toHaveLength(3);
+    expect(starts).toHaveLength(4);
     const contexts = [
       { task: 'id="interpretation"', actions: 'Interpretation actions', help: 'How to write an interpretation' },
       { task: 'id="reasoning-challenge-help"', actions: 'Respond to the alternative', help: 'How to test an alternative' },
-      { task: 'id="focus"', actions: 'Teaching focus actions', help: 'How to choose a teaching focus' },
+      { task: 'id="focus"', actions: 'Focus draft actions', help: 'How to choose a teaching focus' },
     ];
     contexts.forEach(({ task, actions, help }, index) => {
       const panel = markup.slice(starts[index].index, starts[index + 1]?.index ?? markup.length);
@@ -89,6 +89,19 @@ describe('reasoning guidance and source clarity', () => {
       expect(panel).toContain(`${help}</summary>`);
       expect(panel).not.toMatch(/<details\b[^>]*class="(?:task-explanation-disclosure|step-coach-help)"[^>]*\bopen/);
     });
+    const confirmation = markup.slice(starts[3].index);
+    expect(confirmation).toContain('Review your teaching focus');
+    expect(confirmation).toContain('role="group" aria-label="Teaching focus actions"');
+    expect(confirmation).toContain('id="focus-confirm"');
+    expect(confirmation).not.toContain('id="focus"');
+    for (const [id, control] of [['notice', 'interpretation'], ['test', 'challenge'], ['focus', 'focus'], ['confirm', 'focus-confirm']]) {
+      const bodyStart = markup.indexOf(`data-task-content="${id}"`);
+      const parentStart = markup.lastIndexOf(`<li data-task="${id}"`, bodyStart);
+      const nextTask = markup.indexOf('<li data-task=', bodyStart);
+      expect(parentStart).toBeGreaterThanOrEqual(0);
+      expect(bodyStart).toBeGreaterThan(parentStart);
+      expect(markup.slice(bodyStart, nextTask < 0 ? undefined : nextTask)).toContain(`id="${control}"`);
+    }
     expect(state).toEqual(before);
     expect(dispatch).not.toHaveBeenCalled();
     expect(submit).not.toHaveBeenCalled();

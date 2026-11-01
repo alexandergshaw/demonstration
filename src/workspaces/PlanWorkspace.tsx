@@ -36,7 +36,8 @@ interface PlanWorkspaceProps {
   onReturnToApproved?: () => void;
 }
 
-type CheckEditor = 'implementation' | 'learning';
+type CheckEditor = 'implementation' | 'learning' | 'collection';
+const collectionFields = ['evidence-collector', 'collection-date', 'review-date'];
 function builderStepForEntry(task: PlanTaskEntry): PlanBuilderStep {
   return task === 'implementation' || task === 'learning' ? 'checks' : task;
 }
@@ -144,8 +145,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   const [builderStep, setBuilderStep] = useState<PlanBuilderStep>(() => errorField || initialCheckEditor || !initialTask ? initialPlanStep(state, initialCheckEditor === 'learning', errorField) : builderStepForEntry(initialTask));
   const [selectedAgenda, setSelectedAgenda] = useState(() => initialPlanActivity(state, errorField));
   const activityPickerId = useId();
-  const checkPickerId = useId();
-  const [checkEditor, setCheckEditor] = useState<CheckEditor>(() => errorField === 'implementation-check' ? 'implementation' : planStepForField(errorField) === 'checks' ? 'learning' : initialCheckEditor ?? (initialTask === 'implementation' || initialTask === 'learning' ? initialTask : state.implementationCheck.trim().length < 15 ? 'implementation' : 'learning'));
+  const [checkEditor, setCheckEditor] = useState<CheckEditor>(() => collectionFields.includes(errorField) ? 'collection' : errorField === 'implementation-check' ? 'implementation' : errorField === 'learning-check' ? 'learning' : initialCheckEditor ? 'collection' : initialTask === 'implementation' || initialTask === 'learning' ? initialTask : state.implementationCheck.trim().length < 15 ? 'implementation' : state.learningCheck.trim().length < 15 ? 'learning' : (state.collectionDate && !isCalendarDate(state.collectionDate)) || (state.reviewDate && (!isCalendarDate(state.reviewDate) || state.collectionDate && state.reviewDate < state.collectionDate)) ? 'collection' : 'learning');
   const reviewOpen = builderStep === 'review';
   const [reviewEdit, setReviewEdit] = useState<'action' | 'agenda' | CheckEditor | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -176,7 +176,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   useEffect(() => {
     if (initialCheckEditor !== 'learning') return;
     setBuilderStep('checks');
-    setCheckEditor('learning');
+    setCheckEditor('collection');
     setFocusRequest({ id: 'evidence-collector', attempt: ++focusCounter.current });
   }, [initialCheckEditor]);
 
@@ -204,7 +204,8 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       }
       if (errorField === 'access-participation') setSelectedAgenda(3);
       if (errorField === 'implementation-check') setCheckEditor('implementation');
-      if (['learning-check', 'evidence-collector', 'collection-date', 'review-date'].includes(errorField)) setCheckEditor('learning');
+      if (errorField === 'learning-check') setCheckEditor('learning');
+      if (collectionFields.includes(errorField)) setCheckEditor('collection');
     }
     setFocusRequest({ id: errorField, attempt: ++focusCounter.current });
   }, [errorField, errorAttempt]);
@@ -235,14 +236,15 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     if (reviewOpen || reviewEdit) setReviewEdit(which);
     setBuilderStep('checks');
     setCheckEditor(which);
-    requestFocus(which === 'implementation' ? 'implementation-check' : 'learning-check');
+    requestFocus(which === 'implementation' ? 'implementation-check' : which === 'learning' ? 'learning-check' : 'evidence-collector');
   }
 
   function closeReview() {
     clearError();
     setReviewEdit(null);
     setBuilderStep('checks');
-    requestFocus('pw-follow-up-heading');
+    setCheckEditor('learning');
+    requestFocus('learning-check');
   }
 
   function openReview() {
@@ -274,7 +276,8 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     if (draftTarget === 'action' || draftTarget === 'owner') setReviewEdit('action');
     else if (draftTarget === 'agenda') setReviewEdit('agenda');
     else if (draftTarget === 'implementation-check') setReviewEdit('implementation');
-    else if (['learning-check', 'collection-date', 'review-date'].includes(draftTarget)) setReviewEdit('learning');
+    else if (draftTarget === 'learning-check') setReviewEdit('learning');
+    else if (['collection-date', 'review-date'].includes(draftTarget)) setReviewEdit('collection');
   }
 
   function beginActivities() {
@@ -303,7 +306,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       if (draftTarget === 'owner') requestFocus('owner');
       return;
     }
-    editCheck(draftTarget === 'implementation-check' ? 'implementation' : 'learning');
+    editCheck(draftTarget === 'implementation-check' ? 'implementation' : draftTarget === 'learning-check' ? 'learning' : 'collection');
     if (draftTarget === 'collection-date' || draftTarget === 'review-date') requestFocus(draftTarget);
   }
 
@@ -313,32 +316,12 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     activities: () => editAgenda(initialPlanActivity(state)),
     implementation: () => editCheck('implementation'),
     learning: () => editCheck('learning'),
-    collection: () => { editCheck('learning'); requestFocus('evidence-collector'); },
+    collection: () => editCheck('collection'),
     review: openReview,
   });
-  const checklistCurrent = builderStep === 'checks'
-    ? checkEditor === 'learning' && ['evidence-collector', 'collection-date', 'review-date'].includes(focusRequest?.id ?? '') ? 'collection' : checkEditor
-    : builderStep;
+  const checklistCurrent = builderStep === 'checks' ? checkEditor : builderStep;
 
-  return <div className="plan-workspace">
-    <StageChecklist title="Plan checklist" description="Prepare a meeting your team can run, then inspect the kit before approving it."
-      items={checklistItems} currentId={checklistCurrent}
-      note="Drafted means the writing is present, not that its quality has been checked. Review any starter directions; approval remains your decision. Check the save status before leaving." />
-    <div className="pw-entry">
-      <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
-      {approved && onReturnToApproved && <button type="button" className="textlink" onClick={onReturnToApproved}>Return to approved plan</button>}
-    </div>
-    {needsFocus && <p className="pw-review-requirement">The teaching focus needs confirmation before this plan can be approved. <button type="button" className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Reconfirm the focus</button></p>}
-    <div className="pw-builder-tools">
-      <details className="pw-focus-context">
-        <summary>{needsFocus ? 'Your teaching focus & sources' : 'Your confirmed focus & sources'}</summary>
-        <p className="pw-focus-preview">{state.focus}</p>
-        <button className="textlink" onClick={() => { clearError(); setSourcesOpen(true); }}><Icon name="evidence" size={16} />Read full focus & sources</button>
-      </details>
-      {builderStep !== 'review' && <button type="button" className="textlink" onClick={openKitPreview}><Icon name="book" size={16} />Preview draft meeting kit</button>}
-    </div>
-
-    {builderStep === 'move' && <section id="pw-move-panel" className="pw-teaching-move pw-builder-panel" aria-labelledby="pw-move-heading">
+  const moveContent = builderStep === 'move' ? <section id="pw-move-panel" className="pw-teaching-move pw-builder-panel" aria-labelledby="pw-move-heading">
       <div className="pw-section-heading">
         <h2 id="pw-move-heading" tabIndex={-1}>One teaching move</h2>
       </div>
@@ -354,9 +337,9 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       <WorkflowActions label="Teaching move actions"
         secondary={<button type="button" className="btn secondary" onClick={() => dispatch({ type: 'go', step: 1 })}>Back to interpretation</button>}
         primary={{ label: reviewEdit === 'action' ? 'Return to review' : moveTarget ? draftActionLabels[moveTarget] : 'Next: shape the meeting activities', onClick: reviewEdit === 'action' ? openReview : continueFromMove, arrow: reviewEdit !== 'action' }} />
-    </section>}
+    </section> : undefined;
 
-    {builderStep === 'activities' && <div id="pw-activities-panel" className="pw-agenda-workspace pw-builder-panel" aria-label="Meeting activities">
+  const activitiesContent = builderStep === 'activities' ? <div id="pw-activities-panel" className="pw-agenda-workspace pw-builder-panel" aria-label="Meeting activities">
       <section className="pw-outline" aria-labelledby="pw-outline-heading">
         <div className="pw-section-heading"><h2 id="pw-outline-heading">Meeting outline</h2><span className="pw-meta">50 minutes</span></div>
         <p className="pw-route-hint">Choose any activity to edit. Review all six before approving your plan.</p>
@@ -404,22 +387,9 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
           </>}
         </div>
       </section>
-    </div>}
+    </div> : undefined;
 
-    {builderStep === 'checks' && <section id="pw-checks-panel" className="pw-follow-up pw-builder-panel" aria-labelledby="pw-follow-up-heading">
-      <div className="pw-section-heading"><h2 id="pw-follow-up-heading" tabIndex={-1}>Agree what to look for next</h2><span className="pw-meta">Planned checks</span></div>
-      <p className="pw-route-hint">Write both checks. Collection names and dates can be agreed with the team later.</p>
-      <p className="pw-explanation">These checks answer different questions. An implementation record helps you understand whether the move was tried as intended. Student work helps you examine what students understood. Having one does not supply the other, and neither by itself proves that the move caused a change.</p>
-      <div className="pw-check-picker">
-        <label htmlFor={checkPickerId}>Planned check</label>
-        <select id={checkPickerId} value={checkEditor} aria-controls={checkEditor === 'implementation' ? 'pw-implementation-panel' : 'pw-learning-panel'} onChange={event => {
-          if (event.target.value !== 'implementation' && event.target.value !== 'learning') return;
-          clearError(); setFocusRequest(null); setCheckEditor(event.target.value);
-          if (reviewEdit) setReviewEdit(event.target.value);
-        }}><option value="implementation">1. Implementation check</option><option value="learning">2. Student learning check</option></select>
-      </div>
-      <div className="pw-checks">
-        {checkEditor === 'implementation' && <section id="pw-implementation-panel" className="pw-check" aria-labelledby="pw-implementation-heading">
+  const implementationContent = builderStep === 'checks' && checkEditor === 'implementation' ? <section id="pw-implementation-panel" className="pw-check pw-builder-panel" aria-labelledby="pw-implementation-heading">
           <div className="pw-check-heading"><h3 id="pw-implementation-heading">Did teaching change?</h3>
           </div>
           <p className="pw-check-explanation">Look for evidence of the teacher action: what was asked or used, when, and what differed from the plan. A stated intention to try the move is not yet an implementation record.</p>
@@ -428,35 +398,31 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
             <WorkflowActions label="Implementation check actions"
               secondary={<button type="button" className="btn secondary" onClick={() => editAgenda(agendaHeadings.length - 1)}>Back to meeting activities</button>}
               primary={{ label: reviewEdit === 'implementation' ? 'Return to review' : implementationReady ? 'Next: student learning check' : 'Write the implementation check', onClick: reviewEdit === 'implementation' ? openReview : () => editCheck(implementationReady ? 'learning' : 'implementation'), arrow: reviewEdit !== 'implementation' }} />
-        </section>}
-        {checkEditor === 'learning' && <section id="pw-learning-panel" className="pw-check" aria-labelledby="pw-learning-heading">
+        </section> : undefined;
+
+  const learningContent = builderStep === 'checks' && checkEditor === 'learning' ? <section id="pw-learning-panel" className="pw-check pw-builder-panel" aria-labelledby="pw-learning-heading">
           <div className="pw-check-heading"><h3 id="pw-learning-heading">Did student reasoning change?</h3>
           </div>
           <p className="pw-check-explanation">Look for students’ explanations of the mathematical idea. Specify the task, the criteria for judging the explanation and whose work you will collect so the team can interpret the evidence together.</p>
             <TextArea id="learning-check" label="What student work would reveal a change in reasoning?" requirement="Required · at least 15 characters" hint="Name a comparable task and the reasoning to look for, using the same scoring criteria. Include the date and response coverage. Repeating the identical task can introduce practice effects, so record that limitation."
               value={state.learningCheck} onChange={value => dispatch({ type: 'text', field: 'learningCheck', value })} />
-            <EvidenceCollection state={state} dispatch={dispatch} />
             <WorkflowActions label="Student learning check actions"
               status={learningReady && draftMessage && !reviewEdit ? <p>{draftMessage}</p> : undefined}
               secondary={<button type="button" className="btn secondary" onClick={() => editCheck('implementation')}>Back to implementation check</button>}
-              primary={{ label: reviewEdit === 'learning' ? 'Return to review' : !learningReady ? 'Write the student learning check' : draftMessage ? draftActionLabels[draftTarget] : 'Next: review the whole plan', onClick: reviewEdit === 'learning' ? openReview : () => !learningReady ? editCheck('learning') : draftMessage ? followSuggestedAction() : openReview(), arrow: reviewEdit !== 'learning' }} />
-        </section>}
-      </div>
-    </section>}
+              primary={{ label: reviewEdit === 'learning' ? 'Return to review' : !learningReady ? 'Write the student learning check' : 'Next: collection arrangements', onClick: reviewEdit === 'learning' ? openReview : () => !learningReady ? editCheck('learning') : editCheck('collection'), arrow: reviewEdit !== 'learning' }} />
+        </section> : undefined;
 
-    {sourcesOpen && <Modal title="Your focus & evidence" onClose={() => { clearError(); setSourcesOpen(false); }}>
-      <div className="source-reader source-blocks pw-source-reader">
-        <section><h3>Confirmed instructional focus</h3><p>{state.focus}</p><button className="textlink" onClick={() => { clearError(); if (dispatch({ type: 'go', step: 1 })) setSourcesOpen(false); }}>Revisit reasoning<Icon name="arrow" size={15} /></button></section>
-        <p className="caption">Fictional sources · Close this reader to return to your draft.</p>
-        <p className="caption">{evidenceSnapshotDescription(state.evidenceVersion)}</p>
-        {[...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)].map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
-      </div>
-      <div className="modal-actions"><button className="btn secondary" onClick={() => { clearError(); setSourcesOpen(false); }}>Return to my plan</button></div>
-    </Modal>}
+  const collectionContent = builderStep === 'checks' && checkEditor === 'collection' ? <section id="pw-collection-panel" className="pw-check pw-builder-panel" aria-labelledby="pw-collection-heading">
+      <h2 id="pw-collection-heading" tabIndex={-1}>Arrange collection and review</h2>
+      <p className="pw-explanation">Agree who will gather the work and when the team will revisit it. These arrangements are optional; any dates you enter must be valid, with review on or after collection.</p>
+      <EvidenceCollection state={state} dispatch={dispatch} />
+      <WorkflowActions label="Collection arrangement actions"
+        status={draftMessage && !reviewEdit ? <p>{draftMessage}</p> : undefined}
+        secondary={<button type="button" className="btn secondary" onClick={() => editCheck('learning')}>Back to student learning check</button>}
+        primary={{ label: reviewEdit === 'collection' ? 'Return to review' : draftMessage ? draftActionLabels[draftTarget] : 'Next: review the whole plan', onClick: reviewEdit === 'collection' ? openReview : draftMessage ? followSuggestedAction : openReview, arrow: reviewEdit !== 'collection' }} />
+    </section> : undefined;
 
-    {previewOrigin && <MeetingKit state={state} reference={reference} mode="draft" returnLabel={previewOrigin === 'review' ? 'Return to review' : 'Return to planning'} onClose={closeKitPreview} onEditActivity={editPreviewActivity} />}
-
-    {reviewOpen && <section id="pw-review-panel" className="pw-plan-review pw-builder-panel" aria-labelledby="pw-review-heading">
+  const reviewContent = reviewOpen ? <section id="pw-review-panel" className="pw-plan-review pw-builder-panel" aria-labelledby="pw-review-heading">
         <h2 id="pw-review-heading" tabIndex={-1}>Review your meeting plan</h2>
         <p className="pw-review-status">{approved ? 'Current approved plan' : 'Draft · Awaiting your approval'} · 50-minute PLC</p>
         <p className="pw-explanation pw-review-explanation">Read this as the facilitator who will run the meeting: can you identify the evidence, the participant task and the intended output of each activity? Use Edit beside a section to revise it. Preview the assembled kit before approving; approval makes this version available for download and does not establish a classroom outcome.</p>
@@ -497,6 +463,37 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
           description={<p>Approval records your decision and makes the kit available to download. It does not report that teaching has happened.</p>}
           secondary={<button type="button" className="btn secondary" onClick={closeReview}>Back to follow-up checks</button>}
           primary={{ label: approved && onReturnToApproved ? 'Return to approved plan' : 'Approve meeting plan', onClick: approved && onReturnToApproved ? onReturnToApproved : approvePlan }} />
-    </section>}
+    </section> : undefined;
+
+  return <div className="plan-workspace">
+    <div className="pw-entry">
+      <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
+      {approved && onReturnToApproved && <button type="button" className="textlink" onClick={onReturnToApproved}>Return to approved plan</button>}
+    </div>
+    {needsFocus && <p className="pw-review-requirement">The teaching focus needs confirmation before this plan can be approved. <button type="button" className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Reconfirm the focus</button></p>}
+    <div className="pw-builder-tools">
+      <details className="pw-focus-context">
+        <summary>{needsFocus ? 'Your teaching focus & sources' : 'Your confirmed focus & sources'}</summary>
+        <p className="pw-focus-preview">{state.focus}</p>
+        <button className="textlink" onClick={() => { clearError(); setSourcesOpen(true); }}><Icon name="evidence" size={16} />Read full focus & sources</button>
+      </details>
+      {builderStep !== 'review' && <button type="button" className="textlink" onClick={openKitPreview}><Icon name="book" size={16} />Preview draft meeting kit</button>}
+    </div>
+
+    <StageChecklist title="Plan checklist" description="Prepare a meeting your team can run, then inspect the kit before approving it."
+      items={checklistItems} currentId={checklistCurrent} contents={{ move: moveContent, activities: activitiesContent, implementation: implementationContent, learning: learningContent, collection: collectionContent, review: reviewContent }}
+      note="Drafted means the writing is present, not that its quality has been checked. Review any starter directions; approval remains your decision. Check the save status before leaving." />
+    {sourcesOpen && <Modal title="Your focus & evidence" onClose={() => { clearError(); setSourcesOpen(false); }}>
+      <div className="source-reader source-blocks pw-source-reader">
+        <section><h3>Confirmed instructional focus</h3><p>{state.focus}</p><button className="textlink" onClick={() => { clearError(); if (dispatch({ type: 'go', step: 1 })) setSourcesOpen(false); }}>Revisit reasoning<Icon name="arrow" size={15} /></button></section>
+        <p className="caption">Fictional sources · Close this reader to return to your draft.</p>
+        <p className="caption">{evidenceSnapshotDescription(state.evidenceVersion)}</p>
+        {[...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)].map(block => <section key={block.heading}><h3>{block.heading}</h3><p>{block.text}</p></section>)}
+      </div>
+      <div className="modal-actions"><button className="btn secondary" onClick={() => { clearError(); setSourcesOpen(false); }}>Return to my plan</button></div>
+    </Modal>}
+
+    {previewOrigin && <MeetingKit state={state} reference={reference} mode="draft" returnLabel={previewOrigin === 'review' ? 'Return to review' : 'Return to planning'} onClose={closeKitPreview} onEditActivity={editPreviewActivity} />}
+
   </div>;
 }

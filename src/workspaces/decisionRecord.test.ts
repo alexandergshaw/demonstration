@@ -167,7 +167,7 @@ describe('Reflection keeps its single recording action beside the authored repor
   it.each([
     ['draft', () => reflectionDraft(), 'Record next step'],
     ['recorded', () => recorded(), 'Reflection recorded'],
-  ] as const)('places the %s action after the report and optional question but before optional writing help', (_label, makeState, actionLabel) => {
+  ] as const)('places the %s action beneath its checklist row and after the reviewed authored report', (_label, makeState, actionLabel) => {
     const state = makeState();
     const dispatch = vi.fn(() => true), submit = vi.fn(() => true);
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, {
@@ -175,18 +175,26 @@ describe('Reflection keeps its single recording action beside the authored repor
     }));
     expect(markup.match(/id="reflect-record"/g)).toHaveLength(1);
     expect(markup.match(new RegExp(`<span>${actionLabel}</span>`, 'g'))).toHaveLength(1);
-    const action = markup.indexOf('id="reflect-record"');
-    const report = markup.indexOf('id="reflection"');
-    const question = markup.indexOf('id="next-cycle-question"');
-    const help = markup.indexOf('<details class="task-explanation-disclosure">');
-    expect(report).toBeGreaterThanOrEqual(0);
-    expect(question).toBeGreaterThan(report);
-    expect(action).toBeGreaterThan(question);
-    expect(help).toBeGreaterThan(action);
-    expect(markup).toContain('role="group" aria-label="Reflection actions"');
+    const row = markup.indexOf('<li data-task="record"');
+    const panel = markup.indexOf('id="reflect-record-panel"', row);
+    const action = markup.indexOf('id="reflect-record"', panel);
+    expect(row).toBeGreaterThanOrEqual(0);
+    expect(panel).toBeGreaterThan(row);
+    expect(action).toBeGreaterThan(panel);
+    const reviewed = markup.slice(panel, action);
+    expect(reviewed).toContain('Supported next action');
+    expect(reviewed).toContain(state.reflection);
+    expect(reviewed).toContain(state.nextCycleQuestion);
+    expect(reviewed).toContain('role="group" aria-label="Reflection actions"');
+    expect(reviewed).not.toContain('id="reflection"');
+    expect(reviewed).not.toContain('id="next-cycle-question"');
     expect(markup).toContain('How to shape a useful next step</summary>');
     expect(markup).not.toMatch(/<details\b[^>]*class="task-explanation-disclosure"[^>]*\bopen/);
-    expect(markup.indexOf('class="step-coach"')).toBeGreaterThan(action);
+    const writingRow = markup.indexOf('<li data-task="next-step"');
+    const questionRow = markup.indexOf('<li data-task="question"');
+    expect(markup.indexOf('id="reflection"', writingRow)).toBeLessThan(questionRow);
+    expect(markup.indexOf('class="step-coach"', writingRow)).toBeLessThan(questionRow);
+    expect(markup.indexOf('id="next-cycle-question"', questionRow)).toBeLessThan(row);
     expect(markup.slice(markup.indexOf('class="workspace-stage-footer"'))).not.toContain('id="reflect-record"');
     expect(dispatch).not.toHaveBeenCalled();
     expect(submit).not.toHaveBeenCalled();
