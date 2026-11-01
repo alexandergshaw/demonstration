@@ -24,13 +24,17 @@
 .evidence-workspace .evidence-composition {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: clamp(1.5rem, 4vw, 3.5rem);
+  gap: 24px;
   align-items: start;
 }
 
 .evidence-workspace .evidence-results,
 .evidence-workspace .evidence-student-work {
   min-width: 0;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .evidence-workspace .evidence-section-heading {
@@ -100,7 +104,17 @@
 .evidence-workspace .evidence-next-inspection {
   margin-top: 1.25rem;
   padding-top: 1rem;
-  border-top: 2px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.evidence-workspace .evidence-next-inspection > .btn {
+  max-width: 100%;
+  text-align: left;
+}
+
+.evidence-workspace .evidence-next-inspection > .evidence-source-details {
+  border-bottom: 0;
+  margin-top: .25rem;
 }
 
 .evidence-workspace .evidence-next-inspection p {
@@ -109,13 +123,6 @@
   color:var(--ink);
   font-size: var(--text-body);
   line-height:var(--line-body);
-}
-
-.evidence-workspace .evidence-next-inspection .textlink {
-  justify-content: flex-start;
-  text-align: left;
-  max-width: 100%;
-  min-height: 2.75rem;
 }
 
 .evidence-workspace .evidence-chart {
@@ -373,14 +380,13 @@
 
 .evidence-workspace .evidence-response-list {
   margin-top: 1rem;
-  background: #f6f8fb;
-  border: 1px solid #e1e6ed;
-  border-radius: .625rem;
-  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .evidence-workspace .evidence-response {
-  padding: 1.5rem;
+  padding: 1.25rem .75rem;
+  border-left: 3px solid transparent;
 }
 
 .evidence-workspace .evidence-response + .evidence-response {
@@ -389,6 +395,7 @@
 
 .evidence-workspace .evidence-response.is-selected {
   background: #edf3ff;
+  border-left-color: var(--accent);
 }
 
 .evidence-workspace .evidence-response-label {
@@ -451,9 +458,10 @@
 
 .evidence-workspace .evidence-history {
   margin-top: 1.5rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--border, #ccd4de);
-  border-bottom: 1px solid var(--border, #ccd4de);
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .evidence-workspace .evidence-history summary {
@@ -582,7 +590,7 @@
 @media (max-width: 1000px) {
   .evidence-workspace .evidence-composition {
     grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
+    gap: 24px;
   }
   .evidence-workspace .evidence-goal {
     display: block;
@@ -601,6 +609,18 @@
 :root[data-text-size="largest"] .evidence-workspace .evidence-composition { grid-template-columns: minmax(0, 1fr); }
 
 @media (max-width: 480px) {
+  .evidence-workspace .evidence-included-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .evidence-workspace .evidence-results,
+  .evidence-workspace .evidence-student-work,
+  .evidence-workspace .evidence-history {
+    padding: 16px;
+  }
   .evidence-workspace .evidence-section-heading {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -622,7 +642,7 @@
     padding-left: .4rem;
   }
   .evidence-workspace .evidence-response {
-    padding: 1.125rem;
+    padding: 1rem .5rem;
   }
   .evidence-workspace .evidence-history-meta {
     flex-basis: 100%;

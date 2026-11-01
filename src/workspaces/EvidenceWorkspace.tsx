@@ -45,7 +45,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
       <section className="evidence-results" aria-labelledby="evidence-results-title">
         <div className="evidence-section-heading">
           <h2 id="evidence-results-title">Read the assessment</h2>
-          <span className="evidence-included"><Icon name="check" size={15} />Included</span>
+          <span className="evidence-included" title="Assessment included"><Icon name="check" size={15} /><span className="evidence-included-label">Included</span></span>
         </div>
         <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {assessment.total} responses · {classes.length} classes</p>
 
@@ -75,8 +75,11 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
 
         <div className="evidence-next-inspection">
           <p className="evidence-next-label">Next evidence to inspect</p>
-          <p>{nextInspection.why}</p>
-          <button type="button" className="textlink" onClick={inspectNext}>{nextInspection.label}<Icon name="arrow" size={16} /></button>
+          <button type="button" className="btn secondary compact" onClick={inspectNext}>{nextInspection.label}<Icon name="arrow" size={16} /></button>
+          <details className="evidence-source-details">
+            <summary>Why inspect this next?</summary>
+            <div><p>{nextInspection.why}</p></div>
+          </details>
         </div>
 
         <StepCoach question="What pattern is worth bringing to the team?" ready="You can point to a pattern, name its source, and say what it does not tell you.">

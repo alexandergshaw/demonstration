@@ -4,7 +4,7 @@
 
 ## Workspace design
 
-The interface gives each stage a distinct working composition while keeping one cycle, one evidence version and the same approval model. A compact header holds the cycle selector, save state, Decisions, Reading and Guide. Decision history opens on demand; it does not compete with the current task in a permanent sidebar. Help is available from the header and each stage without a required welcome flow.
+The interface gives each stage a distinct working composition while keeping one cycle, one evidence version and the same approval model. A compact product bar holds the cycle selector and a single Menu for Decisions, Reading settings, Guide and cycle actions. The stage bar holds save status. Decision history opens on demand; it does not compete with the current task in a permanent sidebar. Help is available from the header and each stage without a required welcome flow.
 
 | Stage | Primary work | Supporting information |
 | --- | --- | --- |
@@ -14,6 +14,34 @@ The interface gives each stage a distinct working composition while keeping one 
 | Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
 
 This organization addresses scrolling and visual overload through stable source access and progressive disclosure. There is no live conversation or generated-chart runtime. The design demonstrates how a workflow can keep evidence and authored decisions available without relying on chat scrollback.
+
+## Professional product references — October 31, 2026
+
+The strongest recognition evidence is specific: [Playlab's public Leading Educators collection](https://gardens.playlab.ai/collection/leading-educators) lists **LeAnita Garner** as the author of BPS IM Lesson Rehearsal Lab. [LE's AI work](https://leadingeducators.org/ai-at-le/) also documents Playlab and Illustrative Mathematics connections. These are relevant professional comparables, not evidence that every interviewer uses them or endorses this design.
+
+The [Playlab builder documentation](https://learn.playlab.ai/getstarted/Creating%20a%20Playlab%20App) includes an actual editor screenshot: one product bar, a named app, task navigation, distinct preview/editor/reference areas, and explicit publishing controls. The [workspace documentation](https://learn.playlab.ai/getstarted/Navigating%20Playlab) shows neutral navigation, a pale canvas and separate white working surfaces. Both public screenshots were inspected as design references; they were not added to the application.
+
+Throughline adapts those boundaries with a compact product bar, numbered desktop stages, a full-width cycle selector and native stage selector on phones, and consistent white evidence/editor panels against a pale canvas. The Plan outline and selected activity remain separate. Save status and explicit educator approval retain different meanings. No live AI, publishing, collaboration or integration capability is implied by the borrowed presentation.
+
+Two complementary references ground the instructional layout:
+
+- **Illustrative Mathematics / AccessIM:** [Grade 4, Unit 2, Lesson 9 preparation](https://ca.accessim.org/k-5/grade-4/unit-2/section-b/lesson-9/preparation?a=teacher) separates Preparation and Lesson, states a purpose, and groups materials, activity preparation and reflection. Throughline retains a concise stage purpose, an activity outline beside its editor, and optional extended explanations. [LE lists IM among its curriculum connections](https://leadingeducators.org/our-work/curriculum-based-professional-learning/). We borrow the organization, not the lesson content or branding.
+- **EdLight:** Its [official product tour](https://edlight.navattic.com/wq1207s4), linked from the [product page](https://www.edlight.com/product), follows assignment context into student-work analysis and instructional next steps, with educator revision available. [LE documents an EdLight partnership](https://leadingeducators.org/team/araceli-flores/). Throughline gives assessment and original student quotations separate panels, places the next inspection action nearby, and moves its longer rationale into an optional disclosure. Existing selection and educator-authored interpretation remain intact.
+
+Evidence scope: Playlab public screenshots were visually inspected; IM public page structure and EdLight official tour text were inspected. Authenticated product use and mobile rendering were not verified. Throughline itself was served locally, but local browser access remained disabled; source-only release follows the user's explicit exception. Automated tests and builds do not constitute a visual check.
+
+Role-based rationale is our design inference:
+
+| Panel lens | Design consequence |
+| --- | --- |
+| Tyler Nakatsu — Senior Director of Digital Products and Strategy | A recognizable product shell separates navigation, the active cycle and the current work. |
+| LeAnita Garner — Director of AI-Enabled Instruction, Math | Assessment task, scoring and student reasoning stay connected; the exact quotation remains more prominent than help text. |
+| Nia Ladson — Senior Director of AI-Enabled Instruction, ELA | Source material and educator-authored interpretation occupy distinct, readable areas. |
+| Antoinette Melvin — Senior Director of Innovation | Repeated surface and selection conventions make each new stage easier to understand. |
+| Sandra Jin — Senior Director of AI Strategy | Review and approval remain explicit; preparation, implementation and learning evidence stay separate. |
+| Sabrina Ware — Associate Director, Innovation–AI Strategy | Stable cycle, menu and save controls support return to unfinished work. |
+
+The user's typography requirements take precedence over reference branding: IBM Plex Sans, one non-link text color, 36px page headings, 24px section headings and 16px for every other text role. Panel names explain design decisions here; they are not presented as endorsements in the educator interface.
 
 ## Decision principles
 

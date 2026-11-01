@@ -1,5 +1,5 @@
-/* Stage layout owns the page; help and history are opened only when needed. */
-.app-topbar{display:block;height:auto;min-height:64px;padding:8px 32px;border-bottom:1px solid var(--border)}
+/* Product navigation stays outside the working surfaces, as in Playlab's builder. */
+.app-topbar{display:block;height:auto;min-height:64px;padding:8px 40px;border-bottom:1px solid var(--border)}
 .app-topbar .brandname{font-size:var(--text-task)}.app-topbar .brandmark{color:var(--ink)}
 .mobile-stage-nav{display:none}
 .app-topbar .cycle-compact{display:flex;margin:0;padding:0;border:0;min-height:44px;gap:0;flex:0 1 290px;min-width:0}
@@ -7,20 +7,28 @@
 .cycle-compact .cycle-selector select{width:100%;font-size:var(--text-support);padding-left:10px;font-weight:400;border-color:var(--border)}.cycle-compact .cycle-actions{margin-left:4px}
 .app-topbar .cycle-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'brand cycle menu';gap:0 24px;width:100%}
 .cycle-header>.brand{grid-area:brand;min-width:0}
-.cycle-header>.cycle-selector{grid-area:cycle;width:100%;max-width:40rem;justify-self:center}
+.cycle-header>.cycle-selector{grid-area:cycle;width:100%;max-width:34rem;justify-self:start;padding-left:24px;border-left:1px solid var(--border)}
 .cycle-header>.cycle-actions{grid-area:menu;margin:0;justify-self:end}
-.cycle-header .cycle-selector select{min-height:44px;padding-left:0;border-color:transparent}
-.header-menu-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--ink);font:inherit;white-space:nowrap}
+.cycle-header .cycle-selector select{min-height:44px;padding:8px 12px;border-color:var(--border);border-radius:6px}
+.header-menu-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);font:inherit;white-space:nowrap}
 .header-menu-button:hover,.header-menu-button[aria-expanded=true]{background:var(--bg)}
 .cycle-header .cycle-popover{width:20rem;max-height:min(70vh,36rem);overflow-y:auto;overscroll-behavior:contain}
-.workflow-controls{display:flex;align-items:center;flex-wrap:wrap;gap:0 16px}
-.workflow-controls>.path{flex:1 1 34rem;min-width:0}
+.workflow-controls{display:flex;align-items:center;flex-wrap:wrap;gap:0 16px;min-height:64px}
+.workflow-controls>.path{flex:0 1 44rem;min-width:0}
 .workflow-controls>.save-indicator{margin-left:auto;font-size:var(--text-body);overflow-wrap:normal}
 .save-short-label{display:none}
-.app-shell{max-width:1440px}.workflow-rail{padding:0 40px}.path{max-width:900px;gap:32px}.path .step{min-height:60px;padding:12px 0;gap:8px;flex-direction:row;align-items:center;justify-content:flex-start}.path .step-number,.path .nav-wide{display:none}.path .nav-short{display:inline;font-size:var(--text-body)}.path .step-note{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.path .step-copy{flex:0 1 auto}.path .step-state{position:static;margin-left:4px}.path .step.active{color:var(--ink)}
-.workspace-shell .page{max-width:1320px;padding:32px 40px;margin:auto}.page .intro{display:grid;grid-template-columns:minmax(0,1fr);margin:0 0 1.25rem;padding:0;align-items:start;gap:.35rem}.page .intro h1{max-width:32ch}.flow-heading{min-width:0}.page .intro .flow-purpose{font-size:var(--text-body);max-width:60ch;margin-top:.5rem;line-height:var(--line-body)}.intro-actions{padding-top:4px;gap:8px;flex-shrink:0}.intro-actions .textlink{font-size:var(--text-support)}
+.app-shell{max-width:none;background:var(--bg);min-height:calc(100dvh - 64px)}
+.workflow-rail{padding:0 max(40px,calc((100vw - 1240px)/2));background:#fff}
+.path{max-width:none;gap:8px;padding:8px 0}
+.path .step{min-height:44px;padding:8px 12px;gap:8px;flex-direction:row;align-items:center;justify-content:flex-start;border:1px solid transparent;border-radius:6px}
+.path .nav-wide{display:none}.path .nav-short{display:inline;font-size:var(--text-body)}
+.path .step-number{display:inline;align-self:auto;padding:0;font-weight:400}
+.path .step-note,.path .step-timing{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.path .step-copy{flex:0 1 auto}.path .step-state{position:static;margin-left:4px}
+.path .step:hover{background:var(--bg)}.path .step.active{color:var(--ink);background:#eef1f4;border-color:#bac4cf}
+.workspace-shell .page{max-width:1320px;padding:28px 40px;margin:auto}.page .intro{display:grid;grid-template-columns:minmax(0,1fr);margin:0 0 1.5rem;padding:0;align-items:start;gap:.25rem}.page .intro h1{max-width:32ch}.flow-heading{min-width:0}.page .intro .flow-purpose{font-size:var(--text-body);max-width:60ch;margin-top:.35rem;line-height:var(--line-body)}.intro-actions{padding-top:4px;gap:8px;flex-shrink:0}.intro-actions .textlink{font-size:var(--text-support)}
 .flow-help>summary{min-height:44px;padding:8px 0;cursor:pointer;font-size:var(--text-body);line-height:var(--line-body)}
-.flow-help[open]{padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.flow-help[open]{padding:0 20px 16px;border:1px solid var(--border);border-radius:8px;background:#fff}
 .flow-help>.textlink{margin-top:.5rem}
 /* Heading presentation comes from the shared typography rules. */
 .focused-workspace{width:100%;max-width:none;min-width:0;padding:0;border:0;background:transparent}.focused-workspace .field-hint{font-size:var(--text-body)}.focused-workspace .caption,.focused-workspace .context-label{font-size:var(--text-meta)}
@@ -34,9 +42,9 @@
 .decision-records{list-style:none;padding:0;margin:28px 0}.decision-records li{border-bottom:1px solid var(--border);padding:20px 0}.decision-records li>div{display:flex;justify-content:space-between;align-items:baseline;gap:16px}.decision-records p{white-space:pre-wrap;line-height:var(--line-body);margin-top:10px}
 .example-picker{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}.example-source-blocks>h3{margin-top:28px}.example-source-blocks section{margin:20px 0}.example-source-blocks p{line-height:var(--line-body)}
 .guide-reset p{margin:16px 0}.focused-workspace [hidden]{display:none!important}
-@media(min-width:1450px){.app-topbar{padding-left:max(32px,calc((100vw - 1360px)/2));padding-right:max(32px,calc((100vw - 1360px)/2))}}
+@media(min-width:1320px){.app-topbar{padding-left:calc((100vw - 1240px)/2);padding-right:calc((100vw - 1240px)/2)}}
 @media(max-width:1100px){.intro-actions{justify-content:flex-start;align-items:center}.workspace-shell .page{padding:28px 32px}.workflow-rail{padding:0 32px}}
-@media(max-width:700px){.app-topbar{padding:8px 20px}.app-topbar .cycle-header{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand menu' 'cycle cycle';gap:0 16px}.cycle-header>.cycle-selector{max-width:none}.workflow-rail{padding:0 20px}.workflow-rail .path{display:none}.mobile-stage-nav{display:flex;align-items:center;flex:1 1 10rem;max-width:22rem;min-width:0;min-height:60px;padding:8px 0}.mobile-stage-nav label,.workflow-controls .save-full-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.mobile-stage-nav select{min-width:0;width:100%;min-height:44px;padding:8px 24px 8px 0;font-size:var(--text-body);font-weight:600;color:var(--ink);background-color:#fff;border:1px solid transparent}.save-short-label{display:inline}.workflow-controls>.save-indicator{flex:0 1 auto;max-width:100%;padding:8px 0}.workspace-shell .page{padding:20px}.flow-context{grid-template-columns:minmax(0,1fr);gap:1rem}.workspace-stage-footer{align-items:flex-start;flex-direction:column;gap:16px}.workspace-stage-footer>.btn{align-self:stretch}.decision-records li>div{align-items:flex-start;flex-direction:column;gap:4px}.page .footnote{gap:12px;flex-wrap:wrap}}
+@media(max-width:700px){.app-topbar{padding:8px 20px 12px}.app-topbar .cycle-header{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand menu' 'cycle cycle';gap:8px 16px}.cycle-header>.cycle-selector{max-width:none;border:0;padding:0}.workflow-rail{padding:0 20px}.workflow-controls{min-height:60px}.workflow-rail .path{display:none}.mobile-stage-nav{display:flex;align-items:center;flex:1 1 10rem;max-width:22rem;min-width:0;min-height:60px;padding:8px 0}.mobile-stage-nav label,.workflow-controls .save-full-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.mobile-stage-nav select{min-width:0;width:100%;min-height:44px;padding:8px 24px 8px 0;font-size:var(--text-body);font-weight:600;color:var(--ink);background-color:#fff;border:1px solid transparent}.save-short-label{display:inline}.workflow-controls>.save-indicator{flex:0 1 auto;max-width:100%;padding:8px 0}.workspace-shell .page{padding:24px 20px}.flow-context{grid-template-columns:minmax(0,1fr);gap:1rem}.workspace-stage-footer{align-items:flex-start;flex-direction:column;gap:16px}.workspace-stage-footer>.btn{align-self:stretch}.decision-records li>div{align-items:flex-start;flex-direction:column;gap:4px}.page .footnote{gap:12px;flex-wrap:wrap}}
 @media(max-width:380px){.app-topbar{padding:8px 16px}.workflow-rail{padding:0 16px}.workspace-shell .page{padding:20px 16px}}
 @media screen{:root[data-text-size='largest'] .reasoning-workspace{grid-template-columns:minmax(0,1fr)}:root[data-text-size='largest'] .reasoning-source-pane{display:none}:root[data-text-size='largest'] .reasoning-mobile-source{display:inline-flex;margin-top:20px;max-width:100%}:root[data-text-size='largest'] .reflect-evidence-layout{grid-template-columns:minmax(0,1fr);gap:24px}}
 @media(prefers-reduced-motion:reduce){.focused-workspace *{scroll-behavior:auto}}
@@ -47,10 +55,15 @@
 :root[data-spacious=true] :is(p,blockquote,dt,dd,li,label,textarea,input,select,button,summary){line-height:1.8!important}
 
 /* Stage labels need room for whole words, including enlarged reading sizes. */
-.path{grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr))}
+.path{grid-template-columns:repeat(4,minmax(0,1fr))}
 .path .step{min-width:0}
 .path .step-copy{flex:1;overflow-wrap:normal;word-break:normal}
 .path .nav-short{white-space:nowrap}
 .path .step-state{flex:0 0 14px;margin-left:0}
 .path .step-state:empty{display:none}
 .path .step-timing{overflow-wrap:normal;word-break:normal}
+/* Reflow navigation before enlarged text can squeeze its labels. */
+@media(min-width:701px) and (max-width:1000px){.workflow-controls>.path{flex-basis:100%}.workflow-controls>.save-indicator{padding:0 0 8px}}
+@media(max-width:900px){:root[data-text-size='large'] .path{grid-template-columns:repeat(2,minmax(0,1fr))}}
+:root[data-text-size='largest'] .path{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media print{.app-shell{background:#fff;min-height:0}}

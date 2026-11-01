@@ -37,7 +37,7 @@
 .pw-focus-context{margin:0 0 1.5rem;padding:0 0 1.25rem;border-bottom:1px solid var(--border)}
 .pw-focus-context>.pw-explanation{font-size:var(--text-support)}
 .pw-focus-preview{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;max-width:72ch;margin-top:.5rem;font-size:var(--text-body);line-height:var(--line-body)}
-.pw-teaching-move{background:var(--bg);border-left:3px solid var(--ink);padding:1.25rem 1.5rem;margin-bottom:1.75rem}
+.pw-teaching-move{background:#fff;border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
 .pw-teaching-move>.pw-draft-value{font-size:var(--text-body);line-height:var(--line-body);max-width:65ch;margin:.75rem 0;}
 .pw-draft-value{white-space:pre-wrap;line-height:var(--line-body);overflow-wrap:anywhere}
 .pw-empty-value{color:var(--ink)}
@@ -46,8 +46,9 @@
 .pw-action-owner{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
 .pw-action-owner>.field-group{flex:1;min-width:min(100%,16rem);margin:.25rem 0 0}
 .pw-action-owner>.btn{margin:.75rem 0 1.5rem}
-.pw-agenda-workspace{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:var(--pw-space);align-items:start}
+.pw-agenda-workspace{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:24px;align-items:start}
 .pw-outline,.pw-agenda-editor{min-width:0}
+.pw-outline{padding:24px;background:#fff;border:1px solid var(--border);border-radius:8px}
 .pw-agenda-list{list-style:none;padding:0;margin:1rem 0 0}
 .pw-agenda-list li{margin:0;border-bottom:1px solid var(--border)}
 .pw-agenda-list li:last-child{border-bottom:0}
@@ -62,7 +63,7 @@
 .pw-starter-note{margin:-.5rem 0 1rem;padding:.65rem .8rem;background:var(--bg);font-size:var(--text-support);line-height:var(--line-body);color:var(--ink)}
 .pw-starter-note strong{font-weight:600;color:var(--ink)}
 .pw-agenda-choice>.icon{color:var(--ink)}
-.pw-agenda-editor{border:1px solid var(--border);border-radius:4px;padding:1.5rem}
+.pw-agenda-editor{border:1px solid var(--border);border-radius:8px;padding:1.5rem;background:#fff}
 .pw-agenda-editor>h2{margin-top:.5rem}
 .pw-agenda-editor>.field-group{margin:0}
 .pw-agenda-editor>.step-coach{margin:0 0 1.25rem}
@@ -75,7 +76,7 @@
 .pw-agenda-editor .planning-disclosure>summary,.pw-agenda-editor .access-planning>summary{font-size:var(--text-support)}
 .pw-follow-up{margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem}
 .pw-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pw-space);margin-top:1rem}
-.pw-check{min-width:0;padding-top:1rem;border-top:2px solid var(--border)}
+.pw-check{min-width:0;padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:#fff}
 .pw-check>.pw-draft-value{font-size:var(--text-body);margin-top:.75rem}
 .pw-check>.field-group{margin:.75rem 0 .25rem}
 .pw-check textarea{min-height:8rem}
@@ -135,3 +136,4 @@ dialog:has(.pw-plan-review){width:min(820px,calc(100% - 32px))}
 @media(max-width:600px){.pw-checks,.pw-review-checks{grid-template-columns:minmax(0,1fr)}.pw-check+.pw-check{border-top:1px solid var(--border);padding-top:1rem}.pw-teaching-move{padding:1rem}.pw-action-owner{gap:.25rem}.pw-context-row{align-items:flex-start}.pw-agenda-choice{grid-template-columns:2.5rem minmax(0,1fr) .875rem;gap:.5rem;padding:.75rem .5rem}.pw-agenda-editor{padding:1rem}.pw-footer{align-items:stretch;flex-direction:column}.pw-footer>.btn{width:100%}.pw-review-agenda-title{grid-template-columns:2.75rem minmax(0,1fr);gap:.25rem .5rem}.pw-review-agenda-title>.textlink{grid-column:2;justify-self:start}.pw-review-agenda .pw-draft-value{margin-left:0}.pw-review-collection>div{grid-template-columns:minmax(0,1fr);gap:0;margin:.75rem 0}dialog:has(.pw-plan-review){width:calc(100% - 24px);padding:1rem}.pw-review-actions>.btn{width:100%;flex:auto}}
 @media(max-width:1100px){:root[data-text-size=large] .pw-agenda-workspace{grid-template-columns:minmax(0,1fr)}}
 :root[data-text-size=largest] .pw-checks,:root[data-text-size=largest] .pw-review-checks{grid-template-columns:minmax(0,1fr)}
+@media(max-width:600px){.pw-outline,.pw-check,.pw-check+.pw-check{padding:1rem}}

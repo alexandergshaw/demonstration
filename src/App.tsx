@@ -115,9 +115,9 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       <CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)}
         headerBrand={<div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div>}
         menuActions={closeMenu => <>
-          <button onClick={() => { closeMenu(); setHistoryOpen(true); }}>Decisions</button>
-          <button onClick={() => { closeMenu(); setReadingOpen(true); }}>Reading settings</button>
-          <button onClick={() => { closeMenu(); openGuide(); }}>Guide</button>
+          <button onClick={() => { closeMenu(); setHistoryOpen(true); }}><Icon name="clock" size={18} />Decisions</button>
+          <button onClick={() => { closeMenu(); setReadingOpen(true); }}><Icon name="settings" size={18} />Reading settings</button>
+          <button onClick={() => { closeMenu(); openGuide(); }}><Icon name="book" size={18} />Guide</button>
         </>} />
     </header>
     <div className="app-shell"><div className="workflow-rail">

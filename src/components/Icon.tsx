@@ -23,6 +23,7 @@ const shapes = {
   warning: <><path d="m12 3 10 18H2Z" /><path d="M12 9v5M12 17h.01" /></>,
   download: <><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" /></>,
   book: <><path d="M12 5C9 3 5 3 3 4v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-2-1-6-1-9 1Zm0 0v15" /></>,
+  settings: <><path d="M3 6h4m4 0h10M3 18h10m4 0h4" /><circle cx="9" cy="6" r="2" /><circle cx="15" cy="18" r="2" /></>,
 } satisfies Record<string, ReactNode>;
 export type IconName = keyof typeof shapes;
 export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {

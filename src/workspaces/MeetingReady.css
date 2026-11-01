@@ -4,7 +4,7 @@
 .meeting-ready-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
 .meeting-ready-heading{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem 1.25rem;flex-wrap:wrap}
 .meeting-ready-heading>.textlink{font-size:var(--text-support)}
-.meeting-ready-move{background:var(--bg);border-left:3px solid var(--ink);padding:1.25rem 1.5rem}
+.meeting-ready-move{background:#fff;border:1px solid var(--border);border-radius:8px;padding:1.5rem}
 .meeting-ready-status{display:flex;align-items:center;gap:.5rem;font-size:var(--text-meta);color:var(--ink)}
 .meeting-ready-move>h2{margin-top:1rem}
 .meeting-ready-action{font-size:var(--text-body);line-height:var(--line-body);white-space:pre-wrap;max-width:65ch;margin:.5rem 0 .75rem}
