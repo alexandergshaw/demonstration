@@ -2,6 +2,8 @@
 .meeting-ready :is(h2,h3,p,dt,dd,button){overflow-wrap:anywhere}
 .meeting-ready h2{font-size:1.5rem;line-height:1.35}
 .meeting-ready h3{font-size:1rem;line-height:1.5}
+.meeting-ready>.task-explanation{margin:1.5rem 0}
+.meeting-ready-explanation{max-width:72ch;font-size:var(--text-support);line-height:1.7;color:var(--muted);margin:.75rem 0;overflow-wrap:anywhere}
 .meeting-ready-heading{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem 1.25rem;flex-wrap:wrap}
 .meeting-ready-heading>.textlink{font-size:.8125rem}
 .meeting-ready-move{background:var(--bg);border-left:3px solid var(--ink);padding:1.25rem 1.5rem}

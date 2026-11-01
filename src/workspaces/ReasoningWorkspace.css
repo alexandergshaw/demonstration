@@ -4,6 +4,7 @@
 .reasoning-source-reader{min-width:0}
 .reasoning-eyebrow{display:block;font-size:var(--text-meta);font-weight:600;line-height:1.5;color:var(--muted);letter-spacing:.035em}
 .reasoning-source-reader>select{width:100%;margin:10px 0 0;min-width:0;font-size:var(--text-support);background-color:#fff}
+.reasoning-source-help{margin:.75rem 0 0;color:var(--muted);font-size:var(--text-support);line-height:1.65;max-width:55ch}
 .reasoning-source-content{margin-top:30px}
 .reasoning-source-date{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;color:var(--muted);font-size:var(--text-support);line-height:1.6}
 .reasoning-source-content h2{font-size:var(--text-task);line-height:1.4;letter-spacing:-.01em}
@@ -45,6 +46,7 @@
 .reasoning-beat-panel textarea{min-height:250px;resize:vertical;line-height:1.8;padding:18px;background:#fff}
 .reasoning-beat-panel>.step-coach:first-child{margin-top:0}
 .reasoning-beat-panel>.step-coach{margin-bottom:24px}
+.reasoning-beat-panel>.task-explanation{margin-bottom:1.5rem}
 .reasoning-panel-help{margin-top:10px;font-size:var(--text-support);line-height:1.7;color:var(--muted);max-width:56ch}
 .reasoning-previous-writing{margin:0 0 30px;padding:0 0 24px;border-bottom:1px solid var(--border)}
 .reasoning-previous-writing>div{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:-8px}

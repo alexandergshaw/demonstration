@@ -40,13 +40,24 @@ export function FlowIntroduction({ onContinue, continueLabel = 'Start with the e
       </aside>
     </div>
 
-    <p className="flow-introduction-agency"><strong>You interpret, choose and approve.</strong> Throughline keeps the evidence, thinking prompts and your plan together.</p>
+      <p className="flow-introduction-agency"><strong>You interpret, choose and approve.</strong> Throughline keeps the evidence, thinking prompts and your plan together. It does not decide why students responded as they did or write a teaching decision for you. Its questions are scripted; your writing gives the meeting its direction.</p>
 
     <ol className="flow-introduction-phases" aria-label="From preparation to classroom learning">
-      <li><span className="flow-phase-number" aria-hidden="true">1</span><div><PhaseHeading className="flow-phase-title">Prepare here</PhaseHeading><p>Examine evidence, choose a focus and build the meeting.</p></div></li>
-      <li><span className="flow-phase-number" aria-hidden="true">2</span><div><PhaseHeading className="flow-phase-title">Meet and try the move</PhaseHeading><p>Lead the conversation. Your team tries the change in class.</p></div></li>
-      <li><span className="flow-phase-number" aria-hidden="true">3</span><div><PhaseHeading className="flow-phase-title">Return to Reflect</PhaseHeading><p>Report implementation, examine new evidence and choose a next step.</p></div></li>
+      <li><span className="flow-phase-number" aria-hidden="true">1</span><div><PhaseHeading className="flow-phase-title">Prepare here</PhaseHeading><p>Examine the results, task and student work. Write a possible explanation, test another account, and choose a focus before planning the meeting.</p></div></li>
+      <li><span className="flow-phase-number" aria-hidden="true">2</span><div><PhaseHeading className="flow-phase-title">Meet and try the move</PhaseHeading><p>Review and approve your writing to make the kit available. Lead the conversation, rehearse with colleagues, then try the move in class.</p></div></li>
+      <li><span className="flow-phase-number" aria-hidden="true">3</span><div><PhaseHeading className="flow-phase-title">Return to Reflect</PhaseHeading><p>Report implementation, examine new evidence and choose a next step. If evidence is missing, decide what to collect, who will bring it and when to review it.</p></div></li>
     </ol>
+
+    <section className="flow-introduction-method" aria-labelledby={`${titleId}-method`}>
+      <PhaseHeading className="flow-method-title" id={`${titleId}-method`}>Four different decisions, connected.</PhaseHeading>
+      <dl>
+        <div><dt>Interpretation · What might explain the work?</dt><dd>Separate the pattern you can see from a possible explanation. Ask what else could account for it.</dd></div>
+        <div><dt>Focus · What is worth investigating?</dt><dd>Choose one learning priority tied to the evidence, such as explaining why two fractions represent the same amount.</dd></div>
+        <div><dt>Teaching move · What will change in class?</dt><dd>Name what the teacher will do and the thinking students will do themselves. The meeting helps colleagues prepare to try it.</dd></div>
+        <div><dt>Next decision · What do we now know?</dt><dd>After teaching, distinguish whether the move happened from what students learned. Record a supported next action or a plan to gather missing evidence.</dd></div>
+      </dl>
+      <p>You can revisit earlier work. Changing a source or decision keeps your draft but requires affected approvals again, so the meeting materials stay connected to your current judgment.</p>
+    </section>
 
     <details className="flow-introduction-preview">
       <summary>Preview what you’ll make</summary>
@@ -75,6 +86,17 @@ export function FlowIntroduction({ onContinue, continueLabel = 'Start with the e
           </section>
         </div>
       </figure>
+    </details>
+
+    <details className="flow-introduction-controls">
+      <summary>Understand the controls you can use throughout</summary>
+      <dl>
+        <div><dt>PLC cycle and Cycle actions</dt><dd>A cycle is one saved investigation and plan. Switch between named cycles, or use New cycle to start a separate draft. Saved work belongs to this browser and site.</dd></div>
+        <div><dt>Decisions</dt><dd>Read the sources, writing and approval states recorded for this cycle. It is a record of your choices, not a rating of their quality.</dd></div>
+        <div><dt>Reading</dt><dd>Adjust text size and spacing for comfort. These settings do not change your instructional decisions.</dd></div>
+        <div><dt>Guide and Help with this step</dt><dd>Revisit this introduction, read a walkthrough, try a separate practice case or look up a term. Help is optional and never fills in or approves your plan.</dd></div>
+        <div><dt>Save status</dt><dd>Check for Saved on this browser before leaving. If saving fails, keep the page open and use Retry save. Saving a draft is separate from confirming your focus or approving the meeting.</dd></div>
+      </dl>
     </details>
 
     <div className="flow-introduction-footer">

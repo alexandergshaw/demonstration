@@ -2,6 +2,7 @@ import type { ReferenceData } from '../data/seed';
 import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import { lessonContext } from '../lessonContext';
 import type { EvidenceVersion } from '../model';
+import { TaskExplanation } from '../components/TaskExplanation';
 
 function Score({ count, total, tone }: { count: number; total: number; tone: 'answer' | 'explanation' }) {
   const rate = total > 0 ? count / total * 100 : null;
@@ -20,6 +21,13 @@ export function AssessmentResults({ reference }: { reference: ReferenceData }) {
       <div className="evidence-measure"><span className="evidence-measure-label">Adequate explanation</span><Score count={assessment.explanations} total={assessment.total} tone="explanation" /></div>
       <figcaption>Separate scores · same 0–100% scale. Totals do not tell us which students met both criteria.</figcaption>
     </figure>
+    <TaskExplanation title="How to read these two results"
+      why="Choosing an equivalent fraction and explaining why it is equivalent reveal different things. The team needs to understand the reasoning behind the answer before deciding what to teach."
+      steps={[
+        { label: 'Read each count against its total.', detail: `Both measures describe the same collection of ${assessment.total} responses. Compare the proportion meeting each criterion, not just the bar lengths.` },
+        { label: 'Describe the pattern before explaining it.', detail: 'You can say that the two rates differ. You cannot subtract them to identify a particular group of students, or tell from these totals why an explanation was missing.' },
+      ]}
+      handoff="Open Task & sources to see exactly what counted as an adequate explanation. Then use student work to investigate what the totals might mean." />
   </div>;
 }
 
@@ -38,6 +46,13 @@ export function ClassResults({ reference }: { reference: ReferenceData }) {
       </tr>)}</tbody>
     </table>
     <p className="evidence-note">Each score uses that class’s response total. Bars share a 0–100% scale; percentages are rounded. Descriptive results, not teacher-effectiveness ratings.</p>
+    <TaskExplanation title="Use class differences to choose a question"
+      why="A combined total can hide variation. Looking across classes helps the team decide whether to investigate a shared pattern or a difference that needs more context."
+      steps={[
+        { label: 'Compare the two measures within each row.', detail: 'Look for a difference between selecting the correct fraction and explaining it. Then check whether that relationship appears in the other classes.' },
+        { label: 'Use percentages when response totals differ.', detail: 'The denominator is the number of responses in that class. A higher rate alone does not explain teaching quality, student needs or the cause of a difference.' },
+      ]}
+      handoff="Return to the illustrative work. Look for reasoning that could help the team investigate the pattern; these samples are not matched to the class rows." />
   </div>;
 }
 
@@ -52,6 +67,13 @@ export function TaskSources({ reference, version }: { reference: ReferenceData; 
       <div><dt>Correct fraction</dt><dd><strong>2/4.</strong> The choice is scored separately.</dd></div>
       <div><dt>Adequate explanation</dt><dd>Words or a labeled drawing show <strong>equal amounts of the same whole.</strong> A doubling rule alone is not enough.</dd></div>
     </dl>
+    <TaskExplanation title="Check what the scores mean"
+      why="The task asks for a choice and a justification. The scoring criteria explain why a correct answer can still leave a question about understanding."
+      steps={[
+        { label: 'Read the prompt as a student would.', detail: 'Identify what students had to select and what they had to explain. Notice the words, representation and response options they were given.' },
+        { label: 'Use the rubric to examine the samples.', detail: 'Look for reasoning about equal amounts of the same whole, in words or a labeled drawing. A rule about doubling can produce the answer without showing that connection.' },
+      ]}
+      handoff="Compare classes to see how widely the pattern appears. Open the full rubric or collection details below when you need the exact wording or scope." />
     <details className="evidence-source-details">
       <summary>Full scoring rubric</summary>
       <div><p>{lessonContext.selection}</p><p>{lessonContext.rubric}</p></div>

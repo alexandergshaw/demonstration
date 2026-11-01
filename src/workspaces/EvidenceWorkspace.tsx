@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
+import { TaskExplanation } from '../components/TaskExplanation';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
 import type { Action, PlanState } from '../model';
@@ -49,6 +50,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           <span className="evidence-included"><Icon name="check" size={15} />Included</span>
         </div>
         <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {assessment.total} responses · {classes.length} classes</p>
+        <p className="evidence-note">This short end-of-lesson task gives the team a starting point for discussion. The assessment is included automatically and carries into your interpretation and meeting materials.</p>
 
         <div className="evidence-view-switch" role="group" aria-label="View assessment evidence">
           {([
@@ -97,6 +99,13 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             </article>;
           })}
         </div>
+        <TaskExplanation title="Choose work that helps the team think"
+          why="These two examples make the reasoning visible in a way that totals cannot. They are illustrations to discuss, not a representative sample of the whole grade."
+          steps={[
+            { label: 'Name what the student already understands.', detail: 'Look at the choice, words and reasoning. Then identify what the response leaves uncertain about equal amounts of the same whole.' },
+            { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Select it again to remove it. The assessment remains included either way.' },
+          ]}
+          handoff="When you can name a pattern and a question worth investigating, choose Interpret the evidence. You will write your own explanation there." />
         <p className="evidence-note">Selection is optional. Choose a sample if it helps explain your focus. These illustrative samples are not representative or linked to individual results in the class totals.</p>
       </section>
     </div>

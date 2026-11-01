@@ -1,0 +1,17 @@
+.task-explanation{min-width:0;margin:1.25rem 0;padding:.15rem 0 .15rem 1.1rem;border-left:3px solid #b9cbe5;color:var(--ink);overflow-wrap:anywhere}
+.task-explanation .task-explanation-title{margin:0 0 .4rem;font-size:var(--text-body,1rem);font-weight:600;line-height:1.5}
+.task-explanation .task-explanation-why{max-width:70ch;margin:0;color:var(--muted);font-size:var(--text-support,.875rem);line-height:1.7}
+.task-explanation .task-explanation-steps{max-width:70ch;margin:.85rem 0;padding-left:1.2rem;font-size:var(--text-support,.875rem);line-height:1.7}
+.task-explanation-steps li+li{margin-top:.65rem}
+.task-explanation-steps li::marker{color:var(--accent-dark);font-weight:600}
+.task-explanation-steps strong{display:block;font-weight:600}
+.task-explanation-steps span{display:block;color:var(--muted)}
+.task-explanation .task-explanation-handoff{max-width:70ch;margin:.85rem 0 0;font-size:var(--text-support,.875rem);line-height:1.7}
+.task-explanation-handoff strong{font-weight:600}
+.task-explanation-example{max-width:70ch;margin-top:.65rem}
+.task-explanation-example summary{min-height:44px;padding:.6rem 0;color:var(--accent-dark);font-size:var(--text-support,.875rem);line-height:1.6;cursor:pointer}
+.task-explanation-example summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.task-explanation .task-explanation-example p{margin:.5rem 0;font-size:var(--text-support,.875rem);line-height:1.7;white-space:pre-line}
+.task-explanation .task-explanation-example-note{color:var(--muted)}
+@media(max-width:480px){.task-explanation{padding-left:.8rem;margin:1rem 0}}
+@media(forced-colors:active){.task-explanation{border-color:CanvasText}}

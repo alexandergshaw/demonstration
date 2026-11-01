@@ -123,6 +123,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         <p className="flow-phase">{orientation.phase}</p>
         <h1 ref={title} tabIndex={-1}>{meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1>
         <p>{orientation.purpose}</p>
+        <p className="flow-why"><strong>Why this step matters</strong> {orientation.why}</p>
         <p className="flow-outcome"><span>You’ll take forward</span>{orientation.outcome}</p>
       </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
