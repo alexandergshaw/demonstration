@@ -41,6 +41,26 @@ function completed(): PlanState {
   );
 }
 
+describe('returning from collection edits to reflection', () => {
+  it('approves and returns in one transition while retaining reflection writing for review', () => {
+    const original = completed();
+    const edited = apply(original, { type: 'go', step: 2 }, { type: 'text', field: 'evidenceCollector', value: 'Grade four team' }, { type: 'consent', value: true });
+    const returned = reducer(edited, { type: 'confirm-plan', returnToReflection: true });
+    expect(returned.step).toBe(3);
+    expect(hasPlan(returned)).toBe(true);
+    expect(returned.reflection).toBe(original.reflection);
+    expect(returned.implementation).toBe(original.implementation);
+    expect(hasReflection(returned)).toBe(false);
+    expect(reducer(edited, { type: 'confirm-plan' }).step).toBe(2);
+  });
+
+  it('does not return or approve when consent or a required plan field is missing', () => {
+    for (const state of [{ ...planDraft(), consent: false }, { ...planDraft(), learningCheck: '' }]) {
+      expect(reducer(state, { type: 'confirm-plan', returnToReflection: true })).toBe(state);
+    }
+  });
+});
+
 describe('educator evidence-review acknowledgments', () => {
   it('records and clears an explicit acknowledgment idempotently without editing evidence or decisions', () => {
     const original = completed();

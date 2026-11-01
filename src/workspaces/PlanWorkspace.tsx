@@ -34,6 +34,8 @@ interface PlanWorkspaceProps {
   initialCheckEditor?: 'learning';
   initialTask?: PlanTaskEntry;
   onReturnToApproved?: () => void;
+  returnToReflection?: boolean;
+  externalChanged?: boolean;
 }
 
 type CheckEditor = 'implementation' | 'learning' | 'collection';
@@ -141,7 +143,7 @@ function DraftValue({ value, empty = 'Not written yet' }: { value: string; empty
   return <p className={`pw-draft-value${value.trim() ? '' : ' pw-empty-value'}`}>{value.trim() ? value : empty}</p>;
 }
 
-export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '', initialCheckEditor, initialTask, onReturnToApproved }: PlanWorkspaceProps) {
+export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '', initialCheckEditor, initialTask, onReturnToApproved, returnToReflection = false, externalChanged = false }: PlanWorkspaceProps) {
   const [builderStep, setBuilderStep] = useState<PlanBuilderStep>(() => errorField || initialCheckEditor || !initialTask ? initialPlanStep(state, initialCheckEditor === 'learning', errorField) : builderStepForEntry(initialTask));
   const [selectedAgenda, setSelectedAgenda] = useState(() => initialPlanActivity(state, errorField));
   const activityPickerId = useId();
@@ -462,13 +464,14 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
         <WorkflowActions label="Meeting plan approval"
           description={<p>Approval records your decision and makes the kit available to download. It does not report that teaching has happened.</p>}
           secondary={<button type="button" className="btn secondary" onClick={closeReview}>Back to follow-up checks</button>}
-          primary={{ label: approved && onReturnToApproved ? 'Return to approved plan' : 'Approve meeting plan', onClick: approved && onReturnToApproved ? onReturnToApproved : approvePlan }} />
+          primary={{ label: approved && onReturnToApproved ? returnToReflection ? 'Return to reflection' : 'Return to approved plan' : returnToReflection ? 'Approve and return to reflection' : 'Approve meeting plan', onClick: approved && onReturnToApproved ? onReturnToApproved : approvePlan }} />
     </section> : undefined;
 
   return <div className="plan-workspace">
     <div className="pw-entry">
       <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
-      {approved && onReturnToApproved && <button type="button" className="textlink" onClick={onReturnToApproved}>Return to approved plan</button>}
+      {returnToReflection && <p>Review any changed collection details and approve the updated plan to return to your reflection. Your reflection writing is preserved.</p>}
+      {approved && onReturnToApproved && <button type="button" className="textlink" onClick={onReturnToApproved}>{returnToReflection ? 'Return to reflection' : 'Return to approved plan'}</button>}
     </div>
     {needsFocus && <p className="pw-review-requirement">The teaching focus needs confirmation before this plan can be approved. <button type="button" className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Reconfirm the focus</button></p>}
     <div className="pw-builder-tools">
@@ -493,7 +496,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       <div className="modal-actions"><button className="btn secondary" onClick={() => { clearError(); setSourcesOpen(false); }}>Return to my plan</button></div>
     </Modal>}
 
-    {previewOrigin && <MeetingKit state={state} reference={reference} mode="draft" returnLabel={previewOrigin === 'review' ? 'Return to review' : 'Return to planning'} onClose={closeKitPreview} onEditActivity={editPreviewActivity} />}
+    {previewOrigin && <MeetingKit state={state} reference={reference} mode="draft" externalChanged={externalChanged} returnLabel={previewOrigin === 'review' ? 'Return to review' : 'Return to planning'} onClose={closeKitPreview} onEditActivity={editPreviewActivity} />}
 
   </div>;
 }

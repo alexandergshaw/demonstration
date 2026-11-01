@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { focusError, hasFocus, hasPlan, hasReflection, isCalendarDate, planError, reflectionError, type Action } from './model';
+import { focusError, hasFocus, hasPlan, isCalendarDate, planError, reflectionError, type Action } from './model';
 import { useWorkspace, type ReadyWorkspace, type WorkspaceController } from './useWorkspace';
 import { CycleManager, ConfirmationDialog, Modal } from './components/CycleManager';
 import { FieldErrorProvider } from './components/Field';
@@ -20,6 +20,7 @@ import { DecisionHistory, FollowUpExamples } from './workspaces/WorkspaceReaders
 import { MeetingReady } from './workspaces/MeetingReady';
 import { FlowIntroduction } from './components/FlowIntroduction';
 import { flowOrientation, meetingOrientation, shouldIntroduceFlow } from './flowOrientation';
+import { stageCompletionLabels, stageIsComplete } from './stageProgress';
 
 const ReferenceContext = createContext<ReferenceData | null>(null);
 function useReference() {
@@ -60,9 +61,10 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const [editingApprovedPlan, setEditingApprovedPlan] = useState(false);
   const [planEntry, setPlanEntry] = useState<'learning' | undefined>();
   const [planTaskEntry, setPlanTaskEntry] = useState<PlanTaskEntry | undefined>();
+  const [returnToReflection, setReturnToReflection] = useState(false);
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
   const preserveStagePickerFocus = useRef(false);
-  const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
+  const focus = hasFocus(state), plan = hasPlan(state);
   const meetingReady = state.step === 2 && plan && !editingApprovedPlan;
   const introduceFlow = shouldIntroduceFlow(state, learning.progress.welcomeDismissed);
   const orientation = meetingReady ? meetingOrientation : flowOrientation[state.step];
@@ -79,10 +81,11 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   }, [workspace.dirty]);
   const openGuide = (step?: number) => { if (isLessonId(step)) learning.dispatch({ type: 'visitLesson', lesson: step }); setGuideEntry(step === undefined ? { view: 'home' } : { view: 'walkthrough', step }); setGuideOpen(true); };
   const canEnterStage = (step: number) => Number.isInteger(step) && step >= 0 && step < 4 && (step < 2 || (step === 2 ? focus : plan));
-  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); if (action.type === 'go') { setEditingApprovedPlan(false); setPlanEntry(undefined); setPlanTaskEntry(undefined); } return workspace.dispatch(action); };
+  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); if (action.type === 'go') { setEditingApprovedPlan(false); setPlanEntry(undefined); setPlanTaskEntry(undefined); setReturnToReflection(false); } return workspace.dispatch(action); };
   const editPlan = (collection = false, task?: PlanTaskEntry) => {
     setError(''); setErrorField(''); setLockNotice('');
     setEditingApprovedPlan(true); setPlanEntry(collection ? 'learning' : undefined); setPlanTaskEntry(task);
+    setReturnToReflection(state.step === 3);
     workspace.dispatch({ type: 'go', step: 2 });
   };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
@@ -106,8 +109,8 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         : state.reviewDate && (!isCalendarDate(state.reviewDate) || (state.collectionDate && state.reviewDate < state.collectionDate)) ? 'review-date' : 'consent';
       setErrorField(field); setError(message); setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(field)); return false;
     }
-    const saved = act({ type: kind === 'focus' ? 'confirm-focus' : kind === 'plan' ? 'confirm-plan' : 'save-reflection' });
-    if (saved && kind === 'plan') { setEditingApprovedPlan(false); setPlanEntry(undefined); }
+    const saved = act(kind === 'plan' ? { type: 'confirm-plan', returnToReflection } : { type: kind === 'focus' ? 'confirm-focus' : 'save-reflection' });
+    if (saved && kind === 'plan') { setEditingApprovedPlan(false); setPlanEntry(undefined); setPlanTaskEntry(undefined); setReturnToReflection(false); }
     return saved;
   };
   const savedLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
@@ -143,8 +146,8 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       <nav className="path" aria-label="Planning stages">{stages.map((stage, i) => {
         const locked = (i === 2 && !focus) || (i === 3 && !plan);
         const detail = i === 2 && !focus ? 'Confirm a focus first' : i === 3 && !plan ? 'Approve a plan first' : stage.detail;
-        const complete = i < 2 ? focus : i === 2 ? plan : reflection;
-        return <button key={stage.label} className={`step ${state.step === i ? 'active' : ''} ${complete ? 'done' : ''}`} aria-current={state.step === i ? 'step' : undefined} aria-disabled={locked || undefined} aria-describedby={`stage-note-${i}`} onClick={() => locked ? setLockNotice(i === 2 ? 'Confirm your instructional focus in Interpretation to unlock the meeting plan.' : 'Approve your meeting plan to unlock Reflection.') : act({ type: 'go', step: i })}><span className="step-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="step-copy"><span className="nav-wide">{stage.label}</span><span className="nav-short">{stage.short}</span>{i === 3 && <span className="step-timing">After teaching</span>}<span className="step-note" id={`stage-note-${i}`}>{detail}</span></span><span className="step-state">{locked ? <Icon name="lock" size={13} /> : complete ? <Icon name="check" size={14} /> : null}</span></button>;
+        const complete = stageIsComplete(state, i);
+        return <button key={stage.label} className={`step ${state.step === i ? 'active' : ''} ${complete ? 'done' : ''}`} aria-current={state.step === i ? 'step' : undefined} aria-disabled={locked || undefined} aria-describedby={`stage-note-${i}`} onClick={() => locked ? setLockNotice(i === 2 ? 'Confirm your instructional focus in Interpretation to unlock the meeting plan.' : 'Approve your meeting plan to unlock Reflection.') : act({ type: 'go', step: i })}><span className="step-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="step-copy"><span className="nav-wide">{stage.label}</span><span className="nav-short">{stage.short}</span>{i === 3 && <span className="step-timing">After teaching</span>}<span className="step-note" id={`stage-note-${i}`}>{detail}</span></span><span className="step-state">{locked ? <Icon name="lock" size={13} /> : complete ? <><Icon name="check" size={14} /><span className="sr-only">{stageCompletionLabels[i]}</span></> : null}</span></button>;
       })}</nav>
       <span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status" title={savedLabel}><span className="status-dot" /><span className="save-full-label">{savedLabel}</span><span className="save-short-label" aria-hidden="true">{savedShortLabel}</span></span>
       </div>
@@ -178,15 +181,15 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
           {state.step === 0 && <EvidenceWorkspace key={state.evidenceVersion} state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
           {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onEditTask={task => editPlan(false, task)} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
-          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} initialTask={planTaskEntry} onReturnToApproved={() => setEditingApprovedPlan(false)} />}
+          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} externalChanged={workspace.externalChanged} initialCheckEditor={planEntry} initialTask={planTaskEntry} returnToReflection={returnToReflection} onReturnToApproved={() => returnToReflection ? act({ type: 'go', step: 3 }) : setEditingApprovedPlan(false)} />}
           {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} onEditCollection={() => editPlan(true)} onOpenRecord={() => setHistoryOpen(true)} onBackToPlan={() => act({ type: 'go', step: 2 })} />}
         </main>
         <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>
       </div>
     </div></div>
     {readingOpen && <ReadingSettingsDialog reading={reading} onClose={() => setReadingOpen(false)} />}
-    {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} />}
-    {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty}
+    {kitOpen && plan && <MeetingKit state={state} reference={reference} externalChanged={workspace.externalChanged} onClose={() => setKitOpen(false)} />}
+    {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty} externalChanged={workspace.externalChanged}
       cycleTitle={cycleTitle}
       onNavigate={step => {
         if (!canEnterStage(step)) return;

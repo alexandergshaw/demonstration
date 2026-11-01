@@ -221,6 +221,49 @@ describe('meeting materials preserve educator ownership', () => {
     expect(handout.blocks.some(block => block.text === state.agenda[3])).toBe(true);
     expect(handout.blocks.some(block => block.heading.includes('complete together'))).toBe(true);
   });
+  it('preserves retained starter provenance after approval without relabeling adapted directions', () => {
+    const state = approved();
+    const pages = buildMeetingKit(state, reference);
+    expect(hasPlan(state)).toBe(true);
+    expect(pages[0].blocks[0]).toEqual({ heading: 'Starter facilitation text · retained by the leader', text: state.agenda[0] });
+    expect(pages[1].blocks[0]).toEqual({ heading: 'Facilitation directions · reviewed by the leader', text: state.agenda[1] });
+    const html = exportMeetingHtml(state, reference);
+    const firstSlide = html.match(/<section class="sheet" id="page-0">([\s\S]*?)<\/section>/)?.[1] ?? '';
+    expect(firstSlide).toContain('Starter facilitation text · retained by the leader');
+    expect(firstSlide).toContain(state.agenda[0]);
+    expect(firstSlide).not.toContain('Facilitation directions · reviewed by the leader');
+  });
+  it('keeps sample scope beside selected quotations on both shared evidence pages', () => {
+    const state = approved();
+    for (const build of [buildMeetingKit, buildDraftMeetingKit]) {
+      const pages = build(state, reference);
+      for (const pageIndex of [1, 7]) {
+        const blocks = pages[pageIndex].blocks;
+        const quoteIndex = blocks.findIndex(block => block.text.includes(reference.responses[0].quote));
+        expect(quoteIndex).toBeGreaterThanOrEqual(0);
+        expect(blocks[quoteIndex + 1].heading).toBe('Sample scope');
+        expect(blocks[quoteIndex + 1].text).toContain('not a representative sample or linked student-level records');
+      }
+    }
+    const html = exportMeetingHtml(state, reference);
+    for (const pageIndex of [1, 7]) {
+      const page = html.match(new RegExp(`<section class="sheet" id="page-${pageIndex}">([\\s\\S]*?)<\\/section>`))?.[1] ?? '';
+      expect(page).toContain(reference.responses[0].quote);
+      expect(page).toContain('Sample scope');
+      expect(page).toContain('not a representative sample or linked student-level records');
+    }
+  });
+  it('omits sample scope from the evidence slide and activity when no work is selected', () => {
+    const state = apply(approved(), { type: 'evidence', id: 'responseB' }, { type: 'challenge' }, { type: 'confirm-focus' }, { type: 'consent', value: true }, { type: 'confirm-plan' });
+    expect(state.selected).toEqual(['assessment']);
+    for (const build of [buildMeetingKit, buildDraftMeetingKit]) {
+      const pages = build(state, reference);
+      for (const pageIndex of [1, 7]) {
+        expect(pages[pageIndex].blocks.some(block => block.heading === 'Sample scope')).toBe(false);
+        expect(pages[pageIndex].blocks.some(block => block.text.includes(reference.responses[0].quote))).toBe(false);
+      }
+    }
+  });
   it('includes task, rubric, selected quotations and historical context only when selected', () => {
     let state = approved();
     const text = exportMeetingNotes(state, reference);

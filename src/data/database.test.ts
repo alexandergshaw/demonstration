@@ -124,20 +124,52 @@ describe('cycle-scoped evidence acknowledgments', () => {
     expect(hasReflection(active(next).state)).toBe(false);
   });
 
-  it('loads legacy records with empty acknowledgments without rewriting the saved record', () => {
+  it.each([1, 2, 3, 4])('loads schema %s with empty acknowledgments and upgrades only when a review is saved', version => {
     const { backend, storage } = setup();
     let snapshot = backend.load();
     snapshot = backend.saveCycle(snapshot.activeCycleId, completedState(), snapshot.revision);
     const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = version;
     delete legacy.cycles[0].state.evidenceReviewed;
     const bytes = JSON.stringify(legacy);
     storage.setItem(DATABASE_KEY, bytes);
     const writes = storage.writes;
     const loaded = backend.load();
+    expect(loaded.version).toBe(5);
     expect(active(loaded).state.evidenceReviewed).toEqual([]);
     expect(hasReflection(active(loaded).state)).toBe(true);
+    for (const stamp of ['focusStamp', 'planStamp', 'reflectionStamp'] as const) expect(active(loaded).state[stamp]).toBe(active(snapshot).state[stamp]);
     expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
     expect(storage.writes).toBe(writes);
+
+    const reviewed = reducer(active(loaded).state, { type: 'evidence-review', item: 'results', reviewed: true });
+    storage.failWrite = new DOMException('No room', 'QuotaExceededError');
+    expectCode(() => backend.saveCycle(loaded.activeCycleId, reviewed, loaded.revision), 'quota-exceeded');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    storage.failWrite = null;
+    const saved = backend.saveCycle(loaded.activeCycleId, reviewed, loaded.revision);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(5);
+    expect(active(backend.load()).state).toEqual(reviewed);
+    expect(hasReflection(active(saved).state)).toBe(true);
+  });
+
+  it('rejects a stale writer loaded before the v5 migration without erasing saved acknowledgments', () => {
+    const { backend, storage } = setup();
+    backend.load();
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    legacy.version = 4;
+    delete legacy.cycles[0].state.evidenceReviewed;
+    storage.setItem(DATABASE_KEY, JSON.stringify(legacy));
+    const stale = backend.load();
+    const otherTab = createLocalBackend(() => storage);
+    const checked = reducer(active(otherTab.load()).state, { type: 'evidence-review', item: 'results', reviewed: true });
+    const saved = otherTab.saveCycle(stale.activeCycleId, checked, stale.revision);
+    const bytes = storage.getItem(DATABASE_KEY);
+    expect(JSON.parse(bytes!).version).toBe(5);
+    expectCode(() => backend.saveCycle(stale.activeCycleId, active(stale).state, stale.revision), 'conflict');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    expect(active(backend.load()).state.evidenceReviewed).toEqual(['results']);
+    expect(backend.load().revision).toBe(saved.revision);
   });
 
   it('rejects invalid acknowledgment data without replacing the stored cycle', () => {
@@ -247,7 +279,7 @@ describe('reviewing a newer evidence snapshot', () => {
     expect(active(loaded).state.planStamp).toBe(active(snapshot).state.planStamp);
     expect(hasReflection(active(loaded).state)).toBe(true);
     const updated = backend.saveCycle(loaded.activeCycleId, reducer(active(loaded).state, { type: 'simulate-evidence-update' }), loaded.revision);
-    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(4);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(5);
     expect(hasReflection(active(updated).state)).toBe(true);
   });
 });
@@ -262,7 +294,7 @@ describe('optional access plan persistence', () => {
     const original = JSON.stringify(legacy);
     storage.setItem(DATABASE_KEY, original);
     const loaded = backend.load();
-    expect(loaded.version).toBe(4);
+    expect(loaded.version).toBe(5);
     expect(storage.getItem(DATABASE_KEY)).toBe(original);
     const note = 'Offer words or diagrams while preserving the same mathematical goal.';
     const state = reducer(active(loaded).state, { type: 'text', field: 'accessParticipation', value: note });
@@ -272,7 +304,7 @@ describe('optional access plan persistence', () => {
     storage.failWrite = null;
     const saved = backend.saveCycle(loaded.activeCycleId, state, loaded.revision);
     const stored = JSON.parse(storage.getItem(DATABASE_KEY)!);
-    expect(stored.version).toBe(4);
+    expect(stored.version).toBe(5);
     expect(active(saved).id).toBe(active(loaded).id);
     expect(active(backend.load()).state.accessParticipation).toBe(note);
     expect(stored.cycles[0].state.interpretation).toBe(legacy.cycles[0].state.interpretation);
@@ -327,7 +359,7 @@ describe('optional access plan persistence', () => {
   it('persists a usable seed once and returns the same durable workspace on repeated loads', () => {
     const { storage, backend } = setup();
     const first = backend.load();
-    expect(first.version).toBe(4);
+    expect(first.version).toBe(5);
     expect(first.cycles).toHaveLength(1);
     expect(active(first).state).toEqual(initialState());
     expect(active(first).id.length).toBeGreaterThan(0);
@@ -648,10 +680,13 @@ describe('untrusted database and save boundaries', () => {
   it('rejects a future database version without downgrading or overwriting it', () => {
     const { backend, storage } = setup();
     const seed = backend.load();
-    const raw = JSON.stringify({ ...seed, version: 5 });
+    const raw = JSON.stringify({ ...seed, version: 6 });
     storage.data.set(DATABASE_KEY, raw);
+    const writes = storage.writes;
     expectCode(() => backend.load(), 'unsupported-version');
+    expectCode(() => backend.saveCycle(seed.activeCycleId, active(seed).state, seed.revision), 'unsupported-version');
     expect(storage.data.get(DATABASE_KEY)).toBe(raw);
+    expect(storage.writes).toBe(writes);
   });
 
   it('rejects altered fixed evidence even when the replacement remains a string', () => {
@@ -872,7 +907,7 @@ describe('collection-plan schema migration and durable drafts', () => {
     const loaded = backend.load();
     expect(storage.writes).toBe(writes);
     expect(storage.getItem(DATABASE_KEY)).toBe(before);
-    expect(loaded.version).toBe(4);
+    expect(loaded.version).toBe(5);
     expect(loaded.notice).toBe('');
     for (const stamp of ['focusStamp', 'planStamp', 'reflectionStamp'] as const) expect(active(loaded).state[stamp]).toBe(oldState[stamp]);
     expect(hasReflection(active(loaded).state)).toBe(true);
@@ -884,7 +919,7 @@ describe('collection-plan schema migration and durable drafts', () => {
     expect(draft.collectionDate).toBe('2026-11-');
     storage.failWrite = null;
     const saved = backend.saveCycle(loaded.activeCycleId, draft, loaded.revision);
-    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(4);
+    expect(JSON.parse(storage.getItem(DATABASE_KEY)!).version).toBe(5);
     expect(active(saved).state.collectionDate).toBe('2026-11-');
     expect(active(backend.load()).state.collectionDate).toBe('2026-11-');
   });

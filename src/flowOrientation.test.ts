@@ -36,6 +36,7 @@ describe('first-use flow introduction eligibility', () => {
     { nextCycleQuestion: 'What else should we examine?' },
     { implementation: 'no' },
     { review: true },
+    { evidenceReviewed: ['results'] },
   ])('does not interrupt retained planning or follow-up work after core writing is cleared: %j', changes => {
     expect(shouldIntroduceFlow({ ...initialState(), ...changes }, false)).toBe(false);
   });
@@ -44,7 +45,7 @@ describe('first-use flow introduction eligibility', () => {
     const state = { ...initialState(), selected: ['assessment', 'responseB'] as const };
     const cycle = { ...state, selected: [...state.selected] };
     const before = structuredClone(cycle);
-    expect(shouldIntroduceFlow(cycle, false)).toBe(true);
+    expect(shouldIntroduceFlow(cycle, false)).toBe(false);
     expect(shouldIntroduceFlow(cycle, true)).toBe(false);
     expect(cycle).toEqual(before);
   });

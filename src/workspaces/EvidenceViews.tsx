@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { ReferenceData } from '../data/seed';
 import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import { lessonContext } from '../lessonContext';
@@ -32,8 +33,11 @@ export function AssessmentResults({ reference }: { reference: ReferenceData }) {
 
 export function ClassResults({ reference }: { reference: ReferenceData }) {
   const { assessment, classes } = reference;
+  const scrollHintId = useId();
   return <div className="evidence-class-view">
     <p className="evidence-view-lead">Does the pattern hold across classes?</p>
+    <p className="evidence-table-hint" id={scrollHintId}>Scroll across the table if needed. With the table area focused, use the left and right arrow keys.</p>
+    <div className="evidence-table-scroll" tabIndex={0} role="region" aria-label="Class response counts and percentages" aria-describedby={scrollHintId}>
     <table>
       <caption>Response counts and percentages by class · {assessment.date}</caption>
       <colgroup><col className="evidence-class-name-column" /><col /><col /></colgroup>
@@ -44,6 +48,7 @@ export function ClassResults({ reference }: { reference: ReferenceData }) {
         <td><Score count={item.explanations} total={item.total} tone="explanation" /></td>
       </tr>)}</tbody>
     </table>
+    </div>
     <p className="evidence-note">Each score uses that class’s response total. Bars share a 0–100% scale; percentages are rounded. Descriptive results, not teacher-effectiveness ratings.</p>
     <TaskExplanation title="Use class differences to choose a question"
       why="A combined total can hide variation. Looking across classes helps the team decide whether to investigate a shared pattern or a difference that needs more context."

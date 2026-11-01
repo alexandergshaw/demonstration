@@ -25,6 +25,16 @@ function row(html: string, id: string) {
 }
 
 describe('nested plan task actions', () => {
+  it('names the reflection destination on both unchanged and edited collection-return paths', () => {
+    const approved = approvedPlan();
+    const edited = reducer(approved, { type: 'text', field: 'evidenceCollector', value: 'Grade four team' });
+    for (const [state, label] of [[approved, 'Return to reflection'], [edited, 'Approve and return to reflection']] as const) {
+      const html = renderToStaticMarkup(createElement(PlanWorkspace, { state, reference: createReferenceData(), dispatch: vi.fn(() => true), submit: vi.fn(() => true), clearError: vi.fn(), errorField: '', errorAttempt: 0, initialTask: 'review', returnToReflection: true, onReturnToApproved: vi.fn() }));
+      expect(row(html, 'review')).toContain(label);
+      expect(html).toContain('Your reflection writing is preserved.');
+    }
+  });
+
   it.each([
     ['move', 'action', 'Teaching move actions'],
     ['activities', 'agenda-0', 'Meeting activity actions'],

@@ -6,6 +6,7 @@ import { evidenceSnapshotDescription, referenceForVersion } from '../data/eviden
 import { hasFocus, hasPlan, hasReflection, initialState, reducer, type Action, type EvidenceVersion, type PlanState } from '../model';
 import { ReflectWorkspace } from './ReflectWorkspace';
 import { DecisionHistory } from './WorkspaceReaders';
+import { MeetingKit } from '../components/MeetingKit';
 
 const apply = (state: PlanState, ...actions: Action[]) => actions.reduce(reducer, state);
 
@@ -43,12 +44,12 @@ function recorded(version: EvidenceVersion = 'oct28', implementation: PlanState[
   return reducer(reflectionDraft(version, implementation), { type: 'save-reflection' });
 }
 
-function recordMarkup(state: PlanState, unsaved = false) {
+function recordMarkup(state: PlanState, unsaved = false, externalChanged = false) {
   const reference = referenceForVersion(createReferenceData(), state.evidenceVersion);
   const onNavigate = vi.fn(), onClose = vi.fn();
   const before = structuredClone(state);
   const markup = renderToStaticMarkup(createElement(DecisionHistory, {
-    state, reference, unsaved, onNavigate, onClose, cycleTitle: 'Grade 4 fraction inquiry',
+    state, reference, unsaved, externalChanged, onNavigate, onClose, cycleTitle: 'Grade 4 fraction inquiry',
   }));
   expect(state).toEqual(before);
   expect(onNavigate).not.toHaveBeenCalled();
@@ -160,6 +161,69 @@ describe('the decision record describes the current cycle completely', () => {
     expect(markup).toContain('role="alert"');
     expect(markup).toContain('These decisions include unsaved changes.');
     expect(markup).toContain('states below apply to this in-memory draft');
+  });
+
+  it('warns when the loaded record is stale while preserving its original approval and recording states', () => {
+    const state = recorded();
+    const markup = recordMarkup(state, false, true);
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain('This loaded snapshot may be outdated.');
+    expect(markup).toContain('Close this record and choose Reload saved data');
+    expect(markup).not.toContain('Current draft and confirmation states for this cycle.');
+    expect(recordItem(markup, 'Teaching action')).toContain('Approved');
+    expect(recordItem(markup, 'Reflection')).toContain('Recorded');
+    expect(hasReflection(state)).toBe(true);
+    expect(recordMarkup(state)).not.toContain('This loaded snapshot may be outdated.');
+  });
+
+  it('offers draft-copy recovery instead of a blocked save retry when a stale record also has unsaved edits', () => {
+    const markup = recordMarkup(recorded(), true, true);
+    expect(markup).toContain('These decisions include unsaved changes.');
+    expect(markup).toContain('download a draft copy from the workspace before reloading');
+    expect(markup).not.toContain('retry saving before leaving');
+  });
+});
+
+describe('meeting kit notices a newer workspace without revoking the loaded approval', () => {
+  it('pauses both downloads while keeping the stale approved snapshot available to preview', () => {
+    const state = approved();
+    const before = structuredClone(state);
+    const onClose = vi.fn();
+    const render = (externalChanged?: boolean) => renderToStaticMarkup(createElement(MeetingKit, {
+      state, reference: createReferenceData(), externalChanged, onClose,
+    }));
+    const stale = render(true);
+    expect(stale).toContain('Your approved meeting kit');
+    expect(stale).toContain('id="kit-stale-warning" class="dialog-error" role="alert"');
+    expect(stale).toContain('This loaded snapshot may be outdated.');
+    expect(stale).toContain('Close this preview and choose Reload saved data');
+    expect(stale).toContain('Downloads are paused until you reload.');
+    for (const label of ['Download text plan', 'Download meeting kit']) {
+      expect(routeButton(stale, label)).toContain('disabled=""');
+      expect(routeButton(stale, label)).toContain('aria-describedby="kit-stale-warning"');
+      expect(routeButton(render(), label)).not.toContain('disabled=');
+    }
+    expect(routeButton(stale, 'Next')).not.toContain('disabled=');
+    expect(stale).toContain('<select id="kit-page">');
+    expect(stale).toContain(state.interpretation);
+    expect(routeButton(stale, 'Return to workspace')).not.toContain('disabled=');
+    expect(state).toEqual(before);
+    expect(hasPlan(state)).toBe(true);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('also warns in draft preview while retaining preview navigation and its return destination', () => {
+    const markup = renderToStaticMarkup(createElement(MeetingKit, {
+      state: initialState(), reference: createReferenceData(), mode: 'draft', externalChanged: true,
+      onClose: vi.fn(), returnLabel: 'Return to review',
+    }));
+    expect(markup).toContain('Draft meeting kit preview');
+    expect(markup).toContain('This loaded snapshot may be outdated.');
+    expect(markup).toContain('You can continue previewing it.');
+    expect(routeButton(markup, 'Next')).not.toContain('disabled=');
+    expect(routeButton(markup, 'Return to review')).not.toContain('disabled=');
+    expect(markup).not.toContain('>Download text plan<');
+    expect(markup).not.toContain('>Download meeting kit<');
   });
 });
 

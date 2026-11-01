@@ -37,7 +37,7 @@ export const meetingOrientation = {
 
 /** An introduction must never interrupt a later stage or an already authored decision. */
 export function shouldIntroduceFlow(state: PlanState, welcomeDismissed: boolean): boolean {
-  if (welcomeDismissed || state.step !== 0 || state.review || state.implementation) return false;
+  if (welcomeDismissed || state.step !== 0 || state.review || state.implementation || state.evidenceReviewed.length > 0 || state.selected.some(source => source !== 'assessment')) return false;
   const baseline = initialState();
   return ![state.interpretation, state.focus, state.action, state.reflection,
     state.implementationCheck, state.learningCheck, state.accessParticipation,

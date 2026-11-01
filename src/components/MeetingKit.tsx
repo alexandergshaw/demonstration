@@ -5,13 +5,14 @@ import { buildDraftMeetingKit, buildMeetingKit, exportMeetingHtml, exportMeeting
 import { Modal } from './CycleManager';
 import { Icon } from './Icon';
 
-export function MeetingKit({ state, reference, onClose, mode = 'approved', onEditActivity, returnLabel = 'Return to planning' }: {
+export function MeetingKit({ state, reference, onClose, mode = 'approved', onEditActivity, returnLabel = 'Return to planning', externalChanged = false }: {
   state: PlanState;
   reference: ReferenceData;
   onClose: () => void;
   mode?: 'approved' | 'draft';
   onEditActivity?: (index: number) => void;
   returnLabel?: string;
+  externalChanged?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState<{ kind: 'error' | 'status'; text: string } | null>(null);
@@ -33,7 +34,7 @@ export function MeetingKit({ state, reference, onClose, mode = 'approved', onEdi
     setIndex(nextIndex);
   };
   const download = (format: 'html' | 'text') => {
-    if (draft) return;
+    if (draft || externalChanged) return;
     const isHtml = format === 'html';
     const label = isHtml ? 'Meeting kit' : 'Text plan';
     let url = '';
@@ -56,6 +57,7 @@ export function MeetingKit({ state, reference, onClose, mode = 'approved', onEdi
   };
   return <Modal title={draft ? 'Draft meeting kit preview' : 'Your approved meeting kit'} onClose={onClose}>
     <div className="meeting-kit">
+      {externalChanged && <p id="kit-stale-warning" className="dialog-error" role="alert">Another tab changed this workspace. This loaded snapshot may be outdated. You can continue previewing it. Close this preview and choose Reload saved data to review the latest saved work before relying on its approval status.{!draft && ' Downloads are paused until you reload.'}</p>}
       {draft ? <>
         <p className="pill">DRAFT · Preview only</p>
         <p className="guide-intro">Inspect the six presentation sections, source packet and participant handout assembled from your current writing. Check what colleagues will read, then return to refine the directions. Missing writing and unchanged starter text are identified.</p>
@@ -72,8 +74,8 @@ export function MeetingKit({ state, reference, onClose, mode = 'approved', onEdi
       {draft ? <div className="modal-actions"><button type="button" className="btn secondary" onClick={onClose}>{returnLabel}</button></div> : <>
         <p className="caption"><strong>Choose what to take into the meeting.</strong> Download meeting kit gives you a self-contained HTML file to present offline. Open that file and use your browser’s Print command for a PDF or paper handouts. Download text plan gives you the written agenda, decisions and source excerpts for reference. Long content continues naturally; no text is truncated.</p>
         <p className="caption">Each download is a snapshot of the approved plan. If you change the plan, review and approve it again, then download a new copy. Closing this preview returns to your cycle; check the save status before leaving. It does not mark the meeting or classroom teaching as completed.</p>
-        {downloadMessage && <p className={downloadMessage.kind === 'error' ? 'form-error' : 'caption'} role={downloadMessage.kind === 'error' ? 'alert' : 'status'}>{downloadMessage.text}</p>}
-        <div className="modal-actions"><button className="btn secondary" onClick={() => download('text')}>Download text plan</button><button className="btn" onClick={() => download('html')}><Icon name="download" size={16} />Download meeting kit</button></div>
+        {downloadMessage && !externalChanged && <p className={downloadMessage.kind === 'error' ? 'form-error' : 'caption'} role={downloadMessage.kind === 'error' ? 'alert' : 'status'}>{downloadMessage.text}</p>}
+        <div className="modal-actions">{externalChanged && <button className="btn secondary" onClick={onClose}>Return to workspace</button>}<button className="btn secondary" disabled={externalChanged} aria-describedby={externalChanged ? 'kit-stale-warning' : undefined} onClick={() => download('text')}>Download text plan</button><button className="btn" disabled={externalChanged} aria-describedby={externalChanged ? 'kit-stale-warning' : undefined} onClick={() => download('html')}><Icon name="download" size={16} />Download meeting kit</button></div>
       </>}
     </div>
   </Modal>;

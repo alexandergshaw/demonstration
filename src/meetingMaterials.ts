@@ -38,25 +38,35 @@ function buildMeetingPages(state: PlanState, reference: ReferenceData, draft: bo
   reference = referenceForVersion(reference, state.evidenceVersion);
   const challenge = reference.challenges.find(item => item.id === state.lens);
   const selectedWork = reference.responses.filter(response => state.selected.includes(response.id));
+  const selectedWorkBlocks: MaterialBlock[] = selectedWork.length ? [
+    ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' })),
+    { heading: 'Sample scope', text: 'These selected responses illustrate possible reasoning; they are not a representative sample or linked student-level records. Use the source packet to check the task and scoring criteria.' },
+  ] : [];
+  function facilitationHeading(index: number): string {
+    if (state.agenda[index].trim() === initialAgenda[index]) {
+      return draft ? 'Starter facilitation text · not yet adapted' : 'Starter facilitation text · retained by the leader';
+    }
+    return draft ? 'Draft facilitation directions' : 'Facilitation directions · reviewed by the leader';
+  }
   const accessPlan = state.accessParticipation.trim()
     ? [{ heading: 'Access & participation · leader plan', text: state.accessParticipation }]
     : [];
   const collectionPlan = plannedCollectionBlocks(state);
   const content: MaterialBlock[][] = [
     [{ heading: 'Our instructional focus', text: state.focus }, { heading: 'Leader interpretation', text: state.interpretation }, { heading: 'Confidence', text: state.confidence }],
-    [{ heading: 'Current evidence · ' + reference.assessment.date, text: `${reference.assessment.correct}/${reference.assessment.total} correct fractions; ${reference.assessment.explanations}/${reference.assessment.total} adequate explanations. Full task, rubric and class counts are in the source packet.` }, ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' }))],
+    [{ heading: 'Current evidence · ' + reference.assessment.date, text: `${reference.assessment.correct}/${reference.assessment.total} correct fractions; ${reference.assessment.explanations}/${reference.assessment.total} adequate explanations. Full task, rubric and class counts are in the source packet.` }, ...selectedWorkBlocks],
     [{ heading: draft ? 'Alternative to consider · scripted question' : 'Alternative considered · scripted question', text: challenge?.prompt ?? '' }, { heading: draft ? 'Proposed instructional focus' : 'Leader-shaped focus after considering the challenge', text: state.focus }, { heading: 'Discussion prompt', text: 'Which evidence supports this interpretation? What else could explain the pattern, and what remains uncertain?' }],
     [{ heading: 'Teaching action to develop', text: state.action }, ...accessPlan, { heading: 'Optional rehearsal support', text: `Follow the ${draft ? 'draft' : 'approved'} facilitation directions above. If a rehearsal supports them, use a selected student response or the original task to practice a teacher question. Anticipate student reasoning, invite peer feedback, and revise the question. Keep the explanation with the student.` }],
     [{ heading: 'Who will try it', text: state.owner }, { heading: 'Teaching action', text: state.action }, { heading: 'PLANNED · Check that teaching changed', text: state.implementationCheck }],
     [{ heading: 'PLANNED · Check student learning', text: state.learningCheck }, { heading: 'PLANNED · Check implementation', text: state.implementationCheck }, ...collectionPlan, { heading: 'Before concluding', text: 'Compare task, rubric, cohort, missing responses and implementation. Improvement alone does not establish causality.' }],
   ];
   return [
-    ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: draft ? state.agenda[index].trim() === initialAgenda[index] ? 'Starter facilitation text · not yet adapted' : 'Draft facilitation directions' : 'Facilitation directions · reviewed by the leader', text: state.agenda[index] }, ...content[index]] })),
+    ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: facilitationHeading(index), text: state.agenda[index] }, ...content[index]] })),
     { title: 'Source packet', label: 'Reference handout · fictional evidence', blocks: [{ heading: 'Evidence snapshot used for this plan', text: evidenceSnapshotDescription(state.evidenceVersion) }, ...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)] },
     { title: 'Evidence-to-action activity', label: 'Participant handout · write in during the PLC', blocks: [
       { heading: 'Instructional focus', text: state.focus },
       { heading: '1 · Examine the evidence', text: state.agenda[1] },
-      ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' })),
+      ...selectedWorkBlocks,
       { heading: 'Evidence to cite', text: 'Use the accompanying source packet for the original task, scoring criteria and class counts. Name the source and distinguish what you observe from your explanation.' },
       { heading: '2 · Design & rehearse the teaching move', text: state.agenda[3] },
       { heading: 'Teaching action to develop', text: state.action },

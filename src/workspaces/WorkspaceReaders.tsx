@@ -6,13 +6,14 @@ import { evidenceSnapshotDescription } from '../data/evidenceSnapshots';
 import { followUpSourceBlocks } from '../lessonContext';
 import { hasFocus, hasPlan, hasReflection, type PlanState } from '../model';
 
-export function DecisionHistory({ state: s, reference, unsaved, onClose, cycleTitle, onNavigate }: {
+export function DecisionHistory({ state: s, reference, unsaved, onClose, cycleTitle, onNavigate, externalChanged = false }: {
   state: PlanState;
   reference: ReferenceData;
   unsaved: boolean;
   onClose: () => void;
   cycleTitle?: string;
   onNavigate?: (step: number) => void;
+  externalChanged?: boolean;
 }) {
   const focus = hasFocus(s), plan = hasPlan(s), reflected = hasReflection(s);
   const implementation = s.implementation === 'yes' ? 'Used as planned' : s.implementation === 'partial' ? 'Partially used' : s.implementation === 'no' ? 'Not yet used' : '';
@@ -46,8 +47,9 @@ export function DecisionHistory({ state: s, reference, unsaved, onClose, cycleTi
   return <Modal title="Your decisions" onClose={onClose}>
     {cycleTitle && <p className="caption"><strong>{cycleTitle}</strong></p>}
     <p className="caption">{evidenceSnapshotDescription(s.evidenceVersion)}</p>
-    <p className="caption">Current draft and confirmation states for this cycle. Earlier versions are not retained here. An implementation report is separate from evidence of student learning.</p>
-    {unsaved && <p className="dialog-error" role="alert">These decisions include unsaved changes. Approval and recorded states below apply to this in-memory draft; retry saving before leaving.</p>}
+    <p className="caption">{externalChanged ? 'Draft and confirmation states in this loaded snapshot.' : 'Current draft and confirmation states for this cycle.'} Earlier versions are not retained here. An implementation report is separate from evidence of student learning.</p>
+    {externalChanged && <p className="dialog-error" role="alert">Another tab changed this workspace. This loaded snapshot may be outdated. The approval and recorded states below describe this snapshot. Close this record and choose Reload saved data before relying on them as the current decisions.</p>}
+    {unsaved && <p className="dialog-error" role="alert">These decisions include unsaved changes. Approval and recorded states below apply to this in-memory draft; {externalChanged ? 'download a draft copy from the workspace before reloading if you need to keep these edits.' : 'retry saving before leaving.'}</p>}
     {onNavigate && <>
       <div className="button-group modal-actions" role="group" aria-label="Revisit a decision">
         {destinations.map(destination => <button type="button" className="btn secondary compact" key={destination.step} disabled={!destination.available} onClick={() => onNavigate(destination.step)}>{destination.label}</button>)}

@@ -96,6 +96,26 @@ function setup(state: PlanState) {
 afterEach(() => { host.reset(); vi.unstubAllGlobals(); });
 
 describe('confirmation persistence', () => {
+  it('saves plan approval and return to reflection together, and retains the editor on failure', () => {
+    const before = { ...beforeConfirmation('plan'), reflection: 'Preserve this authored reflection while the collection arrangements are updated.' };
+    const { storage, render, controller } = setup(before);
+    const durable = storage.getItem(DATABASE_KEY);
+    const action: Action = { type: 'confirm-plan', returnToReflection: true };
+    storage.failWrites = true;
+    expect(controller.dispatch(action)).toBe(false);
+    let current = render();
+    expect(current.state).toEqual(before);
+    expect(storage.getItem(DATABASE_KEY)).toBe(durable);
+    storage.failWrites = false;
+    expect(current.dispatch(action)).toBe(true);
+    current = render();
+    expect(current.state).toEqual(reducer(before, action));
+    expect(current.state?.step).toBe(3);
+    expect(current.state?.reflection).toBe(before.reflection);
+    const saved = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    expect(saved.cycles.find((cycle: { id: string }) => cycle.id === saved.activeCycleId).state).toEqual(current.state);
+  });
+
   it.each([
     ['focus', 'confirm-focus'], ['plan', 'confirm-plan'], ['reflection', 'save-reflection'],
   ] as const)('retains the visible %s draft after a failed confirmation and requires explicit confirmation after retry', (kind, type) => {

@@ -94,7 +94,8 @@ export type Action =
   | { type: 'consent'; value: boolean }
   | { type: 'implementation'; value: PlanState['implementation'] }
   | { type: 'go'; step: number }
-  | { type: 'challenge' | 'confirm-focus' | 'confirm-plan' | 'save-reflection' | 'reset' | 'simulate-evidence-update' | 'keep-current-evidence' };
+  | { type: 'confirm-plan'; returnToReflection?: boolean }
+  | { type: 'challenge' | 'confirm-focus' | 'save-reflection' | 'reset' | 'simulate-evidence-update' | 'keep-current-evidence' };
 function invalidatePlan(s: PlanState): PlanState {
   return { ...s, planStamp: null, consent: false, reflectionStamp: null, review: s.review || s.planStamp !== null };
 }
@@ -134,7 +135,7 @@ export function reducer(s: PlanState, action: Action): PlanState {
       return { ...s, step: action.step };
     case 'challenge': return s.interpretation.trim().length < 30 ? s : { ...s, challenged: true };
     case 'confirm-focus': return focusError(s) ? s : { ...s, focusStamp: focusSignature(s), step: 2 };
-    case 'confirm-plan': return planError(s) ? s : { ...s, planStamp: planSignature(s), review: false, step: 2 };
+    case 'confirm-plan': return planError(s) ? s : { ...s, planStamp: planSignature(s), review: false, step: action.returnToReflection ? 3 : 2 };
     case 'save-reflection': return reflectionError(s) ? s : { ...s, reflectionStamp: reflectionSignature(s) };
   }
 }
