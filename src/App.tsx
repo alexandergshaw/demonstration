@@ -6,7 +6,7 @@ import { FieldErrorProvider } from './components/Field';
 import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
 import { MeetingKit } from './components/MeetingKit';
-import { ReadingSettings, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
+import { ReadingSettings, ReadingSettingsDialog, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
 import { EvidenceUpdate } from './components/EvidenceUpdate';
@@ -54,6 +54,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const [lockNotice, setLockNotice] = useState('');
   const [guideEntry, setGuideEntry] = useState<{ view: 'home' | 'walkthrough'; step?: number }>({ view: 'home' });
   const [kitOpen, setKitOpen] = useState(false);
+  const [readingOpen, setReadingOpen] = useState(false);
   const [editingApprovedPlan, setEditingApprovedPlan] = useState(false);
   const [planEntry, setPlanEntry] = useState<'learning' | undefined>();
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
@@ -107,24 +108,20 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
     return saved;
   };
   const savedLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
+  const savedShortLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved' : workspace.externalChanged ? 'Update available' : 'Saved';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
     <header className="app-topbar">
-      <div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div>
-      <CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)} />
-      <div className="topbar-actions">
-        <span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span>
-        <details className="workspace-tools">
-          <summary>Tools</summary>
-          <div className="workspace-tool-actions">
-            <button className="guide-button" onClick={() => setHistoryOpen(true)}>Decisions</button>
-            <ReadingSettings reading={reading} />
-            <button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}>Guide</button>
-          </div>
-        </details>
-      </div>
+      <CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)}
+        headerBrand={<div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div>}
+        menuActions={closeMenu => <>
+          <button onClick={() => { closeMenu(); setHistoryOpen(true); }}>Decisions</button>
+          <button onClick={() => { closeMenu(); setReadingOpen(true); }}>Reading settings</button>
+          <button onClick={() => { closeMenu(); openGuide(); }}>Guide</button>
+        </>} />
     </header>
     <div className="app-shell"><div className="workflow-rail">
+      <div className="workflow-controls">
       <nav className="mobile-stage-nav" aria-label="Planning stages">
         <label htmlFor="mobile-stage">Stage</label>
         <select id="mobile-stage" value={state.step} aria-describedby="mobile-stage-hint" onChange={event => {
@@ -145,6 +142,8 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         const complete = i < 2 ? focus : i === 2 ? plan : reflection;
         return <button key={stage.label} className={`step ${state.step === i ? 'active' : ''} ${complete ? 'done' : ''}`} aria-current={state.step === i ? 'step' : undefined} aria-disabled={locked || undefined} aria-describedby={`stage-note-${i}`} onClick={() => locked ? setLockNotice(i === 2 ? 'Confirm your instructional focus in Interpretation to unlock the meeting plan.' : 'Approve your meeting plan to unlock Reflection.') : act({ type: 'go', step: i })}><span className="step-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span className="step-copy"><span className="nav-wide">{stage.label}</span><span className="nav-short">{stage.short}</span>{i === 3 && <span className="step-timing">After teaching</span>}<span className="step-note" id={`stage-note-${i}`}>{detail}</span></span><span className="step-state">{locked ? <Icon name="lock" size={13} /> : complete ? <Icon name="check" size={14} /> : null}</span></button>;
       })}</nav>
+      <span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status" title={savedLabel}><span className="status-dot" /><span className="save-full-label">{savedLabel}</span><span className="save-short-label" aria-hidden="true">{savedShortLabel}</span></span>
+      </div>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
       <div className="page">{!introduceFlow && <header className="intro"><div className="flow-heading">
@@ -181,6 +180,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
         <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>
       </div>
     </div></div>
+    {readingOpen && <ReadingSettingsDialog reading={reading} onClose={() => setReadingOpen(false)} />}
     {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} />}
     {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty} onClose={() => setHistoryOpen(false)} />}
     {examplesOpen && <FollowUpExamples onClose={() => setExamplesOpen(false)} />}

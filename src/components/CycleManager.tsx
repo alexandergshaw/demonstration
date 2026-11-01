@@ -44,7 +44,13 @@ function NameDialog({ mode, initialName, error, onClose, onSave }: { mode: 'crea
     </form>
   </Modal>;
 }
-export function CycleManager({ workspace, onReset, compact = false }: { workspace: ReadyWorkspace; onReset: () => void; compact?: boolean }) {
+export function CycleManager({ workspace, onReset, compact = false, headerBrand, menuActions }: {
+  workspace: ReadyWorkspace;
+  onReset: () => void;
+  compact?: boolean;
+  headerBrand?: ReactNode;
+  menuActions?: (closeMenu: () => void) => ReactNode;
+}) {
   const { snapshot, dirty, externalChanged } = workspace;
   const cycle = snapshot.cycles.find(value => value.id === snapshot.activeCycleId)!;
   const [mode, setMode] = useState<'create' | 'rename' | 'delete' | null>(null);
@@ -65,21 +71,24 @@ export function CycleManager({ workspace, onReset, compact = false }: { workspac
   }, [menuOpen]);
   function closeMenu() { setMenuOpen(false); trigger.current?.focus(); }
   function open(next: typeof mode) { closeMenu(); workspace.clearOperationError(); setMode(next); }
-  return <section className={`cycle-toolbar ${compact ? 'cycle-compact' : ''}`} aria-label="Saved PLC cycles">
-    <div className="cycle-selector"><label htmlFor="active-cycle">PLC cycle</label><select id="active-cycle" value={cycle.id} disabled={blocked} onChange={event => workspace.selectCycle(event.target.value)}>{snapshot.cycles.map(value => <option key={value.id} value={value.id}>{value.title}</option>)}</select></div>
+  return <section className={`cycle-toolbar ${compact ? 'cycle-compact' : ''}${headerBrand ? ' cycle-header' : ''}`} aria-label="Saved PLC cycles">
+    {headerBrand}
+    <div className="cycle-selector"><label htmlFor="active-cycle">PLC cycle</label><select id="active-cycle" value={cycle.id} title={cycle.title} disabled={blocked} onChange={event => workspace.selectCycle(event.target.value)}>{snapshot.cycles.map(value => <option key={value.id} value={value.id}>{value.title}</option>)}</select></div>
     <span className="cycle-updated">{dirty ? 'Unsaved edits' : externalChanged ? 'Newer version available' : `Updated ${updated}`}</span>
     <div className="cycle-actions">
       {!compact && <button className="btn secondary compact" disabled={blocked || snapshot.cycles.length >= MAX_CYCLES} onClick={() => { workspace.clearOperationError(); setMode('create'); }}><Icon name="plus" size={16} />New cycle</button>}
       <div className="cycle-menu" ref={menu}>
-        <button ref={trigger} className="icon-button" aria-label="Cycle actions" aria-expanded={menuOpen} aria-controls={menuId} disabled={blocked} onClick={() => setMenuOpen(!menuOpen)}><Icon name="more" /></button>
-        {menuOpen && <div className="cycle-popover" id={menuId} role="group" aria-label="Cycle actions">
+        <button ref={trigger} className={menuActions ? 'header-menu-button' : 'icon-button'} aria-label={menuActions ? 'Workspace menu' : 'Cycle actions'} aria-expanded={menuOpen} aria-controls={menuId} disabled={!menuActions && blocked} onClick={() => setMenuOpen(!menuOpen)}>{menuActions ? <>Menu<Icon name={menuOpen ? 'close' : 'more'} /></> : <Icon name="more" />}</button>
+        {menuOpen && <div className="cycle-popover" id={menuId} role="group" aria-label={menuActions ? 'Workspace menu' : 'Cycle actions'}>
+          {menuActions && <>{menuActions(closeMenu)}<div className="popover-divider" /></>}
           <div className="popover-caption">{snapshot.cycles.length} of {MAX_CYCLES} saved cycles</div>
-          {compact && <button disabled={snapshot.cycles.length >= MAX_CYCLES} onClick={() => open('create')}><Icon name="plus" size={16} />New cycle</button>}
-          <button onClick={() => open('rename')}><Icon name="pencil" size={16} />Rename cycle</button>
-          <button disabled={snapshot.cycles.length >= MAX_CYCLES} onClick={() => { closeMenu(); workspace.duplicateCycle(cycle.id); }}><Icon name="copy" size={16} />Duplicate as draft</button>
+          {compact && <button disabled={blocked || snapshot.cycles.length >= MAX_CYCLES} onClick={() => open('create')}><Icon name="plus" size={16} />New cycle</button>}
+          <button disabled={blocked} onClick={() => open('rename')}><Icon name="pencil" size={16} />Rename cycle</button>
+          <button disabled={blocked || snapshot.cycles.length >= MAX_CYCLES} onClick={() => { closeMenu(); workspace.duplicateCycle(cycle.id); }}><Icon name="copy" size={16} />Duplicate as draft</button>
           <div className="popover-divider" />
-          <button onClick={() => { closeMenu(); workspace.clearOperationError(); onReset(); }}><Icon name="reset" size={16} />Reset this cycle</button>
-          <button className="danger-text" disabled={snapshot.cycles.length === 1} onClick={() => open('delete')}><Icon name="trash" size={16} />Delete cycle</button>
+          <button disabled={blocked} onClick={() => { closeMenu(); workspace.clearOperationError(); onReset(); }}><Icon name="reset" size={16} />Reset this cycle</button>
+          <button className="danger-text" disabled={blocked || snapshot.cycles.length === 1} onClick={() => open('delete')}><Icon name="trash" size={16} />Delete cycle</button>
+          {blocked && <p className="popover-hint">{externalChanged ? 'Reload the newer version before changing cycles.' : 'Save the current draft before changing cycles.'}</p>}
           {snapshot.cycles.length === 1 && <p className="popover-hint">Keep one cycle. Reset it to start again.</p>}
         </div>}
       </div>

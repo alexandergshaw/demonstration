@@ -92,11 +92,11 @@ export function FlowIntroduction({ onContinue, continueLabel = 'Start with the e
     <details className="flow-introduction-controls">
       <summary>Understand the controls you can use throughout</summary>
       <dl>
-        <div><dt>PLC cycle and Cycle actions</dt><dd>A cycle is one saved investigation and plan. Switch between named cycles, or use New cycle to start a separate draft. Saved work belongs to this browser and site.</dd></div>
-        <div><dt>Decisions</dt><dd>Read the sources, writing and approval states recorded for this cycle. It is a record of your choices, not a rating of their quality.</dd></div>
-        <div><dt>Reading</dt><dd>Adjust text size and spacing for comfort. These settings do not change your instructional decisions.</dd></div>
-        <div><dt>Guide and Help with this step</dt><dd>Revisit this introduction, read a walkthrough, try a separate practice case or look up a term. Help is optional and never fills in or approves your plan.</dd></div>
-        <div><dt>Save status</dt><dd>Check for Saved on this browser before leaving. If saving fails, keep the page open and use Retry save. Saving a draft is separate from confirming your focus or approving the meeting.</dd></div>
+        <div><dt>PLC cycle and Menu</dt><dd>A cycle is one saved investigation and plan. Switch between named cycles in the header. Open Menu to start, rename or manage a cycle. Saved work belongs to this browser and site.</dd></div>
+        <div><dt>Decisions</dt><dd>Open Menu, then Decisions to read the sources, writing and approval states recorded for this cycle. It is a record of your choices, not a rating of their quality.</dd></div>
+        <div><dt>Reading settings</dt><dd>Open Menu, then Reading settings to adjust text size and line spacing for comfort. These settings do not change your instructional decisions.</dd></div>
+        <div><dt>Guide and About this step</dt><dd>Open Guide from Menu, or expand About this step for guidance on the current task. Revisit this introduction, read a walkthrough, try a separate practice case or look up a term. Help is optional and never fills in or approves your plan.</dd></div>
+        <div><dt>Save status</dt><dd>Check for Saved beside the stages before leaving. It means saved on this browser. If saving fails, keep the page open and use Retry save. Saving a draft is separate from confirming your focus or approving the meeting.</dd></div>
       </dl>
     </details>
 
