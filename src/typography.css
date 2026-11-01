@@ -6,9 +6,9 @@
   /* All non-link text shares one color, including controls and supporting copy. */
   --ink: #242424;
   --text-link: #163f99;
-  --text-title: 2rem;
+  --text-title: 2.25rem;
   --text-display: var(--text-body);
-  --text-section: 1.25rem;
+  --text-section: 1.5rem;
   --text-task: var(--text-body);
   --text-label: var(--text-body);
   --text-body: 1rem;
