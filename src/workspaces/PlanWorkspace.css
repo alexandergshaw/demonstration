@@ -1,9 +1,8 @@
 .plan-workspace{min-width:0;--pw-space:clamp(1.25rem,3vw,2rem)}
+.plan-workspace>.step-progress{margin-bottom:24px}
 .plan-workspace :is(h2,h3,h4,button,span),.pw-plan-review :is(h3,h4,button,span){overflow-wrap:anywhere}
 .pw-explanation,.pw-check-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
-.pw-entry{margin:0 0 1.75rem}
-.pw-entry-explanation{margin:0}
-.pw-return-approved{margin-top:1rem;max-width:100%;white-space:normal}
+.pw-entry{margin:0 0 1rem}
 .pw-activity-purpose{max-width:65ch;margin:0 0 1.25rem;line-height:var(--line-body)}
 .pw-activity-purpose strong{display:block;margin-bottom:.25rem}
 .pw-save-explanation,.pw-outline-explanation{max-width:65ch;color:var(--ink);font-size:var(--text-support);line-height:var(--line-body);margin:.65rem 0 0;overflow-wrap:anywhere}
@@ -14,15 +13,6 @@
 .pw-activity-guidance>.step-coach{margin:0}
 .pw-approval-explanation{margin:2rem 0 1rem}
 .pw-review-explanation{margin:1rem 0}
-.pw-route{margin:0 0 1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)}
-.pw-route ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;list-style:none;margin:0;padding:0}
-.pw-route li{min-width:0}
-.pw-route button{display:flex;align-items:flex-start;gap:.65rem;width:100%;min-height:44px;padding:.5rem;text-align:left;border:0;border-radius:3px;background:transparent;color:var(--ink);font:inherit}
-.pw-route button:hover{background:var(--bg)}
-.pw-route-number{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.5rem;height:1.5rem;border:1px solid var(--border);border-radius:50%;color:var(--ink);font-size:var(--text-support);line-height:1}
-.pw-route strong{display:block;font-size:var(--text-body);font-weight:600;line-height:var(--line-body)}
-.pw-route small{display:block;margin-top:.2rem;color:var(--ink);font-size:var(--text-support);line-height:var(--line-body)}
-.pw-route button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .plan-workspace .pw-route-hint{max-width:65ch;margin:.5rem 0 0;color:var(--ink);font-size:var(--text-support);line-height:var(--line-body)}
 .pw-section-next{margin-top:1rem;max-width:100%;text-align:left;font-size:var(--text-support)}
 .pw-activity-navigation,.pw-check-navigation{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem 1rem;margin-top:1rem;padding-top:.5rem}
@@ -129,8 +119,7 @@ dialog:has(.pw-plan-review){width:min(820px,calc(100% - 32px))}
 .pw-review-actions{justify-content:flex-end;gap:.75rem}
 .pw-source-reader>section:first-child{border-top:0;padding-top:0}
 @media(max-width:900px){.pw-agenda-workspace{grid-template-columns:minmax(0,1fr)}.pw-agenda-editor{padding:1.25rem}.pw-agenda-choice{min-height:4.25rem}.pw-checks{gap:1.5rem}}
-@media(max-width:700px){.pw-route ol{gap:.5rem}.pw-route button{padding:.5rem .25rem}.pw-route small,.pw-route-number{display:none}.pw-activity-navigation{align-items:flex-start}.pw-activity-navigation>.btn{margin-left:0}}
-:root[data-text-size=largest] .pw-route ol{grid-template-columns:minmax(0,1fr);gap:.25rem}
+@media(max-width:700px){.pw-activity-navigation{align-items:flex-start}.pw-activity-navigation>.btn{margin-left:0}}
 :root[data-text-size=largest] .pw-agenda-workspace{grid-template-columns:minmax(0,1fr)}
 :root[data-spacious=true] .plan-workspace .pw-agenda-summary{white-space:normal;overflow:visible}
 @media(max-width:600px){.pw-checks,.pw-review-checks{grid-template-columns:minmax(0,1fr)}.pw-check+.pw-check{border-top:1px solid var(--border);padding-top:1rem}.pw-teaching-move{padding:1rem}.pw-action-owner{gap:.25rem}.pw-context-row{align-items:flex-start}.pw-agenda-choice{grid-template-columns:2.5rem minmax(0,1fr) .875rem;gap:.5rem;padding:.75rem .5rem}.pw-agenda-editor{padding:1rem}.pw-footer{align-items:stretch;flex-direction:column}.pw-footer>.btn{width:100%}.pw-review-agenda-title{grid-template-columns:2.75rem minmax(0,1fr);gap:.25rem .5rem}.pw-review-agenda-title>.textlink{grid-column:2;justify-self:start}.pw-review-agenda .pw-draft-value{margin-left:0}.pw-review-collection>div{grid-template-columns:minmax(0,1fr);gap:0;margin:.75rem 0}dialog:has(.pw-plan-review){width:calc(100% - 24px);padding:1rem}.pw-review-actions>.btn{width:100%;flex:auto}}

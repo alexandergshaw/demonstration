@@ -96,6 +96,7 @@ export function FlowIntroduction({ onContinue, continueLabel = 'Start with the e
         <div><dt>Decisions</dt><dd>Open Menu, then Decisions to read the sources, writing and approval states recorded for this cycle. It is a record of your choices, not a rating of their quality.</dd></div>
         <div><dt>Reading settings</dt><dd>Open Menu, then Reading settings to adjust text size and line spacing for comfort. These settings do not change your instructional decisions.</dd></div>
         <div><dt>Guide and About this step</dt><dd>Open Guide from Menu, or expand About this step for guidance on the current task. Revisit this introduction, read a walkthrough, try a separate practice case or look up a term. Help is optional and never fills in or approves your plan.</dd></div>
+        <div><dt>Suggested next action and See the steps</dt><dd>Each workspace explains what your work will produce and offers a direct route to the next part. Expand See the steps to revisit any part. Counts track opened places or recorded draft inputs, not instructional quality. You still review and confirm your own decisions.</dd></div>
         <div><dt>Save status</dt><dd>Check for Saved beside the stages before leaving. It means saved on this browser. If saving fails, keep the page open and use Retry save. Saving a draft is separate from confirming your focus or approving the meeting.</dd></div>
       </dl>
     </details>

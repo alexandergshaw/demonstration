@@ -11,6 +11,7 @@ import { FieldError, TextArea, TextInput, useFieldError } from '../components/Fi
 import { Icon } from '../components/Icon';
 import { RehearsalGuide } from '../components/RehearsalGuide';
 import { StepCoach } from '../components/StepCoach';
+import { StepProgress } from '../components/StepProgress';
 import { TaskExplanation } from '../components/TaskExplanation';
 import './PlanWorkspace.css';
 
@@ -153,6 +154,9 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   const activityReady = state.agenda[selectedAgenda].trim().length >= 5;
   const implementationReady = state.implementationCheck.trim().length >= 15;
   const learningReady = state.learningCheck.trim().length >= 15;
+  const authoredActivities = state.agenda.map((activity, index) => activity.trim().length >= 5 && !isStarter(index));
+  const authoredActivityCount = authoredActivities.filter(Boolean).length;
+  const nextActivityToWrite = authoredActivities.findIndex(authored => !authored);
 
   function requestFocus(id: string) {
     setFocusRequest({ id, attempt: ++focusCounter.current });
@@ -266,19 +270,33 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     if (draftTarget === 'collection-date' || draftTarget === 'review-date') requestFocus(draftTarget);
   }
 
+  const draftingItems = [
+    { id: 'move', label: 'Teaching move and owner', complete: !moveTarget, onSelect: () => { editAction(); if (moveTarget === 'owner') requestFocus('owner'); } },
+    { id: 'activities', label: `Activity directions · ${authoredActivityCount} of 6 authored`, complete: nextActivityToWrite < 0, onSelect: () => { editAgenda(nextActivityToWrite < 0 ? selectedAgenda : nextActivityToWrite, false); requestFocus('pw-activity-heading'); } },
+    { id: 'implementation', label: 'Implementation check', complete: implementationReady, onSelect: () => editCheck('implementation') },
+    { id: 'learning', label: 'Student learning check', complete: learningReady, onSelect: () => editCheck('learning') },
+  ];
+  const nextDraftingItem = draftingItems.find(item => !item.complete);
+  const needsFocus = !hasFocus(state);
+  const nextDraftingLabel = needsFocus ? 'Reconfirm the focus'
+    : nextDraftingItem?.id === 'move' ? moveTarget === 'owner' ? 'Name who will try it' : 'Describe the teaching move'
+    : nextDraftingItem?.id === 'activities' ? `Write activity ${nextActivityToWrite + 1} directions`
+    : nextDraftingItem?.id === 'implementation' ? 'Write the implementation check'
+    : nextDraftingItem?.id === 'learning' ? 'Write the student learning check'
+    : draftActionLabels[draftTarget];
+
   return <div className="plan-workspace">
-    <nav className="pw-route" aria-label="Build the meeting plan">
-      <ol>
-        <li><button type="button" onClick={editAction} aria-controls="pw-teaching-move"><span className="pw-route-number" aria-hidden="true">1</span><span><strong>Define the move</strong><small>What teaching will change, and who will try it</small></span></button></li>
-        <li><button type="button" onClick={beginActivities} aria-controls="pw-agenda-editor"><span className="pw-route-number" aria-hidden="true">2</span><span><strong>Shape six activities</strong><small>Directions for the team’s 50-minute meeting</small></span></button></li>
-        <li><button type="button" onClick={() => editCheck('implementation')} aria-controls="pw-follow-up"><span className="pw-route-number" aria-hidden="true">3</span><span><strong>Set two checks</strong><small>Evidence of implementation and student learning</small></span></button></li>
-      </ol>
-    </nav>
     <div className="pw-entry">
-      <p className="pw-explanation pw-entry-explanation">You are preparing a conversation the team can act on. First propose one teaching move, then write directions for the six meeting activities, and finally decide what evidence to bring back.</p>
       <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
-      {approved && onReturnToApproved && <button type="button" className="btn secondary compact pw-return-approved" onClick={onReturnToApproved}>Return to approved plan</button>}
     </div>
+    <StepProgress title="Build a kit your team can use"
+      benefit="Your confirmed focus gives the meeting its direction. Review and approve your teaching move, activities and two checks to assemble the agenda, source packet and participant activity."
+      items={draftingItems} progressLabel="drafting milestones recorded" incompleteLabel="To draft"
+      nextId={approved || needsFocus ? undefined : nextDraftingItem?.id}
+      nextLabel={approved ? onReturnToApproved ? 'Return to approved plan' : 'Review approved plan' : nextDraftingLabel}
+      onNext={approved ? onReturnToApproved ?? openReview : needsFocus || !nextDraftingItem ? followSuggestedAction : nextDraftingItem.onSelect}
+      completion={approved ? 'Approved by you' : nextDraftingItem ? undefined : draftMessage ? 'Draft content recorded; a correction remains' : 'Draft ready for your review'}
+      note="This tracks written draft content, not its quality, save status or approval. Suitable starter text can remain in your plan; it does not count as authored here." />
 
     <section className="pw-focus-context" aria-labelledby="pw-focus-heading">
       <div className="pw-section-heading">

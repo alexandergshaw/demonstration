@@ -7,6 +7,7 @@ import { Modal } from '../components/CycleManager';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
+import { StepProgress } from '../components/StepProgress';
 import { TaskExplanation } from '../components/TaskExplanation';
 import './ReasoningWorkspace.css';
 
@@ -153,6 +154,13 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       goToBeat('choose');
     }
   }
+  const progressItems = [
+    { id: 'notice', label: 'Write an interpretation', complete: interpretationReady, onSelect: () => goToBeat('notice', true) },
+    { id: 'test', label: 'Consider an alternative', complete: state.challenged, onSelect: () => goToBeat('test') },
+    { id: 'choose', label: 'Draft one teaching focus', complete: focusReady, onSelect: () => goToBeat('choose', true) },
+  ];
+  const nextDraftPart = progressItems.find(item => !item.complete);
+  const confirmedFocus = hasFocus(state);
 
   return <div className="reasoning-workspace" ref={workspace}>
     <aside className="reasoning-source-pane" aria-label="Original evidence beside your writing">
@@ -166,6 +174,13 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <span className="reasoning-beat-number" aria-hidden="true">{index + 1}</span><span>{item.label}</span>
         </button>)}
       </nav>
+      <StepProgress title={confirmedFocus ? 'Your focus is confirmed' : 'Give the meeting a clear direction'}
+        benefit={confirmedFocus ? 'Your confirmed focus is ready to shape the teaching move and meeting activities.' : 'Confirm one focus you can explain, then use it to build the meeting plan.'}
+        items={progressItems} nextId={nextDraftPart?.id}
+        nextLabel={confirmedFocus ? 'Continue to the meeting plan' : nextDraftPart ? `Next: ${nextDraftPart.label.toLowerCase()}` : 'Review your focus before confirming'}
+        onNext={confirmedFocus ? () => dispatch({ type: 'go', step: 2 }) : !nextDraftPart ? () => goToBeat('choose', true) : undefined}
+        completion={confirmedFocus ? 'Focus confirmed by you' : undefined} progressLabel="draft parts recorded"
+        note="Writing minimums only check that a response is present. You judge its quality and explicitly confirm the focus. Editing evidence or reasoning can require confirmation again; check the save status before leaving." />
       <button className="btn secondary reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
 
       <section className="reasoning-beat-panel" hidden={beat !== 'notice'} id="reasoning-notice-guide" tabIndex={-1} aria-labelledby="interpretation-label">

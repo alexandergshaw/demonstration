@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
+import { StepProgress } from '../components/StepProgress';
 import { TaskExplanation } from '../components/TaskExplanation';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
@@ -15,9 +16,11 @@ interface EvidenceWorkspaceProps {
 }
 
 type EvidenceView = 'results' | 'classes' | 'task';
+type EvidencePlace = EvidenceView | 'work';
 
 export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorkspaceProps) {
   const [view, setView] = useState<EvidenceView>('results');
+  const [opened, setOpened] = useState<EvidencePlace[]>(['results']);
   const viewId = useId();
   const viewContent = useRef<HTMLDivElement>(null);
   const studentWorkHeading = useRef<HTMLHeadingElement>(null);
@@ -25,20 +28,32 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
   const isRepeat = state.evidenceVersion === 'oct29';
   const observationSelected = state.selected.includes('observation');
   const selectedWork = responses.filter(response => state.selected.includes(response.id)).length;
-  const nextInspection = view === 'results'
-    ? { why: 'Before explaining the gap, check exactly what counted as an adequate explanation. Then use student work to investigate what the totals might mean.', label: 'Check task & scoring', view: 'task' as const }
-    : view === 'task'
-    ? { why: 'Use the same scoring criteria to see whether the pattern varies across classes.', label: 'Compare classes', view: 'classes' as const }
-    : { why: 'Look for reasoning that could help the team investigate the class pattern. These illustrative samples are not matched to the class rows.', label: 'Examine student work', view: null };
-
-  function inspectNext() {
-    if (nextInspection.view) setView(nextInspection.view);
+  function markOpened(place: EvidencePlace) {
+    setOpened(previous => previous.includes(place) ? previous : [...previous, place]);
+  }
+  function inspectPlace(place: EvidencePlace, focus = true) {
+    markOpened(place);
+    if (place !== 'work') setView(place);
+    if (!focus) return;
     window.requestAnimationFrame(() => {
-      const target = nextInspection.view ? viewContent.current : studentWorkHeading.current;
+      const target = place === 'work' ? studentWorkHeading.current : viewContent.current;
       target?.focus({ preventScroll: true });
       target?.scrollIntoView({ block: 'nearest' });
     });
   }
+  const inspectionItems = ([['results', 'Compare the results'], ['task', 'Check the task and scoring'], ['classes', 'Compare classes'], ['work', 'Examine student work']] as const)
+    .map(([id, label]) => ({ id, label, complete: opened.includes(id), onSelect: () => inspectPlace(id) }));
+  const suggestedPlace = inspectionItems.find(item => !item.complete)?.id;
+  const returningToWriting = Boolean(state.interpretation.trim());
+  const nextInspectionWhy = returningToWriting
+    ? 'Your interpretation draft is still available. Revisit it alongside the currently selected evidence and decide whether the explanation or focus needs to change.'
+    : suggestedPlace === 'task'
+    ? 'Before explaining the gap, check exactly what counted as an adequate explanation. Then use student work to investigate what the totals might mean.'
+    : suggestedPlace === 'classes'
+    ? 'Use the same scoring criteria to see whether the pattern varies across classes.'
+    : suggestedPlace === 'work'
+    ? 'Look for reasoning that could help the team investigate the class pattern. These illustrative samples are not matched to the class rows.'
+    : 'Use the evidence you can explain to write what you notice, what it might mean and what you still need to know. You can revisit any source.';
 
   return <div className="evidence-workspace">
     <div className="evidence-composition">
@@ -54,7 +69,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             ['results', 'Results'],
             ['task', 'Task & sources'],
             ['classes', 'By class'],
-          ] as const).map(([id, label]) => <button type="button" key={id} id={`${viewId}-${id}`} aria-pressed={view === id} aria-controls={`${viewId}-content`} onClick={() => setView(id)}>{label}</button>)}
+          ] as const).map(([id, label]) => <button type="button" key={id} id={`${viewId}-${id}`} aria-pressed={view === id} aria-controls={`${viewId}-content`} onClick={() => inspectPlace(id, false)}>{label}</button>)}
         </div>
 
         {isRepeat && <p className="evidence-repeat-limit"><strong>Repeated task · 116 of 120 expected responses; 4 absent.</strong> Practice may affect results. These are not matched student-level gains or evidence of a teaching action’s effect.</p>}
@@ -74,11 +89,16 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         </details>
 
         <div className="evidence-next-inspection">
-          <p className="evidence-next-label">Next evidence to inspect</p>
-          <button type="button" className="btn secondary compact" onClick={inspectNext}>{nextInspection.label}<Icon name="arrow" size={16} /></button>
+          <StepProgress title="Build the evidence for your meeting"
+            benefit={`The assessment is included${selectedWork ? ` with ${selectedWork} selected work ${selectedWork === 1 ? 'sample' : 'samples'}` : ''}. Selected quotations stay beside your writing and carry into the approved source packet.`}
+            items={inspectionItems} nextId={returningToWriting ? undefined : suggestedPlace}
+            nextLabel={returningToWriting ? 'Return to interpretation' : suggestedPlace === 'task' ? 'Check task & scoring' : suggestedPlace === 'classes' ? 'Compare classes' : suggestedPlace === 'work' ? 'Examine student work' : 'Interpret the evidence'}
+            onNext={returningToWriting || !suggestedPlace ? () => dispatch({ type: 'go', step: 1 }) : undefined}
+            progressLabel="places opened this visit" completeLabel="Opened" incompleteLabel="Available"
+            note="This is a navigation aid, not a record that you reviewed a source. You can interpret without opening every view; selecting work is optional. This visit count resets when you leave Evidence." />
           <details className="evidence-source-details">
-            <summary>Why inspect this next?</summary>
-            <div><p>{nextInspection.why}</p></div>
+            <summary>Why this next step?</summary>
+            <div><p>{nextInspectionWhy}</p></div>
           </details>
         </div>
 
@@ -103,7 +123,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             return <article className={`evidence-response${selected ? ' is-selected' : ''}`} key={response.id}>
               <p className="evidence-response-label">{response.label}</p>
               <blockquote>“{response.quote}”</blockquote>
-              <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove this work' : 'Select this work'}: ${response.label}`} onClick={() => dispatch({ type: 'evidence', id: response.id })}>
+              <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove this work' : 'Select this work'}: ${response.label}`} onClick={() => { markOpened('work'); dispatch({ type: 'evidence', id: response.id }); }}>
                 <Icon name={selected ? 'check' : 'plus'} size={17} />{selected ? 'Remove this work' : 'Select this work'}
               </button>
             </article>;

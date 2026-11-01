@@ -1,4 +1,5 @@
 .reflect-workspace{max-width:1100px;margin:0 auto}
+.reflect-workspace>.step-progress{margin-top:24px}
 .reflect-action{padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:#fff}
 .reflect-action-text{font-size:var(--text-body);line-height:var(--line-body);margin:.5rem 0 .75rem;max-width:70ch;white-space:pre-wrap}
 .reflect-action>.caption{font-size:var(--text-support);line-height:var(--line-body)}

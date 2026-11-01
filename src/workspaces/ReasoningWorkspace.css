@@ -33,6 +33,7 @@
 .reasoning-class-counts strong{font-weight:600}
 .reasoning-change-sources{justify-content:flex-start;margin-top:12px;text-align:left}
 .reasoning-writing{min-width:0;padding:24px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.reasoning-writing>.step-progress{margin-top:16px;padding:0 0 12px;border:0;border-bottom:1px solid var(--border);border-radius:0}
 .reasoning-beats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2vw,28px);align-items:stretch;border-bottom:1px solid var(--border)}
 .reasoning-beats button{display:flex;align-items:center;gap:8px;padding:2px 0 16px;min-width:0;min-height:52px;text-align:left;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink);font-size:var(--text-body);line-height:var(--line-body);overflow-wrap:anywhere}
 .reasoning-beats button>span:last-child{min-width:0}

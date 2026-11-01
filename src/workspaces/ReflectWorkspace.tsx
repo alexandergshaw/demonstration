@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { hasReflection, type Action, type PlanState } from '../model';
 import { StepCoach } from '../components/StepCoach';
+import { StepProgress } from '../components/StepProgress';
 import { TaskExplanation } from '../components/TaskExplanation';
 import './ReflectWorkspace.css';
 
@@ -11,8 +12,9 @@ interface ReflectWorkspaceProps {
   errorField: string; errorAttempt: number; openExamples: () => void;
   unsaved?: boolean;
   onEditCollection?: () => void;
+  onOpenRecord?: () => void;
 }
-export function ReflectWorkspace({ state: s, dispatch, submit, errorField, errorAttempt, openExamples, unsaved = false, onEditCollection }: ReflectWorkspaceProps) {
+export function ReflectWorkspace({ state: s, dispatch, submit, errorField, errorAttempt, openExamples, unsaved = false, onEditCollection, onOpenRecord }: ReflectWorkspaceProps) {
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [questionOpen, setQuestionOpen] = useState(() => Boolean(s.nextCycleQuestion.trim()));
   const recorded = hasReflection(s);
@@ -47,6 +49,12 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
     control?.focus({ preventScroll: true });
     control?.scrollIntoView({ block: 'nearest' });
   }
+  const progressItems = [
+    { id: 'implementation', label: 'Report what was tried', complete: Boolean(s.implementation), onSelect: () => focusControl(`implementation-${s.implementation || 'yes'}`) },
+    { id: 'next-step', label: 'Write the supported next action', complete: s.reflection.trim().length >= 30, onSelect: () => focusControl('reflection') },
+    { id: 'record', label: 'Review and record the next step', complete: recorded, onSelect: () => focusControl('reflect-record') },
+  ];
+  const nextDraftPart = progressItems.find(item => !item.complete);
   return <div className="reflect-workspace">
     <section className="reflect-action" aria-labelledby="reflect-action-title">
       <h2 id="reflect-action-title">Agreed teaching move</h2>
@@ -54,6 +62,15 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       <p className="caption">Who planned to try it: {s.owner}</p>
       {!recorded && (s.implementation || s.reflection.trim()) && <p className="caption">Draft report · Check that it describes this approved teaching move before recording.</p>}
     </section>
+
+    <StepProgress title={recorded ? 'Your next decision is recorded' : 'Give the next PLC a starting point'}
+      benefit={recorded ? 'Reopen your decision alongside the evidence and plan, so the next discussion can start from what you learned or still need to find out.' : 'Record what happened and what to do next. A specific plan to collect missing evidence is a useful outcome too.'}
+      items={progressItems} nextId={nextDraftPart?.id}
+      nextLabel={recorded && onOpenRecord ? 'View your decision record' : nextDraftPart?.id === 'record' || recorded ? 'Review your next step' : nextDraftPart ? `Next: ${nextDraftPart.label.toLowerCase()}` : undefined}
+      onNext={recorded && onOpenRecord ? onOpenRecord : nextDraftPart?.id === 'record' || recorded ? () => focusControl('reflection') : undefined}
+      completion={recorded ? unsaved ? 'Recorded in this draft · save pending' : 'Next step recorded' : undefined}
+      progressLabel="steps recorded"
+      note="Used, partly used and not yet used are equally valid reports. Recording a next step does not establish student improvement. Check save status before leaving; editing the report requires recording it again." />
 
     <div className="reflect-evidence-layout">
       <section className="reflect-implementation" aria-labelledby="implementation-title">
@@ -132,7 +149,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
     <div className="workspace-stage-footer">
       <button className="textlink" onClick={openExamples}>Explore a worked example</button>
       <div className="reflect-save"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>
-        <button className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
+        <button id="reflect-record" className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
     </div>
   </div>;
 }

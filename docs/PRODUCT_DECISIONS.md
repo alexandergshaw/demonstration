@@ -43,6 +43,23 @@ Role-based rationale is our design inference:
 
 The user's typography requirements take precedence over reference branding: IBM Plex Sans, one non-link text color, 36px page headings, 24px section headings and 16px for every other text role. Panel names explain design decisions here; they are not presented as endorsements in the educator interface.
 
+## Guided progress and practical incentives
+
+The same references inform the next layer of guidance. Playlab makes building, testing and deliberate publication separate actions; IM connects preparation to usable teaching activities and reflection; EdLight connects work analysis to instructional next steps. Our inference is to make the useful output of each step visible and provide a direct route to the next unfinished part. The sources do not establish that this design increases completion or learning outcomes.
+
+| Stage | Incentive shown to the leader | Guidance and honest feedback |
+| --- | --- | --- |
+| Evidence | A source packet that keeps the assessment and selected quotations available for writing and the meeting | An optional route through results, task/scoring, classes and student work. The count labels places opened during this visit, not sources reviewed. Selecting work is optional; direct interpretation stays available. |
+| Interpret | One confirmed focus that can shape the teaching move and meeting | Draft interpretation, consideration of an alternative, and draft focus are visible as separate parts. Next opens the unfinished part. Confirmation remains an explicit educator decision. |
+| Plan | A reviewed agenda, source packet and participant activity | Teaching move/owner, authored activity directions and the two checks have direct edit routes. Starter activity text is not counted as newly authored work. Retaining suitable starter text remains allowed at review. Approval makes the kit available. |
+| Reflect | A decision the next PLC can reopen alongside the original plan | Report implementation, write a supported next action, and explicitly record it. Used, partly used and not yet used receive equal progress credit. The recorded state offers a direct link to Decisions. |
+
+The shared guide is compact and its full step list stays collapsed until requested. Draft progress is derived from current state; it does not change approval rules, write sample answers or introduce another persistence schema. Evidence navigation history is local to a visit and resets when the evidence version or cycle changes. Edits and invalidated approvals are reflected immediately. Counts acknowledge input presence, never reasoning quality, mastery or student improvement. Save status remains the authority for persistence; the guide does not announce success on each keystroke.
+
+These are practical incentives and return paths, without points, rankings, streaks or new mandatory gates. The panel rationale is unchanged: Tyler and Sabrina's product/operational lenses inform predictable next actions; LeAnita and Nia's instructional lenses keep evidence and judgment separate; Antoinette and Sandra's innovation/strategy lenses inform explicit review and the classroom-to-reflection handoff.
+
+Verification for this guidance pass: 360 tests across 15 files pass, including six regressions for optional source navigation, explicit confirmation, retained starter text, valid non-implementation reports, edited reflections and unsaved recorded states. The production build succeeds. The local server serves the new guide and workspace modules; source review checked next-action routing and existing focus handlers. Browser rendering and interactions remain unverified under the user's source-only exception.
+
 ## Decision principles
 
 | Decision | Alternative considered | Reason |
