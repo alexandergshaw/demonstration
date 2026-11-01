@@ -1,31 +1,31 @@
-/* One type system for the workspace, learning surfaces and portable documents. */
+/* Four visual sizes: page title, section heading, body and supporting text. */
 :root {
   --font-family: 'IBM Plex Sans', Arial, sans-serif;
   --font-regular: 400;
   --font-semibold: 600;
-  --text-title: 2.25rem;
+  --text-title: 2rem;
   --text-display: var(--text-title);
-  --text-section: 1.5rem;
-  --text-task: 1.25rem;
-  --text-label: 1.125rem;
+  --text-section: 1.25rem;
+  --text-task: var(--text-section);
+  --text-label: var(--text-body);
   --text-body: 1rem;
   --text-support: .875rem;
-  --text-meta: .8125rem;
+  --text-meta: var(--text-support);
+  --line-body: 1.6;
+  --line-heading: 1.35;
   font-family: var(--font-family);
   font-size: 100%;
   font-weight: var(--font-regular);
   font-synthesis: none;
 }
 
-body { font-family: var(--font-family); font-size: var(--text-body); font-weight: var(--font-regular); line-height: 1.65; }
+body { font-family: var(--font-family); font-size: var(--text-body); font-weight: var(--font-regular); line-height: var(--line-body); }
 button, input, select, textarea { font-family: inherit; }
 h1, h2, h3, h4, h5, h6, strong, b { font-weight: var(--font-semibold); }
-h1 { font-size: var(--text-title); line-height: 1.2; }
-h2 { font-size: var(--text-section); line-height: 1.3; }
-h3 { font-size: var(--text-task); line-height: 1.4; }
-h4 { font-size: var(--text-label); line-height: 1.4; }
-h5, h6 { font-size: var(--text-body); line-height: 1.5; }
+h1, h2, h3, h4, h5, h6 { line-height: var(--line-heading); }
+h1 { font-size: var(--text-title); }
+h2, h3 { font-size: var(--text-section); }
+h4, h5, h6 { font-size: var(--text-body); }
 small { font-size: var(--text-meta); }
 
-@media (max-width: 700px) { :root { --text-title: 2rem; } }
 @media print { :root { font-size: 12pt; } }

@@ -2,9 +2,8 @@
 .task-explanation {
   min-width: 0;
   margin: 1.5rem 0;
-  padding: 1.25rem 0 0 1.25rem;
+  padding: 1.25rem 0 0;
   border-top: 1px solid var(--border);
-  border-left: 3px solid #b9cbe5;
   color: var(--ink);
   overflow-wrap: anywhere;
 }
@@ -13,29 +12,26 @@
   margin: 0 0 .65rem;
   font-size: var(--text-label);
   font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0;
+  line-height: var(--line-heading);
 }
 .task-explanation .task-explanation-why,
 .task-explanation .task-explanation-steps {
   max-width: 65ch;
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height: var(--line-body);
 }
 .task-explanation .task-explanation-why { margin: 0; color: var(--muted); }
 .task-explanation .task-explanation-steps { margin: 1rem 0; padding-left: 1.3rem; }
 .task-explanation-steps li { padding-left: .25rem; }
 .task-explanation-steps li + li { margin-top: 1rem; }
-.task-explanation-steps li::marker { color: var(--accent-dark); font-weight: 600; }
-.task-explanation-steps strong { display: block; font-weight: 600; line-height: 1.5; }
+.task-explanation-steps li::marker { color: var(--muted); font-weight: 600; }
+.task-explanation-steps strong { display: block; font-weight: 600; line-height: var(--line-body); }
 .task-explanation-steps span { display: block; margin-top: .2rem; color: var(--muted); }
 .task-explanation .task-explanation-handoff {
   max-width: 65ch;
   margin: 1rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height: var(--line-body);
 }
 .task-explanation-handoff strong { display: block; margin-bottom: .25rem; font-weight: 600; }
 .task-explanation-handoff span { display: block; color: var(--muted); }
@@ -45,16 +41,16 @@
   padding: .65rem 0;
   color: var(--accent-dark);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height: var(--line-body);
   cursor: pointer;
 }
 .task-explanation-example summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .task-explanation .task-explanation-example p {
   margin: .5rem 0;
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height: var(--line-body);
   white-space: pre-line;
 }
 .task-explanation .task-explanation-example-note { color: var(--muted); font-size: var(--text-support); }
-@media (max-width: 480px) { .task-explanation { padding-left: .85rem; margin: 1.25rem 0; } }
+@media (max-width: 480px) { .task-explanation { margin: 1.25rem 0; } }
 @media (forced-colors: active) { .task-explanation { border-color: CanvasText; } }

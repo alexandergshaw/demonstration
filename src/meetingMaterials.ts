@@ -76,18 +76,18 @@ export function exportMeetingHtml(state: PlanState, reference: ReferenceData): s
 ${portableTypographyCss}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;color:#172637;background:#f3f5f8;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:1.6}
+body{margin:0;color:#172637;background:#f3f5f8;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 header,nav,.sheet{max-width:1040px;margin:28px auto;padding:36px}
 header{padding-bottom:0}
 h1,h2,h3,p{margin:0}
-h1,h2,h3{font-weight:var(--font-semibold);line-height:1.25}
-h1{font-size:var(--text-title);letter-spacing:-.03em}
-h2{font-size:var(--text-section);letter-spacing:-.02em;margin:12px 0 28px}
+h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
+h1{font-size:var(--text-title);}
+h2{font-size:var(--text-section);margin:12px 0 28px}
 h3{font-size:var(--text-label);color:#172637;margin-bottom:9px}
 p{white-space:pre-wrap;overflow-wrap:anywhere}
-.eyebrow,footer{font-size:var(--text-meta);line-height:1.5;color:#526170}
+.eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:#526170}
 header p{font-size:var(--text-support);color:#526170;margin-top:12px}
-.sheet{background:#fff;border:1px solid #ccd4de;border-top:4px solid #225cd5;min-height:70vh;scroll-margin-top:20px}
+.sheet{background:#fff;border:1px solid #ccd4de;min-height:70vh;scroll-margin-top:20px}
 .block{margin:22px 0;padding-top:18px;border-top:1px solid #ccd4de}
 .block p{font-size:var(--text-body)}
 footer{border-top:1px solid #ccd4de;padding-top:18px;margin-top:32px}

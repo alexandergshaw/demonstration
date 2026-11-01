@@ -72,11 +72,11 @@ export function exportPilotEvaluationHtml(protocol: PilotEvaluationProtocol = pi
 <style>
 ${portableTypographyCss}
 *{box-sizing:border-box}
-body{margin:0;color:#17202b;background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:1.6}
+body{margin:0;color:#17202b;background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 main{max-width:1100px;margin:auto;padding:40px 28px}
-h1,h2,h3{font-weight:var(--font-semibold);line-height:1.25}
-h1{font-size:var(--text-title);letter-spacing:-.03em}
-h2{margin-top:2rem;font-size:var(--text-section);letter-spacing:-.02em}
+h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
+h1{font-size:var(--text-title);}
+h2{margin-top:2rem;font-size:var(--text-section);}
 h3{font-size:var(--text-task)}
 p{margin:.6rem 0 1rem}
 .status{font-size:var(--text-support);font-weight:var(--font-semibold);color:#163c73}

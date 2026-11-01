@@ -11,7 +11,7 @@
   padding: 0 0 1rem;
   border-bottom: 1px solid var(--border, #ccd4de);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-goal > span {
@@ -48,8 +48,8 @@
   margin: 0;
   font-size: var(--text-section);
   font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -.025em;
+  line-height:var(--line-heading);
+
 }
 
 .evidence-workspace .evidence-included {
@@ -65,7 +65,7 @@
   margin: .65rem 0 0;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-view-switch {
@@ -116,7 +116,7 @@
   max-width: 56ch;
   color: var(--muted);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-next-inspection .textlink {
@@ -131,9 +131,9 @@
 }
 
 .evidence-workspace .evidence-view-lead {
-  font-size: var(--text-task);
+  font-size: var(--text-body);
   font-weight: 600;
-  line-height: 1.5;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-measure {
@@ -146,7 +146,7 @@
 
 .evidence-workspace .evidence-measure-label {
   font-size: var(--text-body);
-  line-height: 1.5;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-measure > .evidence-score {
@@ -159,7 +159,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: .1rem .75rem;
-  line-height: 1.5;
+  line-height:var(--line-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -206,7 +206,7 @@
   margin: 0;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-results > .step-coach {
@@ -216,7 +216,7 @@
 .evidence-workspace .evidence-rubric-anchor {
   margin: .75rem 0 0;
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height:var(--line-body);
   color: var(--ink, #172637);
 }
 
@@ -225,7 +225,7 @@
   border-collapse: collapse;
   table-layout: fixed;
   font-size: var(--text-body);
-  line-height: 1.5;
+  line-height:var(--line-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -282,7 +282,7 @@
   margin: 0 0 .5rem;
   font-size: var(--text-task);
   font-weight: 600;
-  line-height: 1.4;
+  line-height:var(--line-heading);
 }
 
 .evidence-workspace .evidence-original-task blockquote {
@@ -290,13 +290,13 @@
   border: 0;
   padding: 0;
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-task-provenance {
   font-size: var(--text-support);
   color: var(--muted, #526170);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-scoring-summary {
@@ -317,13 +317,13 @@
 .evidence-workspace .evidence-scoring-summary dt {
   font-size: var(--text-body);
   font-weight: 600;
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-scoring-summary dd {
   margin: .25rem 0 0;
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-source-details {
@@ -334,7 +334,7 @@
   min-height: 2.75rem;
   padding: .65rem 0;
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
   color: var(--accent-dark, #163f99);
   cursor: pointer;
 }
@@ -342,7 +342,7 @@
 .evidence-workspace .evidence-source-details > div {
   padding: 0 0 1rem;
   font-size: var(--text-support);
-  line-height: 1.65;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-source-details p + p,
@@ -376,7 +376,7 @@
   background: #f6f8fb;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-repeat-limit strong {
@@ -411,17 +411,17 @@
   color: var(--muted, #526170);
   font-size: var(--text-meta);
   font-weight: 600;
-  line-height: 1.5;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-response blockquote {
   margin: .75rem 0 1.25rem;
   padding: 0;
   border: 0;
-  font-size: var(--text-task);
+  font-size: var(--text-body);
   font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: -.015em;
+  line-height:var(--line-body);
+
 }
 
 .evidence-workspace .evidence-select {
@@ -439,7 +439,7 @@
   font: inherit;
   font-size: var(--text-support);
   font-weight: 600;
-  line-height: 1.4;
+  line-height:var(--line-heading);
   text-align: left;
   cursor: pointer;
 }
@@ -508,7 +508,7 @@
 .evidence-workspace .evidence-history-status {
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.5;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-history-status {
@@ -526,14 +526,14 @@
   padding: 0;
   border: 0;
   font-size: var(--text-label);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-history-caution {
   margin: .25rem 0 0 1.5625rem;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-history-next-check {
@@ -541,7 +541,7 @@
   margin: .5rem 0 0 1.5625rem;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-history-next-check strong {
@@ -564,7 +564,7 @@
   margin: 0;
   color: var(--muted, #526170);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height:var(--line-body);
 }
 
 .evidence-workspace .evidence-next > .btn {
@@ -581,7 +581,7 @@
   max-width: 65ch;
   margin: .65rem 0 1.25rem;
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height:var(--line-body);
   color: var(--muted);
 }
 .evidence-workspace .evidence-next-label {
@@ -589,7 +589,7 @@
   font-size: var(--text-label);
   font-weight: 600;
   color: var(--ink);
-  line-height: 1.5;
+  line-height:var(--line-body);
 }
 .evidence-workspace .evidence-selection-status { margin-top: .65rem; font-size: var(--text-support); }
 .evidence-workspace .evidence-results > .evidence-note { margin-top: .5rem; }

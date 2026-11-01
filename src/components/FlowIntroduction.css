@@ -16,23 +16,17 @@
 
 .flow-introduction .flow-introduction-eyebrow {
   margin: 0 0 .875rem;
-  color: var(--accent-dark, #163f99);
+  color: var(--muted, #526170);
   font-size: var(--text-meta);
   font-weight: 600;
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-introduction-title {
   max-width: 24ch;
   font-size: var(--text-title);
-  line-height: 1.2;
-  letter-spacing: -.025em;
+  line-height: var(--line-heading);
   margin: 0;
-}
-
-.flow-introduction-welcome .flow-introduction-title {
-  font-size: var(--text-title);
-  letter-spacing: -.035em;
 }
 
 .flow-introduction-title:focus {
@@ -43,8 +37,8 @@
   max-width: 50ch;
   margin: 1.125rem 0 0;
   color: var(--muted, #526170);
-  font-size: var(--text-label);
-  line-height: 1.6;
+  font-size: var(--text-body);
+  line-height: var(--line-body);
 }
 
 .flow-introduction-start {
@@ -56,7 +50,7 @@
   margin: .75rem 0 0;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction-start > .btn {
@@ -67,16 +61,14 @@
 .flow-introduction-destination {
   min-width: 0;
   padding: 1.5rem;
-  border-top: 3px solid var(--accent, #225cd5);
-  background: #f2f6fd;
+  border: 1px solid var(--border, #ccd4de);
 }
 
 .flow-introduction .flow-destination-title {
   max-width: 30ch;
   margin: 0;
   font-size: var(--text-section);
-  line-height: 1.35;
-  letter-spacing: -.02em;
+  line-height: var(--line-heading);
 }
 
 .flow-introduction-outcomes {
@@ -88,14 +80,14 @@
 .flow-introduction-outcomes dt {
   font-size: var(--text-label);
   font-weight: 600;
-  line-height: 1.5;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-introduction-outcomes dd {
   margin: .2rem 0 0;
   color: var(--muted, #526170);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-destination-deliverable {
@@ -103,7 +95,7 @@
   padding-top: 1rem;
   border-top: 1px solid var(--border, #ccd4de);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-destination-deliverable strong {
@@ -115,7 +107,7 @@
   margin: 1.5rem 0 0;
   color: var(--muted, #526170);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction-agency strong {
@@ -123,13 +115,13 @@
 }
 
 .flow-introduction-method{margin:2rem 0 1rem;padding:1.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.flow-introduction .flow-method-title{margin:0 0 1.25rem;font-size:var(--text-section);line-height:1.3}
+.flow-introduction .flow-method-title{margin:0 0 1.25rem;font-size:var(--text-section);line-height:var(--line-heading)}
 .flow-introduction-method dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem 2rem;margin:0}
-.flow-introduction-method dt{font-size:var(--text-label);font-weight:600;line-height:1.5}
-.flow-introduction-controls dt{font-size:var(--text-body);font-weight:600;line-height:1.5}
-.flow-introduction-method dd,.flow-introduction-controls dd{margin:.4rem 0 0;font-size:var(--text-body);color:var(--muted);line-height:1.65;max-width:65ch}
-.flow-introduction-method>p{max-width:80ch;margin:1.5rem 0 0;font-size:var(--text-support);line-height:1.65;color:var(--muted)}
-.flow-introduction-controls summary{min-height:44px;padding:.85rem 0;color:var(--accent-dark);font-size:var(--text-body);font-weight:600;line-height:1.6;cursor:pointer}
+.flow-introduction-method dt{font-size:var(--text-label);font-weight:600;line-height:var(--line-body)}
+.flow-introduction-controls dt{font-size:var(--text-body);font-weight:600;line-height:var(--line-body)}
+.flow-introduction-method dd,.flow-introduction-controls dd{margin:.4rem 0 0;font-size:var(--text-body);color:var(--muted);line-height:var(--line-body);max-width:65ch}
+.flow-introduction-method>p{max-width:80ch;margin:1.5rem 0 0;font-size:var(--text-support);line-height:var(--line-body);color:var(--muted)}
+.flow-introduction-controls summary{min-height:44px;padding:.85rem 0;color:var(--accent-dark);font-size:var(--text-body);font-weight:600;line-height:var(--line-body);cursor:pointer}
 .flow-introduction-controls dl{display:grid;gap:1rem;margin:.5rem 0 1.25rem;max-width:75ch}
 @media(max-width:760px){.flow-introduction-method dl{grid-template-columns:minmax(0,1fr)}}
 :root[data-text-size=largest] .flow-introduction-method dl{grid-template-columns:minmax(0,1fr)}
@@ -163,23 +155,17 @@
   line-height: 1;
 }
 
-.flow-introduction-phases > li:first-child .flow-phase-number {
-  color: var(--accent-dark, #163f99);
-  border-color: var(--accent, #225cd5);
-  background: #edf3ff;
-}
-
 .flow-introduction .flow-phase-title {
   margin: 0;
   font-size: var(--text-task);
-  line-height: 1.5;
+  line-height: var(--line-heading);
 }
 
 .flow-introduction .flow-introduction-phases p {
   margin: .25rem 0 0;
   color: var(--muted, #526170);
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-introduction-preview > summary {
@@ -188,7 +174,7 @@
   color: var(--accent-dark, #163f99);
   font-size: var(--text-body);
   font-weight: 600;
-  line-height: 1.6;
+  line-height: var(--line-body);
   cursor: pointer;
 }
 
@@ -200,7 +186,7 @@
   margin: 0 0 1rem;
   color: var(--muted, #526170);
   font-size: var(--text-meta);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-kit-pages {
@@ -215,37 +201,32 @@
   padding: 1rem;
   background: #fff;
   border: 1px solid var(--border, #ccd4de);
-  border-top: 3px solid #a4b3c6;
   border-radius: 2px;
 }
 
-.flow-introduction .flow-kit-agenda {
-  border-top-color: var(--accent, #225cd5);
-}
-
 .flow-introduction .flow-kit-page > .icon {
-  color: var(--accent-dark, #163f99);
+  color: var(--muted, #526170);
   margin-bottom: .65rem;
 }
 
 .flow-introduction .flow-kit-title {
   margin: 0;
   font-size: var(--text-body);
-  line-height: 1.4;
+  line-height: var(--line-heading);
 }
 
 .flow-introduction .flow-kit-page > p {
   margin: .5rem 0 1rem;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-kit-section {
   border-top: 1px solid #e1e6ed;
   padding: .65rem 0;
   font-size: var(--text-meta);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-kit-section strong,
@@ -272,7 +253,7 @@
   padding: .45rem 0;
   border-top: 1px solid #e1e6ed;
   font-size: var(--text-meta);
-  line-height: 1.5;
+  line-height: var(--line-body);
 }
 
 .flow-introduction .flow-kit-agenda li > span:last-child {
@@ -291,7 +272,7 @@
   margin: 0;
   color: var(--muted, #526170);
   font-size: var(--text-meta);
-  line-height: 1.6;
+  line-height: var(--line-body);
 }
 
 .flow-introduction :is(h1, h2, h3, h4, h5, p, li, dt, dd, button, summary) {
@@ -341,6 +322,6 @@
   border-top: 1px solid var(--border);
   font-size: var(--text-meta);
   font-weight: 600;
-  line-height: 1.5;
+  line-height: var(--line-body);
   color: var(--muted);
 }

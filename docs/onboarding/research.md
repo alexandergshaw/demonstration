@@ -2,6 +2,14 @@
 
 Research date: October 31, 2026. This record contains the initial learning-hub research and a subsequent purpose-led first-use synthesis. The findings below come from public primary sources. Throughline's feature choices are our product inferences; Leading Educators (LE) has not specified, reviewed or endorsed these features. The research supports a design hypothesis, not a claim that this app improves educator practice or student outcomes.
 
+## Simplified body and heading styles
+
+Updated October 31, 2026. The user's subsequent refinement reduces the visible scale to four sizes: 32px page titles, 20px section headings, 16px body text and labels, and 14px supporting text. Existing semantic tokens remain aliases so each component keeps its role. IBM Plex Sans regular and semibold remain the only weights; the shared system also applies to HTML exports.
+
+Body text, quoted evidence and authored decisions use the same reading treatment. Heading and body line heights are shared, decorative letter spacing is removed, and colored header strips and guide rails give way to neutral rules and spacing. Links, selected controls and keyboard focus retain their meaningful indicators. Explanatory content, reading preferences, form behavior and saved decisions are unchanged. Earlier scale specifications below describe previous iterations.
+
+Verification: 354 automated tests pass, the production build succeeds, and the local app responds with HTTP 200. Desktop and narrow rendered layouts remain unverified because browser access is disabled; deployment follows the user's explicit exception.
+
 ## Consistent typography across the app and portable materials
 
 Updated October 31, 2026. The next refinement applies one restrained typographic system throughout the working app, Guide, dialogs, HTML meeting kit and pilot worksheet. The named roles and sources below were already verified in this research record. Their connection to typography is our design inference: none of these sources establishes a personal font preference, a request to use IBM Plex Sans, or an endorsement of this implementation. Names belong in this rationale and the interview explanation, not in the teacher's controls.

@@ -9,7 +9,7 @@
   color: var(--ink, #172637);
   font-size: var(--text-body);
   font-weight: 600;
-  line-height: 1.55;
+  line-height:var(--line-body);
   overflow-wrap: anywhere;
 }
 
@@ -20,7 +20,7 @@
   padding: .65rem 0;
   color: var(--accent-dark, #163f99);
   font-size: var(--text-support);
-  line-height: 1.6;
+  line-height:var(--line-body);
   cursor: pointer;
   overflow-wrap: anywhere;
 }
@@ -36,7 +36,7 @@
   border-left: 2px solid #b9cbe5;
   color: var(--muted, #526170);
   font-size: var(--text-support);
-  line-height: 1.65;
+  line-height:var(--line-body);
   overflow-wrap: anywhere;
 }
 
