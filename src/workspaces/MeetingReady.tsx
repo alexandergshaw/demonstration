@@ -20,6 +20,11 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
 
   const collectionIncomplete = !state.evidenceCollector.trim() || !state.collectionDate || !state.reviewDate;
   return <div className="meeting-ready">
+    <section className="meeting-ready-materials" aria-labelledby="meeting-ready-materials-title">
+      <div><h2 id="meeting-ready-materials-title">Take the plan into your meeting.</h2><p>Open your reviewed agenda, activities and source packet to present, print or export. The kit uses your approved writing, including the directions you gave each activity; it does not generate a new teaching decision.</p></div>
+      <button className="btn" onClick={onOpenKit}><Icon name="book" size={18} />Open meeting kit<Icon name="arrow" size={17} /></button>
+    </section>
+
     <section className="meeting-ready-move" aria-labelledby="meeting-ready-move-title">
       <div className="meeting-ready-heading"><p className="meeting-ready-status"><Icon name="check" size={17} />Plan approved by you</p><button className="textlink" onClick={onEditPlan}><Icon name="pencil" size={15} />Edit plan</button></div>
       <h2 id="meeting-ready-move-title">The move you will bring to the team</h2>
@@ -27,12 +32,7 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
       <p className="meeting-ready-owner">Who will try it · {state.owner}</p>
     </section>
 
-    <section className="meeting-ready-materials" aria-labelledby="meeting-ready-materials-title">
-      <div><h2 id="meeting-ready-materials-title">Take the plan into your meeting.</h2><p>Open your reviewed agenda, activities and source packet to present, print or export. The kit uses your approved writing, including the directions you gave each activity; it does not generate a new teaching decision.</p></div>
-      <button className="btn" onClick={onOpenKit}><Icon name="book" size={18} />Open meeting kit<Icon name="arrow" size={17} /></button>
-    </section>
-
-    <TaskExplanation title="Use the kit, then gather evidence"
+    <TaskExplanation headingLevel="h2" title="Use the kit, then gather evidence"
       why="Approval finishes preparation in Throughline. The meeting and classroom attempt happen next, so this screen is a handoff into the team’s work."
       steps={[
         { label: 'Prepare the materials', detail: 'Open meeting kit to review the six presentation sections, source packet and participant activity. Print or download the materials your team will need.' },

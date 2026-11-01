@@ -119,13 +119,16 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       })}</nav>
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
-      <div className="page">{!introduceFlow && <header className="intro"><div>
+      <div className="page">{!introduceFlow && <header className="intro"><div className="flow-heading">
         <p className="flow-phase">{orientation.phase}</p>
         <h1 ref={title} tabIndex={-1}>{meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1>
-        <p>{orientation.purpose}</p>
-        <p className="flow-why"><strong>Why this step matters</strong> {orientation.why}</p>
-        <p className="flow-outcome"><span>You’ll take forward</span>{orientation.outcome}</p>
-      </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div></header>}
+        <p className="flow-purpose">{orientation.purpose}</p>
+      </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div>
+        <dl className="flow-context">
+          <div><dt>Why this step matters</dt><dd>{orientation.why}</dd></div>
+          <div><dt>You’ll take forward</dt><dd>{orientation.outcome}</dd></div>
+        </dl>
+      </header>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
         {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}

@@ -2,6 +2,18 @@
 
 Research date: October 31, 2026. This record contains the initial learning-hub research and a subsequent purpose-led first-use synthesis. The findings below come from public primary sources. Throughline's feature choices are our product inferences; Leading Educators (LE) has not specified, reviewed or endorsed these features. The research supports a design hypothesis, not a claim that this app improves educator practice or student outcomes.
 
+## Typography and information architecture pass
+
+Updated October 31, 2026. The follow-up retains the named role hypotheses and instructional explanations below, while making their hierarchy clearer. The source review found duplicate type tokens, essential guidance styled as small support text, explanations competing with active writing, and component rules overriding spacious reading preferences.
+
+- One shared scale distinguishes page titles (36px, 32px on narrow screens), sections (24px), task prompts (20px), labels and guide headings (18px), essential instructions (16px), support (14px) and metadata (13px), all expressed in relative units.
+- Each stage separates its main purpose from a labelled rationale and output. The introduction labels the before/during/after timeline separately from the four instructional decisions.
+- Interpret, Plan and Reflect put the current field or decision before longer guidance, with the concise instruction immediately beside the control. Full explanations remain visible; examples and additional coaching remain optional. Guide titles are semantic headings.
+- Evidence explains the effect of sample selection before the controls and places each handoff beside its next-view action. MeetingReady leads with access to the approved kit.
+- Reading preferences override presentation styles; the largest text setting stacks prose and work columns consistently. Dates, source limits, requirements and saving/approval distinctions remain explicit.
+
+Verification: source/semantic review, 352 passing automated tests across 13 files, a successful production build and a running local Vite response (HTTP 200). Local browser access remains disabled; desktop and narrow rendered layouts and interactions were not visually checked. The user explicitly waived that blocker and requested deployment. The source review and automated checks do not replace visual verification.
+
 ## Explanatory pass: from finding the next control to understanding the work
 
 Updated October 31, 2026, after the control-guidance release. The user asked for the whole experience to be substantially more explanatory and to use the interviewers' names and roles to strengthen the rationale. The earlier pass improved where to go next, but a next-action label did not explain enough about what to think, what to write, or how the result would be used. Essential reasons were also easy to miss: the stage's `why` appeared in the optional walkthrough, and the thinking support was collapsed.

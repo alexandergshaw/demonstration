@@ -251,7 +251,6 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   }
 
   return <div className="plan-workspace">
-    <p className="pw-explanation pw-entry-explanation">You are preparing a conversation the team can act on. First propose one teaching move, then write directions for the six meeting activities, and finally decide what evidence to bring back. Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
     <nav className="pw-route" aria-label="Build the meeting plan">
       <ol>
         <li><button type="button" onClick={editAction} aria-controls="pw-teaching-move"><span className="pw-route-number" aria-hidden="true">1</span><span><strong>Define the move</strong><small>What teaching will change, and who will try it</small></span></button></li>
@@ -259,6 +258,10 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
         <li><button type="button" onClick={() => editCheck('implementation')} aria-controls="pw-follow-up"><span className="pw-route-number" aria-hidden="true">3</span><span><strong>Set two checks</strong><small>Evidence of implementation and student learning</small></span></button></li>
       </ol>
     </nav>
+    <div className="pw-entry">
+      <p className="pw-explanation pw-entry-explanation">You are preparing a conversation the team can act on. First propose one teaching move, then write directions for the six meeting activities, and finally decide what evidence to bring back.</p>
+      <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
+    </div>
 
     <section className="pw-focus-context" aria-labelledby="pw-focus-heading">
       <div className="pw-section-heading">
@@ -294,7 +297,6 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       <section className="pw-outline" aria-labelledby="pw-outline-heading">
         <div className="pw-section-heading"><h2 id="pw-outline-heading">Meeting outline</h2><span className="pw-meta">50 minutes</span></div>
         <p className="pw-route-hint">Choose any activity to edit. Review all six before approving your plan.</p>
-        <p className="pw-explanation">Select an activity to see its purpose and write the directions a facilitator will give. The time shown for each activity adds up to this fixed 50-minute meeting. Starter text names a topic; your directions explain who does what, with which evidence, and what they record.</p>
         <ol className="pw-agenda-list">
           {agendaHeadings.map((heading, index) => <li key={heading}>
             <button className="pw-agenda-choice" aria-pressed={selectedAgenda === index} aria-controls="pw-agenda-editor"
@@ -305,27 +307,30 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
             </button>
           </li>)}
         </ol>
+        <p className="pw-outline-explanation">Select an activity to see its purpose and write the directions a facilitator will give. The time shown for each activity adds up to this fixed 50-minute meeting. Starter text names a topic; your directions explain who does what, with which evidence, and what they record.</p>
       </section>
 
       <section id="pw-agenda-editor" className="pw-agenda-editor" aria-labelledby="pw-activity-heading">
         <p className="pw-meta">Activity {selectedAgenda + 1} of {agendaHeadings.length} · {minutes[selectedAgenda]} minutes</p>
         <h2 id="pw-activity-heading" tabIndex={-1}>{agendaHeadings[selectedAgenda]}</h2>
         {isStarter(selectedAgenda) && <p className="pw-starter-note"><strong>Starter text.</strong> Review and adapt these directions for your team.</p>}
-        <TaskExplanation {...activityExplanations[selectedAgenda]} />
-        <StepCoach question={facilitationQuestions[selectedAgenda]} ready="A colleague can tell what participants will do, which evidence they will use, and what they will leave with.">
-          <p>{agendaHints[selectedAgenda]}</p>
-          <p>Include a prompt or task, how the team will work together, and what they will record. Use the time shown for this activity.</p>
-        </StepCoach>
         <TextArea id={`agenda-${selectedAgenda}`} label="Facilitation directions" requirement="Required · at least 5 characters" hint={`Activity ${selectedAgenda + 1} of ${agendaHeadings.length}: ${agendaHeadings[selectedAgenda]}. Write the instructions you will give colleagues: the material to use, the question or task, how they will work together, and what they should record. These exact directions appear in your meeting kit.`}
           value={state.agenda[selectedAgenda]} onChange={value => dispatch({ type: 'agenda', index: selectedAgenda, value })} />
-        {selectedAgenda === 3 && <>
-          <RehearsalGuide state={state} reference={reference} />
-          <AccessParticipation state={state} dispatch={dispatch} />
-        </>}
         <nav className="pw-activity-navigation" aria-label="Move between meeting activities">
           {selectedAgenda > 0 && <button type="button" className="textlink" onClick={() => editAgenda(selectedAgenda - 1)}>Previous activity<span className="sr-only">: {agendaHeadings[selectedAgenda - 1]}</span></button>}
           <button type="button" className="btn secondary compact" onClick={continueFromActivity}>{!activityReady ? 'Write activity directions' : selectedAgenda < agendaHeadings.length - 1 ? 'Next activity' : 'Next: set the two checks'}<Icon name="arrow" size={15} />{activityReady && selectedAgenda < agendaHeadings.length - 1 && <span className="sr-only">: {agendaHeadings[selectedAgenda + 1]}</span>}</button>
         </nav>
+        <div className="pw-activity-guidance">
+          <TaskExplanation {...activityExplanations[selectedAgenda]} />
+          <StepCoach question={facilitationQuestions[selectedAgenda]} ready="A colleague can tell what participants will do, which evidence they will use, and what they will leave with.">
+            <p>{agendaHints[selectedAgenda]}</p>
+            <p>Include a prompt or task, how the team will work together, and what they will record. Use the time shown for this activity.</p>
+          </StepCoach>
+          {selectedAgenda === 3 && <>
+            <RehearsalGuide state={state} reference={reference} />
+            <AccessParticipation state={state} dispatch={dispatch} />
+          </>}
+        </div>
       </section>
     </div>
 
@@ -374,11 +379,11 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       </div>
     </section>
 
+    <p className="pw-explanation pw-approval-explanation">Review meeting plan opens the complete draft without approving it. Check that the directions fit your team, including any starter text you kept. Your ownership confirmation and approval then make the meeting kit available; they do not certify the plan’s quality or report that teaching has happened.</p>
     <footer className="pw-footer">
       <div className="pw-next-guidance"><p><strong>Suggested next</strong> {draftMessage || (approved ? 'Review your current approved plan. Editing it will require approval again.' : 'Review every activity and both checks, including any starter text, before approving.')}</p>{draftTarget !== 'review' && <button type="button" className="textlink" onClick={openReview}>Review meeting plan</button>}</div>
       <button type="button" className="btn" onClick={followSuggestedAction}>{draftActionLabels[draftTarget]}<Icon name="arrow" size={17} /></button>
     </footer>
-    <p className="pw-explanation pw-approval-explanation">Review meeting plan opens the complete draft without approving it. Check that the directions fit your team, including any starter text you kept. Your ownership confirmation and approval then make the meeting kit available; they do not certify the plan’s quality or report that teaching has happened.</p>
 
     {sourcesOpen && <Modal title="Your focus & evidence" onClose={() => { clearError(); setSourcesOpen(false); }}>
       <div className="source-reader source-blocks pw-source-reader">

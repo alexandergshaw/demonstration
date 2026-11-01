@@ -49,20 +49,12 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
   }
   return <div className="reflect-workspace">
     <section className="reflect-action" aria-labelledby="reflect-action-title">
-      <p className="context-label" id="reflect-action-title">Agreed teaching move</p>
+      <h2 id="reflect-action-title">Agreed teaching move</h2>
       <p className="reflect-action-text">{s.action}</p>
-      <p className="caption">{s.owner}</p>
+      <p className="caption">Who planned to try it: {s.owner}</p>
       {!recorded && (s.implementation || s.reflection.trim()) && <p className="caption">Draft report · Check that it describes this approved teaching move before recording.</p>}
     </section>
-    <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision"
-      why="An approved plan records an intention. Reflection begins with what happened in class, then asks what the available evidence can support. Needing more evidence is a useful next decision when the collection plan is specific."
-      steps={[
-        { label: 'Report whether the move was used', detail: 'Compare the agreed move above with the classroom attempt. Choose Used as planned, Partially used or Not yet used. This is your report of implementation, not a measurement of student learning.' },
-        { label: 'Check what evidence you actually have', detail: 'Review planned checks to see what the team intended to collect. Those checks and dates are plans. This prototype has no collected follow-up dataset attached to the cycle, so do not treat its worked examples as your results.' },
-        { label: reflectionGuidance.label, detail: reflectionGuidance.detail },
-      ]}
-      example={reflectionGuidance.example}
-      handoff="Record next step saves your implementation report and next action with this plan. It does not upload evidence, create a new cycle or certify that the teaching move worked." />
+
     <div className="reflect-evidence-layout">
       <section className="reflect-implementation" aria-labelledby="implementation-title">
         <fieldset aria-invalid={implementationError.invalid || undefined} aria-describedby={implementationError.describedBy}>
@@ -90,6 +82,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       </section>
     </div>
     {collectionOpen && <section className="reflect-collection" id="reflect-collection" aria-label="Planned evidence collection">
+      <div className="reflect-collection-header"><p className="context-label">Reference · From your approved plan</p><h2>Planned evidence collection</h2></div>
       <div><h3>Check implementation</h3><p className="caption">The planned record of what the teacher and students did during the move.</p><p>{s.implementationCheck}</p></div>
       <div><h3>Check student learning</h3><p className="caption">The planned student work and criteria for examining their reasoning.</p><p>{s.learningCheck}</p></div>
       <p className="caption">Request dated work, the task and rubric, expected and actual response counts, and an implementation record. Check comparability before drawing a conclusion.</p>
@@ -102,7 +95,25 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       {s.accessParticipation.trim() && <p className="caption">Access & participation plan: {s.accessParticipation}</p>}
       <button type="button" className="textlink reflect-collection-continue" onClick={() => focusControl(s.implementation ? 'reflection' : 'implementation-yes')}>{s.implementation ? 'Continue to your next step' : 'First, report whether the move was tried'}</button>
     </section>}
-    <div className="reflect-next-step">
+    <section className="reflect-next-step" aria-labelledby="reflection-label">
+
+      <TextArea id="reflection" heading label={reflectionQuestion} requirement="Required · at least 30 characters"
+        hint={s.implementation === 'no'
+          ? 'Write the barrier, the adjustment or support needed, who will arrange it and when you will revisit the attempt. Do not judge a learning effect before the move has been tried.'
+          : s.implementation === 'partial'
+          ? 'Write what was tried, what changed, what you can and cannot conclude, then the next action, owner and review point.'
+          : 'Write what you can support and what remains unknown. Then name the next action or evidence to collect, who is responsible and when the team will review it.'}
+        value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })}
+        placeholder={s.implementation === 'no' ? 'The move was not tried because… Next, [who] will… We will revisit this on…' : 'We can say… We still need… [Who] will collect… We will revisit this on…'} />
+      <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision"
+        why="An approved plan records an intention. Reflection begins with what happened in class, then asks what the available evidence can support. Needing more evidence is a useful next decision when the collection plan is specific."
+        steps={[
+          { label: 'Report whether the move was used', detail: 'Compare the agreed move above with the classroom attempt. Choose Used as planned, Partially used or Not yet used. This is your report of implementation, not a measurement of student learning.' },
+          { label: 'Check what evidence you actually have', detail: 'Review planned checks to see what the team intended to collect. Those checks and dates are plans. This prototype has no collected follow-up dataset attached to the cycle, so do not treat its worked examples as your results.' },
+          { label: reflectionGuidance.label, detail: reflectionGuidance.detail },
+        ]}
+        example={reflectionGuidance.example}
+        handoff="Record next step saves your implementation report and next action with this plan. It does not upload evidence, create a new cycle or certify that the teaching move worked." />
       <StepCoach question={reflectionQuestion} ready="Can you name the next action, who will take it, and when the team will revisit it?">
         <p>{s.implementation === 'no'
           ? 'Describe the barrier, one adjustment and the next opportunity to try the move. It has not been tested, so an outcome judgment would be premature.'
@@ -112,20 +123,12 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         <p>Before comparing results, inspect the dated tasks, rubric, response coverage and teaching conditions. If these differ, describe what the current work shows and limit claims about change.</p>
         <p>Needing more evidence is a valid decision. Make it actionable by naming what to collect, who will bring it and the next review point.</p>
       </StepCoach>
-      <TextArea id="reflection" heading label={reflectionQuestion} requirement="Required · at least 30 characters"
-        hint={s.implementation === 'no'
-          ? 'Write the barrier, the adjustment or support needed, who will arrange it and when you will revisit the attempt. Do not judge a learning effect before the move has been tried.'
-          : s.implementation === 'partial'
-          ? 'Write what was tried, what changed, what you can and cannot conclude, then the next action, owner and review point.'
-          : 'Write what you can support and what remains unknown. Then name the next action or evidence to collect, who is responsible and when the team will review it.'}
-        value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })}
-        placeholder={s.implementation === 'no' ? 'The move was not tried because… Next, [who] will… We will revisit this on…' : 'We can say… We still need… [Who] will collect… We will revisit this on…'} />
       <details className="reflect-next-question" open={questionOpen} onToggle={event => setQuestionOpen(event.currentTarget.open)}>
         <summary>Question for the next PLC <span className="caption">Optional</span></summary>
         <TextArea id="next-cycle-question" label="What should the team examine next?" hint="Optional: turn an unresolved issue into a question for the next meeting, such as what drawings would reveal about equal amounts. It is recorded with this reflection; it does not create another evidence cycle."
           value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} />
       </details>
-    </div>
+    </section>
     <div className="workspace-stage-footer">
       <button className="textlink" onClick={openExamples}>Explore a worked example</button>
       <div className="reflect-save"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>

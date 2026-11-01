@@ -42,7 +42,8 @@ export function FlowIntroduction({ onContinue, continueLabel = 'Start with the e
 
       <p className="flow-introduction-agency"><strong>You interpret, choose and approve.</strong> Throughline keeps the evidence, thinking prompts and your plan together. It does not decide why students responded as they did or write a teaching decision for you. Its questions are scripted; your writing gives the meeting its direction.</p>
 
-    <ol className="flow-introduction-phases" aria-label="From preparation to classroom learning">
+    <p className="flow-introduction-timeline-label" id={`${titleId}-timeline`}>The cycle · Before, during and after the meeting</p>
+    <ol className="flow-introduction-phases" aria-labelledby={`${titleId}-timeline`}>
       <li><span className="flow-phase-number" aria-hidden="true">1</span><div><PhaseHeading className="flow-phase-title">Prepare here</PhaseHeading><p>Examine the results, task and student work. Write a possible explanation, test another account, and choose a focus before planning the meeting.</p></div></li>
       <li><span className="flow-phase-number" aria-hidden="true">2</span><div><PhaseHeading className="flow-phase-title">Meet and try the move</PhaseHeading><p>Review and approve your writing to make the kit available. Lead the conversation, rehearse with colleagues, then try the move in class.</p></div></li>
       <li><span className="flow-phase-number" aria-hidden="true">3</span><div><PhaseHeading className="flow-phase-title">Return to Reflect</PhaseHeading><p>Report implementation, examine new evidence and choose a next step. If evidence is missing, decide what to collect, who will bring it and when to review it.</p></div></li>

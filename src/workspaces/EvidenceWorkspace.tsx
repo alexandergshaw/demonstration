@@ -26,10 +26,10 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
   const observationSelected = state.selected.includes('observation');
   const selectedWork = responses.filter(response => state.selected.includes(response.id)).length;
   const nextInspection = view === 'results'
-    ? { why: 'Before explaining the gap, check what the task asked and how explanations were scored.', label: 'Check task & scoring', view: 'task' as const }
+    ? { why: 'Before explaining the gap, check exactly what counted as an adequate explanation. Then use student work to investigate what the totals might mean.', label: 'Check task & scoring', view: 'task' as const }
     : view === 'task'
     ? { why: 'Use the same scoring criteria to see whether the pattern varies across classes.', label: 'Compare classes', view: 'classes' as const }
-    : { why: 'Compare the class pattern with the reasoning in the illustrative samples.', label: 'Examine student work', view: null };
+    : { why: 'Look for reasoning that could help the team investigate the class pattern. These illustrative samples are not matched to the class rows.', label: 'Examine student work', view: null };
 
   function inspectNext() {
     if (nextInspection.view) setView(nextInspection.view);
@@ -46,7 +46,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
     <div className="evidence-composition">
       <section className="evidence-results" aria-labelledby="evidence-results-title">
         <div className="evidence-section-heading">
-          <h2 id="evidence-results-title">Assessment</h2>
+          <h2 id="evidence-results-title">Read the assessment</h2>
           <span className="evidence-included"><Icon name="check" size={15} />Included</span>
         </div>
         <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {assessment.total} responses · {classes.length} classes</p>
@@ -69,6 +69,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         </div>
 
         <div className="evidence-next-inspection">
+          <p className="evidence-next-label">Next evidence to inspect</p>
           <p>{nextInspection.why}</p>
           <button type="button" className="textlink" onClick={inspectNext}>{nextInspection.label}<Icon name="arrow" size={16} /></button>
         </div>
@@ -84,9 +85,10 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
       </section>
 
       <section className="evidence-student-work" aria-labelledby="evidence-work-title">
-        <div className="evidence-section-heading"><h2 id="evidence-work-title" ref={studentWorkHeading} tabIndex={-1}>Student work</h2></div>
+        <div className="evidence-section-heading"><h2 id="evidence-work-title" ref={studentWorkHeading} tabIndex={-1}>Examine student work</h2></div>
         <p className="evidence-source-date">Two illustrative samples · {assessment.date}</p>
         <p className="evidence-rubric-anchor">Look for equal amounts of the same whole.</p>
+        <p className="evidence-selection-intro">Select a sample to keep its exact quotation beside your writing and in the meeting materials. Selection is optional. The assessment stays included.</p>
         <div className="evidence-response-list">
           {responses.map(response => {
             const selected = state.selected.includes(response.id);
@@ -104,9 +106,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           steps={[
             { label: 'Name what the student already understands.', detail: 'Look at the choice, words and reasoning. Then identify what the response leaves uncertain about equal amounts of the same whole.' },
             { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Select it again to remove it. The assessment remains included either way.' },
-          ]}
-          handoff="When you can name a pattern and a question worth investigating, choose Interpret the evidence. You will write your own explanation there." />
-        <p className="evidence-note">Selection is optional. Choose a sample if it helps explain your focus. These illustrative samples are not representative or linked to individual results in the class totals.</p>
+          ]} />
       </section>
     </div>
 
@@ -124,7 +124,10 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
     </div>
 
     <footer className="evidence-next">
-      <p aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}{observationSelected ? ' · Historical context included' : ''}</p>
+      <div><p className="evidence-next-label">Ready to interpret?</p>
+        <p>When you can name a pattern and a question worth investigating, write your own explanation in the next step.</p>
+        <p className="evidence-selection-status" aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}{observationSelected ? ' · Historical context included' : ''}</p>
+      </div>
       <button type="button" className="btn" onClick={() => dispatch({ type: 'go', step: 1 })}>Interpret the evidence<Icon name="arrow" size={18} /></button>
     </footer>
   </div>;

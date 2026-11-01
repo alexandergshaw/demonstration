@@ -26,8 +26,7 @@ export function AssessmentResults({ reference }: { reference: ReferenceData }) {
       steps={[
         { label: 'Read each count against its total.', detail: `Both measures describe the same collection of ${assessment.total} responses. Compare the proportion meeting each criterion, not just the bar lengths.` },
         { label: 'Describe the pattern before explaining it.', detail: 'You can say that the two rates differ. You cannot subtract them to identify a particular group of students, or tell from these totals why an explanation was missing.' },
-      ]}
-      handoff="Open Task & sources to see exactly what counted as an adequate explanation. Then use student work to investigate what the totals might mean." />
+      ]} />
   </div>;
 }
 
@@ -51,8 +50,7 @@ export function ClassResults({ reference }: { reference: ReferenceData }) {
       steps={[
         { label: 'Compare the two measures within each row.', detail: 'Look for a difference between selecting the correct fraction and explaining it. Then check whether that relationship appears in the other classes.' },
         { label: 'Use percentages when response totals differ.', detail: 'The denominator is the number of responses in that class. A higher rate alone does not explain teaching quality, student needs or the cause of a difference.' },
-      ]}
-      handoff="Return to the illustrative work. Look for reasoning that could help the team investigate the pattern; these samples are not matched to the class rows." />
+      ]} />
   </div>;
 }
 
@@ -72,8 +70,7 @@ export function TaskSources({ reference, version }: { reference: ReferenceData; 
       steps={[
         { label: 'Read the prompt as a student would.', detail: 'Identify what students had to select and what they had to explain. Notice the words, representation and response options they were given.' },
         { label: 'Use the rubric to examine the samples.', detail: 'Look for reasoning about equal amounts of the same whole, in words or a labeled drawing. A rule about doubling can produce the answer without showing that connection.' },
-      ]}
-      handoff="Compare classes to see how widely the pattern appears. Open the full rubric or collection details below when you need the exact wording or scope." />
+      ]} />
     <details className="evidence-source-details">
       <summary>Full scoring rubric</summary>
       <div><p>{lessonContext.selection}</p><p>{lessonContext.rubric}</p></div>

@@ -164,8 +164,14 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       </nav>
       <button className="btn secondary reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
 
-      <section className="reasoning-beat-panel" hidden={beat !== 'notice'} aria-labelledby="interpretation-label">
-        <TaskExplanation id="reasoning-notice-guide" title="Separate what you can see from what you think it means"
+      <section className="reasoning-beat-panel" hidden={beat !== 'notice'} id="reasoning-notice-guide" tabIndex={-1} aria-labelledby="interpretation-label">
+        <div className="reasoning-work-area">
+          <TextArea id="interpretation" heading label="What do you notice?" requirement="Required · at least 30 characters"
+            hint="Write three connected parts: what the source shows, what it might mean, and what you still need to know. A few precise sentences are enough."
+            value={state.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })}
+            placeholder="I notice… The work suggests… I’m still unsure about…" />
+        </div>
+        <TaskExplanation title="Separate what you can see from what you think it means"
           why="The team needs a shared starting point before deciding what to teach. A count or quotation is an observation; an explanation of why it happened is a hypothesis to examine."
           steps={[
             { label: 'Point to the evidence', detail: 'Name a count, phrase or drawing, and its source. Include the understanding a student has already shown.' },
@@ -178,22 +184,33 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>Start with the learning goal and the original task. Name the source behind your claim, including the understanding already visible in the work.</p>
           <p>Could wording, language, format or opportunities to respond be hiding understanding? Consider whose work or perspective is missing, and how students could explain the same idea in another way.</p>
         </StepCoach>
-        <TextArea id="interpretation" heading label="What do you notice?" requirement="Required · at least 30 characters"
-          hint="Write three connected parts: what the source shows, what it might mean, and what you still need to know. A few precise sentences are enough."
-          value={state.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })}
-          placeholder="I notice… The work suggests… I’m still unsure about…" />
       </section>
 
       <section className="reasoning-beat-panel" hidden={beat !== 'test'} aria-labelledby="reasoning-test-title">
+        <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
         <div className="reasoning-previous-writing">
           <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice')}>{state.interpretation.trim() ? 'Edit' : 'Write interpretation'}<Icon name="pencil" size={14} /></button></div>
           <p>{state.interpretation.trim() || 'Start with what you notice in the selected work.'}</p>
         </div>
-        <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
+        <div className="reasoning-work-area reasoning-alternative-work">
+          <div className="reasoning-question">
+            <p className="reasoning-eyebrow">Thinking partner · Scripted question</p>
+            <p className="reasoning-question-copy">{challenge.prompt}</p>
+          </div>
+          <div className="reasoning-lens-choice"><label htmlFor="reasoning-lens">Try another angle</label><select id="reasoning-lens" aria-describedby="reasoning-lens-help" value={state.lens} onChange={event => dispatch({ type: 'lens', value: event.target.value as Lens })}>{reference.challenges.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
+          <p id="reasoning-lens-help" className="reasoning-panel-help">Each angle opens a different scripted question. Changing it asks you to consider that question before confirming your focus again.</p>
+          <div className="reasoning-challenge-routes" role="group" aria-label="Respond to the alternative">
+            <button className="btn secondary" onClick={() => goToBeat('notice')}><Icon name="pencil" size={16} />Revise interpretation</button>
+            <button className="btn secondary" onClick={() => setSourceOpen(true)}><Icon name="evidence" size={16} />Inspect source</button>
+          </div>
+          <p id="reasoning-challenge-help" className="reasoning-panel-help">If you keep your interpretation, carry the alternative and remaining uncertainty into your focus.</p>
+          {!interpretationReady && <p className="reasoning-panel-help">Write your interpretation first so you can compare it with this alternative. Use at least 30 characters.</p>}
+          <FieldError id="challenge" />
+        </div>
         <TaskExplanation title="Test your account before turning it into a teaching decision"
           why="The same response can have more than one explanation. This prewritten question helps you check a possibility; it does not analyze your writing or decide which explanation is correct."
           steps={[
-            { label: 'Compare the question with your evidence', detail: 'Read the prompt below, then inspect the original task or student work. Try another angle if wording, mathematical meaning or class variation deserves a closer look.' },
+            { label: 'Compare the question with your evidence', detail: 'Read the scripted question, then inspect the original task or student work. Try another angle if wording, mathematical meaning or class variation deserves a closer look.' },
             { label: 'Choose how to respond', detail: 'Use Revise interpretation if the alternative changes your account. Use Inspect source if you need another look. Both keep your draft available.' },
             { label: 'Carry a qualified judgment forward', detail: 'When you are ready to retain your current interpretation, choose Keep interpretation & explain uncertainty. That records consideration of this question and opens the focus editor; you will explain the remaining uncertainty there.' },
           ]}
@@ -203,28 +220,28 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p>You can revise your earlier writing, inspect the source again, or keep your interpretation and explain the remaining uncertainty in your focus.</p>
           <p>Keeping your interpretation marks this question as considered. You still write and confirm your own focus; the question is not a diagnosis or approval.</p>
         </StepCoach>
-        <div className="reasoning-question">
-          <p className="reasoning-eyebrow">Thinking partner · Scripted question</p>
-          <p className="reasoning-question-copy">{challenge.prompt}</p>
-        </div>
-        <div className="reasoning-lens-choice"><label htmlFor="reasoning-lens">Try another angle</label><select id="reasoning-lens" aria-describedby="reasoning-lens-help" value={state.lens} onChange={event => dispatch({ type: 'lens', value: event.target.value as Lens })}>{reference.challenges.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
-        <p id="reasoning-lens-help" className="reasoning-panel-help">Each angle opens a different scripted question. Changing it asks you to consider that question before confirming your focus again.</p>
-        <div className="reasoning-challenge-routes" role="group" aria-label="Respond to the alternative">
-          <button className="btn secondary" onClick={() => goToBeat('notice')}><Icon name="pencil" size={16} />Revise interpretation</button>
-          <button className="btn secondary" onClick={() => setSourceOpen(true)}><Icon name="evidence" size={16} />Inspect source</button>
-        </div>
-        <p id="reasoning-challenge-help" className="reasoning-panel-help">If you keep your interpretation, carry the alternative and remaining uncertainty into your focus.</p>
-        {!interpretationReady && <p className="reasoning-panel-help">Write your interpretation first so you can compare it with this alternative. Use at least 30 characters.</p>}
-        <FieldError id="challenge" />
       </section>
 
-      <section className="reasoning-beat-panel" hidden={beat !== 'choose'} aria-labelledby="focus-label">
+      <section className="reasoning-beat-panel" hidden={beat !== 'choose'} id="reasoning-focus-guide" tabIndex={-1} aria-labelledby="focus-label">
+        <div className="reasoning-work-area">
+          <TextArea id="focus" heading label="Choose one teaching focus" requirement="Required · at least 25 characters"
+            hint="Connect one teaching focus to its evidence, the alternative you considered, and what would change your mind."
+            value={state.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })}
+            placeholder="Focus on… The work shows… Another explanation is… I would reconsider if…" />
+          <div className="reasoning-confidence"><label htmlFor="confidence">How certain are you?</label><select id="confidence" aria-describedby="reasoning-confidence-help" value={state.confidence} onChange={event => dispatch({ type: 'confidence', value: event.target.value as PlanState['confidence'] })}><option value="tentative">Tentative</option><option value="moderate">Moderate</option><option value="strong">Strong</option></select></div>
+          <dl id="reasoning-confidence-help" className="reasoning-confidence-scale">
+            <div><dt>Tentative</dt><dd>A useful possibility with substantial uncertainty.</dd></div>
+            <div><dt>Moderate</dt><dd>Some evidence supports the focus, with alternatives still open.</dd></div>
+            <div><dt>Strong</dt><dd>You can explain substantial supporting evidence and its limits.</dd></div>
+          </dl>
+          <p className="reasoning-ownership">This is your judgment, not a score from the app. Confirm when you can explain the focus in your own words. The writing minimum only checks that you have entered a response; it does not establish that the interpretation is sound.</p>
+        </div>
         <div className="reasoning-previous-writing">
           <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice')}>Edit<Icon name="pencil" size={14} /></button></div>
           <p>{state.interpretation.trim() || 'Your interpretation will appear here.'}</p>
           <button className="textlink reasoning-review-question" onClick={() => goToBeat('test')}><Icon name={state.challenged ? 'check' : 'reasoning'} size={15} />{state.challenged ? 'Revisit the alternative' : 'Consider an alternative'}</button>
         </div>
-        <TaskExplanation id="reasoning-focus-guide" title="Choose the learning need the meeting will investigate"
+        <TaskExplanation title="Choose the learning need the meeting will investigate"
           why="A focus narrows the team’s attention to one aspect of student thinking. The next workspace turns that focus into a specific teacher action and meeting plan."
           steps={[
             { label: 'Name one learning focus', detail: 'Describe the reasoning students need to develop, such as explaining why two fractions represent equal amounts of the same whole.' },
@@ -235,15 +252,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           handoff="You can revise this focus later. Changing the evidence or your reasoning requires confirmation again so the meeting plan stays connected to the decision you actually made." />
         <StepCoach question="What evidence would make you choose a different focus?" ready="You can explain one focus through its evidence, an alternative explanation and what would make you reconsider.">
           <p>Choose one teaching focus connected to the learning goal. Explain why it is worth investigating without turning a small sample or an older observation into proof.</p>
-          <p>Use the focus below to connect the evidence, the alternative you considered and the next thing to check. A few precise sentences are enough.</p>
+          <p>Use your focus to connect the evidence, the alternative you considered and the next thing to check. A few precise sentences are enough.</p>
         </StepCoach>
-        <TextArea id="focus" heading label="Choose one teaching focus" requirement="Required · at least 25 characters"
-          hint="Connect one teaching focus to its evidence, the alternative you considered, and what would change your mind."
-          value={state.focus} onChange={value => dispatch({ type: 'text', field: 'focus', value })}
-          placeholder="Focus on… The work shows… Another explanation is… I would reconsider if…" />
-        <div className="reasoning-confidence"><label htmlFor="confidence">How certain are you?</label><select id="confidence" aria-describedby="reasoning-confidence-help" value={state.confidence} onChange={event => dispatch({ type: 'confidence', value: event.target.value as PlanState['confidence'] })}><option value="tentative">Tentative</option><option value="moderate">Moderate</option><option value="strong">Strong</option></select></div>
-        <p id="reasoning-confidence-help" className="reasoning-panel-help"><strong>Tentative:</strong> a useful possibility with substantial uncertainty. <strong>Moderate:</strong> some evidence supports the focus, with alternatives still open. <strong>Strong:</strong> you can explain substantial supporting evidence and its limits. This is your judgment, not a score from the app.</p>
-        <p className="reasoning-ownership">Confirm when you can explain the focus in your own words. The writing minimum only checks that you have entered a response; it does not establish that the interpretation is sound.</p>
       </section>
 
       <footer className="reasoning-footer">
