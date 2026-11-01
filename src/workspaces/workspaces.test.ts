@@ -45,7 +45,7 @@ function props(state: PlanState) {
   };
 }
 
-function visibleReasoningPanel(markup: string) {
+function visibleWorkspacePanel(markup: string, panelClass: string, expectedCount: number) {
   const panels: { attributes: string; content: string }[] = [];
   let depth = 0;
   let active: { attributes: string; start: number; depth: number } | undefined;
@@ -58,13 +58,17 @@ function visibleReasoningPanel(markup: string) {
       depth--;
     } else {
       depth++;
-      if (tag[0].includes('class="reasoning-beat-panel"')) active = { attributes: tag[0], start: tag.index! + tag[0].length, depth };
+      if (tag[0].match(/\bclass="([^"]*)"/)?.[1].split(/\s+/).includes(panelClass)) active = { attributes: tag[0], start: tag.index! + tag[0].length, depth };
     }
   }
   const visible = panels.filter(({ attributes }) => !/\bhidden(?:\s|=|$)/.test(attributes));
-  expect(panels).toHaveLength(3);
+  expect(panels).toHaveLength(expectedCount);
   expect(visible).toHaveLength(1);
   return visible[0].content;
+}
+
+function visibleReasoningPanel(markup: string) {
+  return visibleWorkspacePanel(markup, 'reasoning-beat-panel', 3);
 }
 
 function workflowActions(markup: string, label: string) {
@@ -123,15 +127,18 @@ describe('workspace evidence belongs to the selected collection', () => {
 });
 
 describe('workspace defaults keep one decision in view', () => {
-  it('starts Evidence with the comparison and two work samples, with further inspection closed', () => {
+  it('starts Evidence with only the assessment comparison, with further inspection closed', () => {
     const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, props(initialState())));
-    expect(markup.match(/<figure\b/g)).toHaveLength(1);
+    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 3);
+    expect(panel.match(/<figure\b/g)).toHaveLength(1);
+    expect(panel).not.toContain('<article');
     expect(markup.match(/<article\b/g)).toHaveLength(2);
-    expect(markup).not.toContain('<table');
-    expect(markup).not.toContain('What the scores mean');
-    expect(markup).toContain('<details><summary>');
+    expect(panel).not.toContain('<table');
+    expect(panel).not.toContain('What the scores mean');
+    expect(panel).toContain('<details class="evidence-source-details">');
     expect(markup).not.toMatch(/<details\b[^>]*\bopen=/);
-    expect(markup).toContain('Totals do not tell us which students met both criteria.');
+    expect(panel).toContain('Totals do not tell us which students met both criteria.');
+    expect(primaryAction(workflowActions(panel, 'Assessment actions'))).toContain('Continue to student work');
   });
 
   it('starts a fresh interpretation at Notice with the other writing steps hidden', () => {
@@ -161,17 +168,19 @@ describe('workspace defaults keep one decision in view', () => {
     expect(markup).toContain('id="agenda-0"');
     expect(markup.match(/class="pw-agenda-choice"/g)).toHaveLength(6);
     expect(markup).toContain(state.focus);
-    expect(markup.indexOf(state.focus)).toBeLessThan(markup.indexOf('id="pw-move-heading"'));
+    expect(markup.indexOf(state.focus)).toBeLessThan(markup.indexOf('id="pw-activity-heading"'));
+    expect(markup).toContain('<details class="pw-focus-context">');
     expect(markup).toContain('Read full focus &amp; sources');
-    expect(markup).toContain(state.action);
-    expect(markup).toContain(state.implementationCheck);
-    expect(markup).toContain(state.learningCheck);
+    for (const value of [state.action, state.implementationCheck, state.learningCheck]) expect(markup).not.toContain(value);
+    expect(markup).toContain('id="pw-activities-panel"');
+    for (const id of ['pw-move-panel', 'pw-checks-panel', 'pw-review-panel']) expect(markup).not.toContain(`id="${id}"`);
     for (const id of ['action', 'owner', 'implementation-check', 'learning-check', 'collection-date', 'review-date', 'consent']) {
       expect(markup).not.toContain(`id="${id}"`);
     }
     expect(markup).not.toContain('<dialog');
     expect(markup).not.toContain('Approve meeting plan');
-    expect(markup).toContain('Review meeting plan');
+    expect(markup).toContain('Review &amp; approve');
+    expect(markup).toContain('Preview draft meeting kit');
     expect(markup).not.toContain('class="planning-disclosure rehearsal-guide"');
     expect(hasPlan(state)).toBe(false);
     expect(state).toEqual(before);
@@ -185,7 +194,8 @@ describe('workspace defaults keep one decision in view', () => {
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
     expect(markup).toMatch(/<textarea\b[^>]*id="action"[^>]*><\/textarea>/);
     expect(markup).toContain('id="owner"');
-    expect(markup).toContain('id="agenda-0"');
+    expect(markup).not.toContain('id="agenda-0"');
+    expect(markup).not.toContain('id="pw-activities-panel"');
     expect(markup).not.toContain('id="implementation-check"');
     expect(state.action).toBe('');
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -204,10 +214,10 @@ describe('workspace defaults keep one decision in view', () => {
   it('leaves coaching optional in every active workspace', () => {
     const options = props(planned());
     const markups = [
-      renderToStaticMarkup(createElement(EvidenceWorkspace, options)),
+      visibleWorkspacePanel(renderToStaticMarkup(createElement(EvidenceWorkspace, options)), 'evidence-builder-panel', 3),
       visibleReasoningPanel(renderToStaticMarkup(createElement(ReasoningWorkspace, options))),
       renderToStaticMarkup(createElement(PlanWorkspace, options)),
-      renderToStaticMarkup(createElement(ReflectWorkspace, options)),
+      visibleWorkspacePanel(renderToStaticMarkup(createElement(ReflectWorkspace, { ...options, state: { ...options.state, implementation: 'yes' } })), 'reflect-builder-panel', 2),
     ];
     for (const markup of markups) {
       expect(markup.match(/class="step-coach"/g)).toHaveLength(1);
@@ -223,16 +233,20 @@ describe('workspace defaults keep one decision in view', () => {
 });
 
 describe('guidance points to required work without completing it', () => {
-  it('offers a task-and-scoring check while keeping direct evidence views and interpretation available', () => {
+  it('keeps task-and-scoring views and interpretation available beside the guided assessment action', () => {
     const options = props(initialState());
     const before = structuredClone(options.state);
     const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, options));
-    expect(markup).toContain('Check task &amp; scoring');
-    expect(markup).toContain('Before explaining the gap');
-    for (const label of ['Results', 'By class', 'Task &amp; sources', 'Interpret the evidence']) expect(markup).toContain(label);
-    expect(markup).toContain('Selection is optional.');
-    expect(markup.indexOf('>Results</button>')).toBeLessThan(markup.indexOf('>Task &amp; sources</button>'));
-    expect(markup.indexOf('>Task &amp; sources</button>')).toBeLessThan(markup.indexOf('>By class</button>'));
+    const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 3);
+    const actions = workflowActions(panel, 'Assessment actions');
+    expect(primaryAction(actions)).toContain('Continue to student work');
+    expect(actions).toContain('Use the task and scoring criteria to understand the counts.');
+    for (const label of ['Results', 'By class', 'Task &amp; sources']) expect(panel).toContain(label);
+    expect(markup).toContain('Continue to interpretation');
+    expect(markup).toContain('Student work selection is optional');
+    expect(panel.indexOf('>Results</button>')).toBeLessThan(panel.indexOf('>Task &amp; sources</button>'));
+    expect(panel.indexOf('>Task &amp; sources</button>')).toBeLessThan(panel.indexOf('>By class</button>'));
+    expect(markup).toContain('Check the task and scoring');
     expect(markup).not.toContain('disabled=');
     expect(options.state).toEqual(before);
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -248,16 +262,29 @@ describe('guidance points to required work without completing it', () => {
     { changes: { collectionDate: '2026-02-30', reviewDate: 'invalid' }, target: 'Correct the collection date' },
     { changes: { reviewDate: 'invalid' }, target: 'Correct the review date' },
     { changes: { collectionDate: '2026-11-05', reviewDate: '2026-11-04' }, target: 'Correct the review date' },
-    { changes: { consent: false }, target: 'Review meeting plan' },
-  ])('suggests $target in validation order without approving the plan', ({ changes, target }) => {
-    const options = props({ ...planned(), ...changes });
+    { changes: { consent: false }, target: 'I reviewed and own this plan.' },
+  ])('reviews $target in validation order without approving the plan', ({ changes, target }) => {
+    // Enter the review explicitly; the resume location is intentionally independent of validation order.
+    const options = { ...props({ ...planned(), ...changes }), errorField: 'consent' };
     const before = structuredClone(options.state);
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
-    const footer = workflowActions(markup, 'Meeting plan actions');
-    expect(primaryAction(footer)).toContain(`<span>${target}</span>`);
+    expect(markup).toContain('id="pw-review-panel"');
+    for (const id of ['pw-move-panel', 'pw-activities-panel', 'pw-checks-panel']) expect(markup).not.toContain(`id="${id}"`);
+    const footer = workflowActions(markup, 'Meeting plan approval');
+    expect(primaryAction(footer)).toContain('<span>Approve meeting plan</span>');
     const error = planError({ ...options.state, consent: true });
-    if (error) expect(footer).toContain(error);
-    expect(footer).toContain('Review meeting plan');
+    const correction = markup.match(/<section class="pw-review-requirement"[\s\S]*?<\/section>/)?.[0];
+    if (error) {
+      expect(correction).toBeDefined();
+      expect(correction).toContain(error);
+      expect(correction).toContain(`>${target}<`);
+    } else {
+      expect(correction).toBeUndefined();
+      expect(markup).toContain(`<strong>${target}</strong>`);
+      expect(planError(options.state)).toBe('Confirm that you reviewed and own this plan.');
+    }
+    expect(markup).toMatch(/<input id="consent" type="checkbox"[^>]*\/>/);
+    expect(markup).not.toMatch(/<input id="consent"[^>]*\bchecked=/);
     expect(options.state).toEqual(before);
     expect(options.state.consent).toBe(false);
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -276,7 +303,12 @@ describe('guidance points to required work without completing it', () => {
     const edited = props({ ...options.state, agenda: options.state.agenda.map((entry, index) => index === 0 ? 'Connect the learning goal to the chosen focus and record one question to explore.' : entry) });
     const editedMarkup = renderToStaticMarkup(createElement(PlanWorkspace, edited));
     expect(editedMarkup.match(/<span class="pw-agenda-summary">Starter text · /g)).toHaveLength(5);
-    expect(editedMarkup).not.toContain('<p class="pw-starter-note">');
+    expect(editedMarkup).toContain('id="agenda-1"');
+    expect(editedMarkup).toContain('<p class="pw-starter-note">');
+    const revisit = renderToStaticMarkup(createElement(PlanWorkspace, { ...edited, errorField: 'agenda-0' }));
+    expect(revisit).toContain('id="agenda-0"');
+    expect(revisit).not.toContain('<p class="pw-starter-note">');
+    expect(revisit).toContain(edited.state.agenda[0]);
     expect(options.submit).not.toHaveBeenCalled();
     expect(edited.submit).not.toHaveBeenCalled();
   });
@@ -394,9 +426,14 @@ describe('guidance points to required work without completing it', () => {
   ] as const)('directs reflection toward its next required control: %s / %s', (implementation, reflection, action) => {
     const options = props({ ...planned(), implementation, reflection });
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
-    expect(primaryAction(workflowActions(markup, 'Reflection actions'))).toContain(`<span>${action}</span>`);
-    expect(markup).toContain('id="reflection-requirement">Required · at least 30 characters');
-    expect(markup).toContain('no collected follow-up dataset');
+    const panel = visibleWorkspacePanel(markup, 'reflect-builder-panel', 2);
+    expect(primaryAction(workflowActions(panel, implementation ? 'Reflection actions' : 'Teaching attempt actions'))).toContain(`<span>${action}</span>`);
+    if (implementation) expect(panel).toContain('id="reflection-requirement">Required · at least 30 characters');
+    else {
+      expect(panel).toContain('id="implementation-yes"');
+      expect(panel).not.toContain('id="reflection"');
+    }
+    expect(panel).toContain('no collected follow-up dataset');
     expect(options.dispatch).not.toHaveBeenCalled();
     expect(options.submit).not.toHaveBeenCalled();
   });
@@ -441,7 +478,7 @@ describe('workspace writing remains authored content', () => {
     const state = { ...planned(), interpretation: authored, action: authored, agenda: planned().agenda.map((entry, index) => index === 3 ? authored : entry) };
     const before = structuredClone(state);
     for (const component of [ReasoningWorkspace, PlanWorkspace]) {
-      const options = props(state);
+      const options = { ...props(state), errorField: component === PlanWorkspace ? 'agenda-3' : '' };
       const markup = renderToStaticMarkup(createElement(component, options));
       expect(markup).toContain(escaped);
       expect(markup).not.toContain('<script>');
@@ -498,7 +535,12 @@ describe('Reflect separates this cycle from demonstration outcomes', () => {
     expect(markup).toContain('This is your implementation report. Comparable student work is still needed.');
     expect(markup).toContain('Reflection recorded with this plan.');
     expect(markup).toContain('Explore a worked example');
-    expect(markup).not.toContain('id="reflect-collection"');
+    expect(markup).toContain('<details class="reflect-collection-disclosure">');
+    expect(markup).not.toMatch(/<details\b[^>]*class="reflect-collection-disclosure"[^>]*\bopen/);
+    expect(markup).toContain('id="reflect-collection"');
+    expect(markup).toContain(state.evidenceCollector);
+    expect(markup).toContain('2026-11-05');
+    expect(markup).toContain('2026-11-09');
     expect(markup).not.toMatch(/<(?:figure|table)\b/);
     expect(markup).not.toMatch(/(?:56|72)\s*\/\s*(?:116|120)/);
     expect(options.dispatch).not.toHaveBeenCalled();

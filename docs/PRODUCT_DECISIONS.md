@@ -8,10 +8,10 @@ The interface gives each stage a distinct working composition while keeping one 
 
 | Stage | Primary work | Supporting information |
 | --- | --- | --- |
-| Evidence | Compare two measures beside original student responses and select work | A shared assessment/date/coverage frame supports compact Results, By class and Task & sources views; the historical observation opens separately |
+| Evidence | Assessment → Student work → Review selection, with one active task | Results, By class and Task & sources remain assessment views; optional work selection and historical context stay separate from the included class results |
 | Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; narrow screens keep its dated quotation or counts inline and offer the full source reader; earlier writing has summary/Edit controls |
-| Plan | One teaching move and owner, a six-part outline, and one selected activity editor; after approval, a meeting-ready handoff | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval; the kit is the next action |
-| Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
+| Plan | Teaching move → Meeting activities → Follow-up checks → Review & approve; after approval, a meeting-ready handoff | One activity or check is edited at a time; sources open on demand; the actual draft kit is available before explicit approval |
+| Reflect | Teaching attempt → Next step, with one active task | Missing follow-up evidence remains explicit; planned collection expands when needed; worked cases open in a separate dialog |
 
 This organization addresses scrolling and visual overload through stable source access and progressive disclosure. There is no live conversation or generated-chart runtime. The design demonstrates how a workflow can keep evidence and authored decisions available without relying on chat scrollback.
 
@@ -42,6 +42,16 @@ Role-based rationale is our design inference:
 | Sabrina Ware — Associate Director, Innovation–AI Strategy | Stable cycle, menu and save controls support return to unfinished work. |
 
 The user's typography requirements take precedence over reference branding: IBM Plex Sans, one non-link text color, 36px page headings, 24px section headings and 16px for every other text role. Panel names explain design decisions here; they are not presented as endorsements in the educator interface.
+
+### Guided builder pass
+
+The [Playlab app-creation guide](https://learn.playlab.ai/getstarted/Creating%20a%20Playlab%20App) separates defining an app, writing instructions, optional references, testing/refinement and publishing. The [SchoolAI Space builder guide](https://help.schoolai.com/en/articles/17591237-create-launch-and-share-spaces) describes authoring with a student preview, saving, and a separate launch. These are guided-builder references; we do not claim that their interfaces are identical numbered wizards or that panel members personally use SchoolAI.
+
+Throughline now uses one task navigator across Evidence, Interpret, Plan and Reflect. Desktop buttons and a narrow-screen native selector identify location without awarding completion. Each stage exposes one task and a consistent action row; users can revisit earlier tasks without changing their writing. Plan resumes at missing move details, an incomplete or unchanged starter activity, missing checks, or the whole-plan review. A current approved plan returns to review. Starter text remains permissible after the educator reviews it; visiting tasks or advancing does not certify quality.
+
+The useful payoff is the educator's own inspectable work: a selected evidence set, confirmed focus, assembled meeting kit and recorded next action. It is not a score or a badge. The complete plan review is inline, with section edits returning to it; the draft kit stays a separate preview and cannot grant approval or expose approved downloads. Reflection separates reporting the attempt from recording the next action. Existing save-failure, validation, consent and approval-invalidation rules remain in force.
+
+These choices apply Tyler Nakatsu's product lens and Antoinette Melvin's consistency lens to a shared navigation pattern; LeAnita Garner's and Nia Ladson's instructional lenses to source inspection and authored reasoning; and Sandra Jin's and Sabrina Ware's strategy lenses to clear approval, draft recovery and implementation boundaries. This is our role-based design rationale, not a statement of their preferences or an endorsement.
 
 ### Full-flow gap review
 

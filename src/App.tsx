@@ -89,7 +89,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const clearError = () => { setError(''); setErrorField(''); };
   const beginFlow = () => {
     learning.dispatch({ type: 'dismissWelcome' });
-    window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+    window.requestAnimationFrame(() => { const taskHeading = document.querySelector<HTMLElement>('.evidence-builder-panel:not([hidden]) h2'); if (taskHeading) { taskHeading.focus(); taskHeading.scrollIntoView({ block: 'start' }); } else { title.current?.focus(); } });
   };
   const submit = (kind: 'focus' | 'plan' | 'reflection'): boolean => {
     const message = kind === 'focus' ? focusError(state) : kind === 'plan' ? planError(state) : reflectionError(state);

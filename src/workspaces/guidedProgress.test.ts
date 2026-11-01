@@ -60,14 +60,37 @@ function renderWorkspace(Component: ComponentType<ReturnType<typeof workspacePro
   return markup;
 }
 
-// Scope assertions to the accessible progress section, so unrelated guidance cannot mask a regression.
-function progress(markup: string) {
-  const label = markup.indexOf('aria-label="Step progress"');
-  expect(label).toBeGreaterThanOrEqual(0);
-  const section = markup.slice(markup.lastIndexOf('<section', label), markup.indexOf('</section>', label) + '</section>'.length);
-  expect(section).not.toContain('role="progressbar"');
-  expect(section).not.toContain('aria-live=');
-  return section;
+// Task position is navigation, not a completion or approval score.
+function navigation(markup: string, label: string, current: string, position: string) {
+  const start = markup.indexOf(`<nav class="builder-navigation" aria-label="${label}">`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const nav = markup.slice(start, markup.indexOf('</nav>', start) + '</nav>'.length);
+  expect(nav).toContain(`Task ${position}`);
+  expect(nav.match(/aria-current="step"/g)).toHaveLength(1);
+  const currentButton = nav.match(/<button\b[^>]*aria-current="step"[^>]*>[\s\S]*?<\/button>/)?.[0];
+  expect(currentButton).toContain(current);
+  expect(nav).not.toContain('disabled=');
+  expect(nav).not.toContain('role="progressbar"');
+  expect(nav).not.toContain('aria-live=');
+  return nav;
+}
+
+function button(markup: string, label: string) {
+  const control = markup.match(/<button\b[^>]*>[\s\S]*?<\/button>/g)?.find(candidate => candidate.includes(label));
+  expect(control).toBeDefined();
+  return control!;
+}
+
+function reflectionStatus(markup: string) {
+  const status = markup.match(/<p class="reflect-draft-status">([\s\S]*?)<\/p>/)?.[1];
+  expect(status).toBeDefined();
+  return status!;
+}
+
+function activityOutline(markup: string) {
+  const start = markup.indexOf('<ol class="pw-agenda-list">');
+  expect(start).toBeGreaterThanOrEqual(0);
+  return markup.slice(start, markup.indexOf('</ol>', start) + '</ol>'.length);
 }
 
 function item(markup: string, label: string) {
@@ -77,65 +100,87 @@ function item(markup: string, label: string) {
 }
 
 describe('guided progress distinguishes navigation, drafts, approvals and saving', () => {
-  it('counts evidence places opened, keeps selection optional and permits direct interpretation', () => {
+  it('separates optional source opening from task position and permits direct interpretation', () => {
     const state = initialState();
     const markup = renderWorkspace(EvidenceWorkspace, state);
-    const guidance = progress(markup);
-    expect(guidance).toContain('1 of 4 places opened this visit');
+    navigation(markup, 'Evidence review tasks', 'Assessment', '1 of 3');
+    const start = markup.indexOf('<details class="evidence-inspection-history">');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const guidance = markup.slice(start, markup.indexOf('</details>', start));
+    expect(guidance).toContain('Source views opened · 1 of 4 this visit');
     expect(item(guidance, 'Compare the results')).toContain('>Opened</span>');
     expect(item(guidance, 'Check the task and scoring')).toContain('>Available</span>');
     expect(guidance).toContain('not a record that you reviewed a source');
     expect(guidance).toContain('You can interpret without opening every view; selecting work is optional.');
     expect(guidance).toContain('This visit count resets when you leave Evidence.');
-    const actions = markup.match(/role="group" aria-label="Evidence actions">([\s\S]*?)<\/button>/)?.[1];
-    expect(actions).toBeDefined();
-    expect(actions).toContain('Interpret the evidence');
-    expect(actions).not.toContain('disabled=');
+    expect(button(markup, 'Continue to interpretation')).not.toContain('disabled=');
+    expect(button(markup, 'Interpret the evidence')).not.toContain('disabled=');
+    expect(markup).toContain('Continuing does not confirm an interpretation.');
     expect(state.selected).toEqual(['assessment']);
     expect(reducer(state, { type: 'go', step: 1 }).step).toBe(1);
   });
 
-  it('requires explicit focus confirmation and removes approval progress after a confirmed focus changes', () => {
+  it('requires explicit focus confirmation and removes approval status after a confirmed focus changes', () => {
     const draft = focusDraft();
     expect(focusError(draft)).toBe('');
     expect(hasFocus(draft)).toBe(false);
-    const draftProgress = progress(renderWorkspace(ReasoningWorkspace, draft));
-    expect(draftProgress).toContain('3 of 3 draft parts recorded');
-    expect(draftProgress).toContain('Review your focus before confirming');
-    expect(draftProgress).not.toContain('Focus confirmed by you');
+    const draftMarkup = renderWorkspace(ReasoningWorkspace, draft);
+    navigation(draftMarkup, 'Reasoning sequence', 'Choose a focus', '3 of 3');
+    expect(button(draftMarkup, 'Confirm focus &amp; continue')).not.toContain('disabled=');
+    expect(draftMarkup).not.toContain('Focus confirmed by you');
 
     const approved = approvedPlan();
     expect(hasPlan(approved)).toBe(true);
-    expect(progress(renderWorkspace(PlanWorkspace, approved))).toContain('Approved by you');
+    expect(renderWorkspace(ReasoningWorkspace, approved)).toContain('Focus confirmed by you.');
+    const approvedMarkup = renderWorkspace(PlanWorkspace, approved);
+    navigation(approvedMarkup, 'Meeting plan tasks', 'Review &amp; approve', '4 of 4');
+    expect(approvedMarkup).toContain('Current approved plan');
     const edited = reducer(approved, { type: 'text', field: 'focus', value: 'Use student drawings to explain equal amounts before naming an equivalence rule.' });
     expect(hasFocus(edited)).toBe(false);
     expect(hasPlan(edited)).toBe(false);
-    expect(progress(renderWorkspace(ReasoningWorkspace, edited))).not.toContain('Focus confirmed by you');
-    const planProgress = progress(renderWorkspace(PlanWorkspace, edited));
-    expect(planProgress).toContain('Reconfirm the focus');
-    expect(planProgress).not.toContain('Approved by you');
+    const reasoningMarkup = renderWorkspace(ReasoningWorkspace, edited);
+    expect(reasoningMarkup).not.toContain('Focus confirmed by you');
+    expect(reasoningMarkup).toContain('Confirm focus &amp; continue');
+    const planMarkup = renderWorkspace(PlanWorkspace, edited);
+    expect(planMarkup).toContain('The teaching focus needs confirmation before this plan can be approved.');
+    expect(planMarkup).toContain('Reconfirm the focus');
+    expect(planMarkup).not.toContain('Current approved plan');
+    expect(planMarkup).not.toContain('Your confirmed focus &amp; sources');
   });
 
-  it('does not count supplied agenda starters as authored directions', () => {
-    const state = reducer(focusDraft(), { type: 'confirm-focus' });
+  it('identifies supplied agenda starters without treating them as authored or approved directions', () => {
+    const state = apply(focusDraft(),
+      { type: 'confirm-focus' },
+      { type: 'text', field: 'action', value: 'Ask students to show equal amounts with fraction strips and explain what stays the same.' });
     expect(state.agenda).toEqual(initialAgenda);
-    const guidance = progress(renderWorkspace(PlanWorkspace, state));
-    expect(item(guidance, 'Activity directions · 0 of 6 authored')).toContain('>To draft</span>');
-    expect(guidance).toContain('Suitable starter text can remain in your plan; it does not count as authored here.');
+    const markup = renderWorkspace(PlanWorkspace, state);
+    navigation(markup, 'Meeting plan tasks', 'Meeting activities', '2 of 4');
+    expect(activityOutline(markup).match(/Starter text · /g)).toHaveLength(6);
+    expect(markup).toContain('<strong>Starter text.</strong> Review and adapt these directions for your team.');
+    expect(markup).toContain('Review all six before approving your plan.');
+    expect(markup).not.toContain('Current approved plan');
+    expect(hasPlan(state)).toBe(false);
     const edited = reducer(state, { type: 'agenda', index: 0, value: 'Ask pairs to explain the learning goal, then record a question about the selected work.' });
-    expect(progress(renderWorkspace(PlanWorkspace, edited))).toContain('Activity directions · 1 of 6 authored');
+    const editedMarkup = renderWorkspace(PlanWorkspace, edited);
+    const outline = activityOutline(editedMarkup);
+    expect(outline.match(/Starter text · /g)).toHaveLength(5);
+    expect(outline).toContain(edited.agenda[0]);
+    const firstActivity = outline.slice(outline.indexOf('<li>'), outline.indexOf('</li>'));
+    expect(firstActivity).not.toContain('Starter text');
+    expect(editedMarkup).not.toContain('Current approved plan');
     expect(hasPlan(edited)).toBe(false);
   });
 
   it('accepts not-yet-used as a report without claiming implementation or student learning', () => {
     const state = reducer(approvedPlan(), { type: 'implementation', value: 'no' });
     const markup = renderWorkspace(ReflectWorkspace, state);
-    const guidance = progress(markup);
-    expect(guidance).toContain('1 of 3 steps recorded');
-    expect(item(guidance, 'Report what was tried')).toContain('>Recorded</span>');
-    expect(item(guidance, 'Review and record the next step')).toContain('>To do</span>');
-    expect(guidance).toContain('Used, partly used and not yet used are equally valid reports.');
-    expect(guidance).toContain('Recording a next step does not establish student improvement.');
+    navigation(markup, 'Reflection tasks', 'Next step', '2 of 2');
+    expect(reflectionStatus(markup)).toBe('Draft reflection · record your decision when ready');
+    expect(markup).toContain('Used, partly used and not yet used are equally valid reports.');
+    expect(markup).toContain('this does not record the reflection yet.');
+    expect(markup).toContain('Recording a next step does not establish student improvement.');
+    expect(markup).toContain('<strong>Teaching attempt:</strong> Not yet used.');
+    expect(button(markup, 'Write your next step')).not.toContain('disabled=');
     expect(markup).toContain('The move has not been tested yet.');
     expect(markup).toContain('Follow-up evidence is not available yet.');
     expect(hasReflection(state)).toBe(false);
@@ -144,26 +189,28 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
   it('requires recording again when a previously recorded reflection is edited', () => {
     const recorded = recordedReflection();
     expect(hasReflection(recorded)).toBe(true);
-    expect(progress(renderWorkspace(ReflectWorkspace, recorded))).toContain('Next step recorded');
+    const recordedMarkup = renderWorkspace(ReflectWorkspace, recorded);
+    expect(reflectionStatus(recordedMarkup)).toBe('Next step recorded');
+    expect(button(recordedMarkup, 'Reflection recorded')).toContain('disabled=');
     const edited = reducer(recorded, { type: 'text', field: 'reflection', value: `${recorded.reflection} The facilitator will bring the materials on Monday.` });
     expect(hasReflection(edited)).toBe(false);
-    const guidance = progress(renderWorkspace(ReflectWorkspace, edited));
-    expect(guidance).toContain('2 of 3 steps recorded');
-    expect(item(guidance, 'Review and record the next step')).toContain('>To do</span>');
-    expect(guidance).not.toContain('Next step recorded');
-    expect(guidance).not.toContain('Your next decision is recorded');
-    expect(guidance).toContain('Review your next step');
+    const markup = renderWorkspace(ReflectWorkspace, edited);
+    navigation(markup, 'Reflection tasks', 'Next step', '2 of 2');
+    expect(reflectionStatus(markup)).toBe('Draft reflection · record your decision when ready');
+    expect(markup).not.toContain('Next step recorded');
+    expect(markup).not.toContain('Your next decision is recorded');
+    expect(markup).not.toContain('Reflection recorded with this plan.');
+    expect(button(markup, 'Record next step')).not.toContain('disabled=');
   });
 
   it('distinguishes an in-memory recorded reflection from a successful browser save', () => {
     const state = recordedReflection();
     const markup = renderWorkspace(ReflectWorkspace, state, true);
-    const guidance = progress(markup);
     expect(hasReflection(state)).toBe(true);
-    expect(guidance).toContain('Recorded in this draft · save pending');
-    expect(guidance).not.toContain('· Next step recorded');
+    expect(reflectionStatus(markup)).toBe('Recorded in this draft · save pending');
+    expect(reflectionStatus(markup)).not.toContain('Next step recorded');
     expect(markup).toContain('Changes are not saved. Retry saving before leaving this browser.');
     expect(markup).not.toContain('Reflection recorded with this plan.');
-    expect(markup).toContain('Record next step');
+    expect(button(markup, 'Record next step')).not.toContain('disabled=');
   });
 });

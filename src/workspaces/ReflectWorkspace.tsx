@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { hasReflection, type Action, type PlanState } from '../model';
 import { StepCoach } from '../components/StepCoach';
-import { StepProgress } from '../components/StepProgress';
+import { BuilderNavigation } from '../components/BuilderNavigation';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { WorkflowActions } from '../components/WorkflowActions';
 import { CollectionSummary } from '../components/CollectionSummary';
@@ -17,17 +17,32 @@ interface ReflectWorkspaceProps {
   onOpenRecord?: () => void;
   onBackToPlan?: () => void;
 }
+const reflectionTasks = [
+  { id: 'attempt', label: 'Teaching attempt', panelId: 'reflect-attempt-panel' },
+  { id: 'next-step', label: 'Next step', panelId: 'reflect-next-panel' },
+] as const;
+type ReflectionTask = typeof reflectionTasks[number]['id'];
+
 export function ReflectWorkspace({ state: s, dispatch, submit, errorField, errorAttempt, openExamples, unsaved = false, onEditCollection, onOpenRecord, onBackToPlan }: ReflectWorkspaceProps) {
+  const [task, setTask] = useState<ReflectionTask>(() => s.implementation ? 'next-step' : 'attempt');
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [questionOpen, setQuestionOpen] = useState(() => Boolean(s.nextCycleQuestion.trim()));
+  const [focusRequest, setFocusRequest] = useState<{ id: string; attempt: number } | null>(null);
+  const focusCounter = useRef(0);
   const recorded = hasReflection(s);
   const nextRequiredControl = !s.implementation ? 'implementation-yes' : s.reflection.trim().length < 30 ? 'reflection' : null;
   const implementationError = useFieldError('implementation-yes', 'implementation-explanation');
   useEffect(() => {
     if (!errorField) return;
-    const frame = requestAnimationFrame(() => document.getElementById(errorField)?.focus());
-    return () => cancelAnimationFrame(frame);
+    setTask(errorField.startsWith('implementation-') ? 'attempt' : 'next-step');
+    if (errorField === 'next-cycle-question') setQuestionOpen(true);
+    setFocusRequest({ id: errorField, attempt: ++focusCounter.current });
   }, [errorField, errorAttempt]);
+  useEffect(() => {
+    if (!focusRequest) return;
+    const frame = window.requestAnimationFrame(() => focusControl(focusRequest.id));
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusRequest]);
   const implementationMessage = s.implementation === 'no'
     ? 'The move has not been tested yet. Start with what would make implementation possible.'
     : s.implementation === 'partial'
@@ -52,28 +67,48 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
     control?.focus({ preventScroll: true });
     control?.scrollIntoView({ block: 'nearest' });
   }
-  const progressItems = [
-    { id: 'implementation', label: 'Report what was tried', complete: Boolean(s.implementation), onSelect: () => focusControl(`implementation-${s.implementation || 'yes'}`) },
-    { id: 'next-step', label: 'Write the supported next action', complete: s.reflection.trim().length >= 30, onSelect: () => focusControl('reflection') },
-    { id: 'record', label: 'Review and record the next step', complete: recorded, onSelect: () => focusControl('reflect-record') },
-  ];
-  const nextDraftPart = progressItems.find(item => !item.complete);
+  function showTask(next: string, focus = true, control?: string) {
+    if (!reflectionTasks.some(item => item.id === next)) return;
+    setTask(next as ReflectionTask);
+    setFocusRequest(focus ? { id: control ?? (next === 'attempt' ? 'reflect-attempt-title' : 'reflection'), attempt: ++focusCounter.current } : null);
+  }
+  function continueFromAttempt() {
+    if (!s.implementation) { showTask('attempt', true, 'implementation-yes'); return; }
+    showTask('next-step');
+  }
+  function recordNextStep() {
+    if (nextRequiredControl) {
+      showTask(nextRequiredControl === 'implementation-yes' ? 'attempt' : 'next-step', true, nextRequiredControl);
+      return;
+    }
+    submit('reflection');
+  }
+  const implementationLabel = s.implementation === 'yes' ? 'Used as planned' : s.implementation === 'partial' ? 'Partially used' : s.implementation === 'no' ? 'Not yet used' : 'Not reported yet';
+  const recordIsReady = recorded && !unsaved;
   return <div className="reflect-workspace">
+    <BuilderNavigation label="Reflection tasks" current={task} steps={reflectionTasks} onSelect={showTask} />
+    <p className="reflect-draft-status">{unsaved ? recorded ? 'Recorded in this draft · save pending' : 'Unsaved changes · keep this page open' : recorded ? 'Next step recorded' : 'Draft reflection · record your decision when ready'}</p>
+    <details className="reflect-collection-disclosure" open={collectionOpen} onToggle={event => setCollectionOpen(event.currentTarget.open)}>
+      <summary>Review planned checks</summary>
+      <section className="reflect-collection" id="reflect-collection" aria-label="Planned evidence collection">
+        <div className="reflect-collection-header"><p className="context-label">Reference · From your approved plan</p><h2 id="reflect-collection-title" tabIndex={-1}>Planned evidence collection</h2></div>
+        <div><h3>Check implementation</h3><p className="caption">The planned record of what the teacher and students did during the move.</p><p>{s.implementationCheck}</p></div>
+        <div><h3>Check student learning</h3><p className="caption">The planned student work and criteria for examining their reasoning.</p><p>{s.learningCheck}</p></div>
+        <p className="caption">Request dated work, the task and rubric, expected and actual response counts, and an implementation record. Check comparability before drawing a conclusion.</p>
+        <CollectionSummary state={s} />
+        {onEditCollection && <div className="reflect-collection-action"><button className="btn secondary" onClick={onEditCollection}>Edit collection details</button><p className="caption">Changing planned checks or dates requires plan approval again. Your reflection draft stays available.</p></div>}
+        {s.accessParticipation.trim() && <p className="caption">Access & participation plan: {s.accessParticipation}</p>}
+      </section>
+    </details>
+
+    <section id="reflect-attempt-panel" className="reflect-builder-panel" hidden={task !== 'attempt'} aria-labelledby="reflect-attempt-title">
+    <h2 id="reflect-attempt-title" tabIndex={-1}>Report the teaching attempt</h2>
     <section className="reflect-action" aria-labelledby="reflect-action-title">
       <h2 id="reflect-action-title">Agreed teaching move</h2>
       <p className="reflect-action-text">{s.action}</p>
       <p className="caption">Who planned to try it: {s.owner}</p>
       {!recorded && (s.implementation || s.reflection.trim()) && <p className="caption">Draft report · Check that it describes this approved teaching move before recording.</p>}
     </section>
-
-    <StepProgress title={recorded ? 'Your next decision is recorded' : 'Give the next PLC a starting point'}
-      benefit={recorded ? 'Reopen your decision alongside the evidence and plan, so the next discussion can start from what you learned or still need to find out.' : 'Record what happened and what to do next. A specific plan to collect missing evidence is a useful outcome too.'}
-      items={progressItems} nextId={nextDraftPart?.id}
-      nextLabel={recorded && onOpenRecord ? 'View your decision record' : nextDraftPart?.id === 'record' || recorded ? 'Review your next step' : nextDraftPart ? `Next: ${nextDraftPart.label.toLowerCase()}` : undefined}
-      onNext={recorded && onOpenRecord ? onOpenRecord : nextDraftPart?.id === 'record' || recorded ? () => focusControl('reflection') : undefined}
-      completion={recorded ? unsaved ? 'Recorded in this draft · save pending' : 'Next step recorded' : undefined}
-      progressLabel="steps recorded"
-      note="Used, partly used and not yet used are equally valid reports. Recording a next step does not establish student improvement. Check save status before leaving; editing the report requires recording it again." />
 
     <div className="reflect-evidence-layout">
       <section className="reflect-implementation" aria-labelledby="implementation-title">
@@ -91,27 +126,24 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         </fieldset>
         <p className="caption" id="implementation-explanation">{implementationMessage}</p>
         <FieldError id="implementation-yes" />
-        {s.implementation && <button type="button" className="textlink reflect-next-action" onClick={() => focusControl('reflection')}>Next: write the supported next step</button>}
       </section>
       <section className="reflect-empty" aria-labelledby="follow-up-empty-title">
         <p className="context-label">Learning evidence</p>
         <h2 id="follow-up-empty-title">Follow-up evidence is not available yet.</h2>
         <p>This cycle has planned checks, but no collected follow-up dataset. Planned dates and example results do not establish an outcome.</p>
         <p>Use the planned checks to organize the next collection. To compare learning later, the team needs dated student work, the task and scoring criteria, response coverage and a record of the teaching attempt.</p>
-        <button className="textlink" aria-expanded={collectionOpen} aria-controls="reflect-collection" onClick={() => setCollectionOpen(!collectionOpen)}>{collectionOpen ? 'Hide planned checks' : 'Review planned checks'}</button>
+        <button className="textlink" aria-controls="reflect-collection" onClick={() => { setCollectionOpen(true); setFocusRequest({ id: 'reflect-collection-title', attempt: ++focusCounter.current }); }}>Review planned checks</button>
       </section>
     </div>
-    {collectionOpen && <section className="reflect-collection" id="reflect-collection" aria-label="Planned evidence collection">
-      <div className="reflect-collection-header"><p className="context-label">Reference · From your approved plan</p><h2>Planned evidence collection</h2></div>
-      <div><h3>Check implementation</h3><p className="caption">The planned record of what the teacher and students did during the move.</p><p>{s.implementationCheck}</p></div>
-      <div><h3>Check student learning</h3><p className="caption">The planned student work and criteria for examining their reasoning.</p><p>{s.learningCheck}</p></div>
-      <p className="caption">Request dated work, the task and rubric, expected and actual response counts, and an implementation record. Check comparability before drawing a conclusion.</p>
-      <CollectionSummary state={s} />
-      {onEditCollection && <div className="reflect-collection-action"><button className="btn secondary" onClick={onEditCollection}>Edit collection details</button><p className="caption">Changing planned checks or dates requires plan approval again. Your reflection draft stays available.</p></div>}
-      {s.accessParticipation.trim() && <p className="caption">Access & participation plan: {s.accessParticipation}</p>}
-      <button type="button" className="textlink reflect-collection-continue" onClick={() => focusControl(s.implementation ? 'reflection' : 'implementation-yes')}>{s.implementation ? 'Continue to your next step' : 'First, report whether the move was tried'}</button>
-    </section>}
-    <section className="reflect-next-step" aria-labelledby="reflection-label">
+    <WorkflowActions label="Teaching attempt actions"
+      description={<p>Used, partly used and not yet used are equally valid reports. Continue to choose the next action; this does not record the reflection yet.</p>}
+      secondary={onBackToPlan ? <button type="button" className="btn secondary" onClick={onBackToPlan}>Back to meeting plan</button> : undefined}
+      primary={{ label: s.implementation ? 'Continue to next step' : 'Report implementation first', onClick: continueFromAttempt, arrow: true }} />
+    </section>
+
+    <section id="reflect-next-panel" className="reflect-builder-panel reflect-next-step" hidden={task !== 'next-step'} aria-labelledby="reflection-label">
+      <p className="reflect-attempt-summary"><strong>Teaching attempt:</strong> {implementationLabel}. {implementationMessage}</p>
+      <p className="reflect-follow-up-boundary">This cycle has no collected follow-up dataset. Recording a next step does not establish student improvement.</p>
 
       <TextArea id="reflection" heading label={reflectionQuestion} requirement="Required · at least 30 characters"
         hint={s.implementation === 'no'
@@ -128,8 +160,8 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       </details>
       <WorkflowActions label="Reflection actions"
         status={<p role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</p>}
-        secondary={onBackToPlan ? <button type="button" className="btn secondary" onClick={onBackToPlan}>Back to meeting plan</button> : undefined}
-        primary={{ id: 'reflect-record', label: nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step', onClick: () => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection') }} />
+        secondary={<button type="button" className="btn secondary" onClick={() => showTask('attempt')}>Back to teaching attempt</button>}
+        primary={{ id: 'reflect-record', label: recordIsReady && onOpenRecord ? 'View your decision record' : nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recordIsReady ? 'Reflection recorded' : 'Record next step', onClick: recordIsReady && onOpenRecord ? onOpenRecord : recordNextStep, disabled: recordIsReady && !onOpenRecord }} />
         <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision" disclosureLabel="How to shape a useful next step"
         why="An approved plan records an intention. Reflection begins with what happened in class, then asks what the available evidence can support. Needing more evidence is a useful next decision when the collection plan is specific."
         steps={[

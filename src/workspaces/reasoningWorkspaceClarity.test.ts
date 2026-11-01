@@ -14,7 +14,7 @@ function renderReasoning(state = initialState(), reference = createReferenceData
 }
 
 function taskPicker(markup: string) {
-  const start = markup.indexOf('class="reasoning-task-picker task-picker"');
+  const start = markup.indexOf('class="builder-task-picker"');
   expect(start).toBeGreaterThanOrEqual(0);
   return markup.slice(start, markup.indexOf('</div>', start));
 }
@@ -45,7 +45,7 @@ describe('reasoning guidance and source clarity', () => {
   it('names the native task selector and points it at the active panel while retaining desktop navigation', () => {
     const initial = renderReasoning();
     const picker = taskPicker(initial);
-    const labelId = picker.match(/<label for="([^"]+)">Reasoning task<\/label>/)?.[1];
+    const labelId = picker.match(/<label\b[^>]*for="([^"]+)"[^>]*>Reasoning sequence<\/label>/)?.[1];
     expect(labelId).toBeTruthy();
     expect(picker).toContain(`<select id="${labelId}"`);
     expect(picker).toContain('aria-controls="reasoning-notice-guide"');

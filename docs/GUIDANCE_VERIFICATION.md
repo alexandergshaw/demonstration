@@ -49,6 +49,16 @@ The shared action row now keeps validation guidance/status, secondary controls a
 
 All **389 tests across 19 files passed**, including new source-render checks for control order, accessible error associations, preservation of authored collection values, contextual draft-preview returns, labelled six-activity selection and all three Reasoning action/help sequences. TypeScript/Vite build passed. The local development server returned HTTP 200. Native selector keyboard behavior, actual focus restoration, mobile layout and enlarged-text rendering still need a browser check; the user's source-only release exception continues to apply.
 
+## Guided builder pass — October 31, 2026
+
+Evidence, Interpret, Plan and Reflect now use the same task navigation and action-row pattern. Evidence separates assessment, work and selection review; Plan separates the move, individual activities, checks and inline approval review; Reflect separates the implementation report from recording the next action. Interpret retains its three authoring tasks. Task position is not a completion score, and task navigation never approves work.
+
+New source-render and pure-routing checks cover a single active task, labelled native selectors, optional evidence selection, first-incomplete/unchanged-starter Plan entry, direct collection editing, validation routes, exact authored plan review, approval preservation, reflection recording, unsaved-state wording and navigation without render-time mutations. Existing workflow tests retain approval invalidation, source scope and save-failure coverage. Source review also addressed removal focus in Evidence and the activity picker at stacked tablet layouts.
+
+All **409 tests across 23 files passed**. `npm run build` passed TypeScript and Vite compilation, and `git diff --check` passed. These are automated source/state/render-contract checks, not browser interaction results.
+
+The existing local Vite server returned HTTP 200 at `http://127.0.0.1:5173/`. Browser access remains disabled; this release uses the user's existing source-only exception. No desktop, narrow-screen, keyboard or screen-reader behavior was visually or interactively verified. Source tests cannot establish actual focus or layout behavior.
+
 ## Verification limits
 
 Browser testing was unavailable because browser use is disabled in the app settings. This pass therefore has no observed browser-rendered layout, keyboard-flow, screen-reader, text-zoom or pointer-interaction results. Source inspection and server-render tests can establish content and state contracts, but cannot demonstrate those interactive behaviors.
@@ -62,6 +72,7 @@ These are proposed checks, not completed observations. Once browser testing is a
 1. Open and close local help at every stage. Confirm that help starts collapsed, keeps the main work readable and does not edit the draft or create completion state. Check narrow screens, 125/150% text and expanded spacing.
 2. At the interpretation alternative, try all three routes. Check that returning to Notice preserves writing, the source reader closes back to the draft, and Keep moves to the focus only after successful persistence. Change the interpretation or question angle and verify that consideration must be recorded again.
 3. Edit one agenda activity at a time. Trigger errors in a different activity, a closed check and an optional date. Confirm that the correct editor/disclosure becomes visible and focus reaches the invalid field.
+   Exercise every builder's Back/Continue and task selectors, including repeated selection of the current task. Remove a source in Evidence review and confirm focus returns to the review heading. Check the Plan activity picker at 701–900px and with 125/150% text. From inline review, preview the kit, edit an activity, return to review, and verify draft text and focus are preserved.
 4. Review and approve a complete plan with collection arrangements left blank. Confirm the unresolved labels remain honest, the ready screen appears after saving, and reload restores it. Inspect the meeting kit before choosing to enter Reflect.
 5. In Reflect, try each implementation status. Confirm that an untried move receives barrier/next-opportunity guidance and that none of the statuses supplies a learning outcome.
 6. From Reflect, open **Review what to collect → Update collection plan**. Confirm that the collector is reachable, changing a commitment removes the current plan approval, reflection text survives, and reapproval returns to the meeting-ready handoff. Enter Reflect explicitly to review and record again.

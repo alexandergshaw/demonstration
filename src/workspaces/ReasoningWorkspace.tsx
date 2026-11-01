@@ -7,7 +7,7 @@ import { Modal } from '../components/CycleManager';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
-import { StepProgress } from '../components/StepProgress';
+import { BuilderNavigation } from '../components/BuilderNavigation';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { WorkflowActions } from '../components/WorkflowActions';
 import './ReasoningWorkspace.css';
@@ -104,7 +104,6 @@ function SourceReader({ state, reference, source, onSourceChange, headingLevel =
 
 export function ReasoningWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError }: ReasoningWorkspaceProps) {
   const [beat, setBeat] = useState<Beat>(() => state.challenged || hasFocus(state) ? 'choose' : 'notice');
-  const beatSelectId = useId();
   const [source, setSource] = useState<Source>(() => reference.responses.find(item => state.selected.includes(item.id))?.id ?? 'assessment');
   const [sourceOpen, setSourceOpen] = useState(false);
   const [focusAttempt, setFocusAttempt] = useState(0);
@@ -157,12 +156,6 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       goToBeat('choose');
     }
   }
-  const progressItems = [
-    { id: 'notice', label: 'Write an interpretation', complete: interpretationReady, onSelect: () => goToBeat('notice', true) },
-    { id: 'test', label: 'Consider an alternative', complete: state.challenged, onSelect: () => goToBeat('test') },
-    { id: 'choose', label: 'Draft one teaching focus', complete: focusReady, onSelect: () => goToBeat('choose', true) },
-  ];
-  const nextDraftPart = progressItems.find(item => !item.complete);
   const confirmedFocus = hasFocus(state);
 
   return <div className="reasoning-workspace" ref={workspace}>
@@ -172,30 +165,15 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     </aside>
 
     <div className="reasoning-writing">
-      <div className="reasoning-task-picker task-picker">
-        <label htmlFor={beatSelectId}>Reasoning task</label>
-        <select id={beatSelectId} value={beat} aria-controls={`reasoning-${beat === 'choose' ? 'focus' : beat}-guide`} onChange={event => {
-          const next = event.target.value;
+      <BuilderNavigation label="Reasoning sequence" current={beat}
+        steps={beats.map(item => ({ ...item, panelId: `reasoning-${item.id === 'choose' ? 'focus' : item.id}-guide` }))}
+        onSelect={(next, moveFocus) => {
           if (!beats.some(item => item.id === next)) return;
+          if (moveFocus) { goToBeat(next as Beat); return; }
           pendingFocus.current = null;
           clearError();
           setBeat(next as Beat);
-        }}>
-          {beats.map((item, index) => <option key={item.id} value={item.id}>{index + 1}. {item.label}</option>)}
-        </select>
-      </div>
-      <nav className="reasoning-beats" aria-label="Reasoning sequence">
-        {beats.map((item, index) => <button key={item.id} onClick={() => goToBeat(item.id)} aria-current={beat === item.id ? 'step' : undefined}>
-          <span className="reasoning-beat-number" aria-hidden="true">{index + 1}</span><span>{item.label}</span>
-        </button>)}
-      </nav>
-      <StepProgress title={confirmedFocus ? 'Your focus is confirmed' : 'Give the meeting a clear direction'}
-        benefit={confirmedFocus ? 'Your confirmed focus is ready to shape the teaching move and meeting activities.' : 'Confirm one focus you can explain, then use it to build the meeting plan.'}
-        items={progressItems} nextId={nextDraftPart?.id}
-        nextLabel={confirmedFocus ? 'Continue to the meeting plan' : nextDraftPart ? `Next: ${nextDraftPart.label.toLowerCase()}` : 'Review your focus before confirming'}
-        onNext={confirmedFocus ? () => dispatch({ type: 'go', step: 2 }) : !nextDraftPart ? () => goToBeat('choose', true) : undefined}
-        completion={confirmedFocus ? 'Focus confirmed by you' : undefined} progressLabel="draft parts recorded"
-        note="Writing minimums only check that a response is present. You judge its quality and explicitly confirm the focus. Editing evidence or reasoning can require confirmation again; check the save status before leaving." />
+        }} />
       <aside className="reasoning-mobile-evidence" aria-label="Evidence reference while writing">
         {selectedResponse ? <>
           <p><strong>{selectedResponse.label} · {reference.assessment.date}</strong></p>
@@ -298,8 +276,9 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
         </div>
         <WorkflowActions label="Teaching focus actions"
           description={missingFocusStep ? <p>{missingFocusStep === 'notice' ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.' : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p> : undefined}
+          status={confirmedFocus ? <p>Focus confirmed by you. Continue with this decision, or revise your writing and confirm it again.</p> : undefined}
           secondary={<button type="button" className="btn secondary" onClick={() => goToBeat('test')}>Back to the alternative</button>}
-          primary={{ label: missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
+          primary={{ label: confirmedFocus ? 'Continue to meeting plan' : missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => confirmedFocus ? dispatch({ type: 'go', step: 2 }) : missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
         <TaskExplanation title="Choose the learning need the meeting will investigate" disclosureLabel="How to choose a teaching focus"
           why="A focus narrows the team’s attention to one aspect of student thinking. The next workspace turns that focus into a specific teacher action and meeting plan."
           steps={[
