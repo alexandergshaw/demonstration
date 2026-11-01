@@ -2,18 +2,22 @@ import { Icon } from '../components/Icon';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { CollectionSummary } from '../components/CollectionSummary';
 import { WorkflowActions } from '../components/WorkflowActions';
+import { StageChecklist } from '../components/StageChecklist';
 import { hasPlan, type PlanState } from '../model';
+import { planChecklistItems } from './planChecklist';
+import type { PlanTaskEntry } from './PlanWorkspace';
 import './MeetingReady.css';
 
 interface MeetingReadyProps {
   state: PlanState;
   onOpenKit: () => void;
   onEditPlan: () => void;
+  onEditTask?: (task: PlanTaskEntry) => void;
   onReflect: () => void;
   onEditCollection: () => void;
 }
 
-export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCollection }: MeetingReadyProps) {
+export function MeetingReady({ state, onOpenKit, onEditPlan, onEditTask, onReflect, onEditCollection }: MeetingReadyProps) {
   if (!hasPlan(state)) return <section className="meeting-ready meeting-ready-unapproved">
     <h2>Review your meeting plan first.</h2>
     <p>Your current draft needs approval before meeting materials are ready.</p>
@@ -21,7 +25,11 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
   </section>;
 
   const collectionIncomplete = !state.evidenceCollector.trim() || !state.collectionDate || !state.reviewDate;
+  const editTask = (task: PlanTaskEntry) => onEditTask ? onEditTask(task) : onEditPlan();
   return <div className="meeting-ready">
+    <StageChecklist title="Plan checklist" description="Your plan is approved. Revisit a task or open the kit to prepare for the meeting."
+      items={planChecklistItems(state, { move: () => editTask('move'), activities: () => editTask('activities'), implementation: () => editTask('implementation'), learning: () => editTask('learning'), collection: onEditCollection, review: () => editTask('review') })}
+      note="The required planning tasks are complete. Collection arrangements remain optional; this does not report that the meeting or lesson has happened." />
     <section className="meeting-ready-materials" aria-labelledby="meeting-ready-materials-title">
       <div><h2 id="meeting-ready-materials-title">Take the plan into your meeting.</h2><p>Open your reviewed agenda, activities and source packet to present, print or export. The kit uses your approved writing, including the directions you gave each activity; it does not generate a new teaching decision.</p></div>
       <button className="btn" onClick={onOpenKit}><Icon name="book" size={18} />Open meeting kit<Icon name="arrow" size={17} /></button>

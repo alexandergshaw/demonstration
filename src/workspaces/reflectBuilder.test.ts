@@ -35,8 +35,9 @@ describe('guided reflection builder', () => {
   it('opens only the teaching-attempt task when no implementation has been reported, preserving unfinished next-step writing', () => {
     const state = { ...approvedPlan(), reflection: 'Unfinished next action retained for later.' };
     const markup = render(state);
-    expect(markup).toContain('aria-label="Reflection tasks"');
-    expect(markup).toContain('Task 1 of 2');
+    expect(markup).toContain('Reflect checklist');
+    expect(markup).toMatch(/<li data-task="attempt" data-status="todo"><button[^>]*aria-current="step"/);
+    expect(markup).toContain('1 of 3 core tasks checked');
     expect(panelTag(markup, 'reflect-attempt-panel')).not.toContain('hidden=');
     expect(panelTag(markup, 'reflect-next-panel')).toContain('hidden=""');
     expect(markup).toContain('Report implementation first');
@@ -52,7 +53,8 @@ describe('guided reflection builder', () => {
   ] as const)('resumes the next-step task for %s without recording or inventing a learning outcome', (implementation, label, boundary) => {
     const state = reducer(approvedPlan(), { type: 'implementation', value: implementation });
     const markup = render(state);
-    expect(markup).toContain('Task 2 of 2');
+    expect(markup).toMatch(/<li data-task="next-step" data-status="todo"><button[^>]*aria-current="step"/);
+    expect(markup).toContain('1 of 3 core tasks checked');
     expect(panelTag(markup, 'reflect-attempt-panel')).toContain('hidden=""');
     expect(panelTag(markup, 'reflect-next-panel')).not.toContain('hidden=');
     expect(markup).toContain(`<strong>Teaching attempt:</strong> ${label}.`);

@@ -13,10 +13,10 @@ function renderReasoning(state = initialState(), reference = createReferenceData
   }));
 }
 
-function taskPicker(markup: string) {
-  const start = markup.indexOf('class="builder-task-picker"');
+function checklist(markup: string) {
+  const start = markup.indexOf('<nav class="stage-checklist"');
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(start, markup.indexOf('</div>', start));
+  return markup.slice(start, markup.indexOf('</nav>', start));
 }
 
 function mobileEvidence(markup: string) {
@@ -42,20 +42,24 @@ describe('reasoning guidance and source clarity', () => {
     }
   });
 
-  it('names the native task selector and points it at the active panel while retaining desktop navigation', () => {
+  it('labels all four checklist tasks and identifies the current work without awarding progress for a visit', () => {
     const initial = renderReasoning();
-    const picker = taskPicker(initial);
-    const labelId = picker.match(/<label\b[^>]*for="([^"]+)"[^>]*>Reasoning sequence<\/label>/)?.[1];
-    expect(labelId).toBeTruthy();
-    expect(picker).toContain(`<select id="${labelId}"`);
-    expect(picker).toContain('aria-controls="reasoning-notice-guide"');
-    expect(picker).toContain('<option value="notice" selected="">1. Notice</option>');
-    expect(picker).toContain('2. Test an alternative');
-    expect(picker).toContain('3. Choose a focus');
-    expect(initial).toContain('aria-label="Reasoning sequence"');
+    const tasks = checklist(initial);
+    const titleId = tasks.match(/aria-labelledby="([^"]+)"/)?.[1];
+    expect(titleId).toBeTruthy();
+    expect(tasks).toContain(`<h2 id="${titleId}">Interpretation checklist</h2>`);
+    expect(tasks.match(/data-task=/g)).toHaveLength(4);
+    expect(tasks.match(/data-status="todo"/g)).toHaveLength(4);
+    expect(tasks).toContain('0 of 4 core tasks checked');
+    for (const id of ['notice', 'test', 'focus', 'confirm']) expect(tasks).toContain(`data-task="${id}"`);
+    expect(tasks).toMatch(/data-task="notice"[^>]*><button[^>]*aria-current="step"/);
+    expect(tasks).toContain('Drafted means the writing minimum is met.');
+    expect(tasks).toContain('Confirmation is your separate decision');
     expect(initial).toContain('id="reasoning-test-guide"');
     const resumed: PlanState = { ...initialState(), challenged: true };
-    expect(taskPicker(renderReasoning(resumed))).toContain('aria-controls="reasoning-focus-guide"');
+    const resumedChecklist = checklist(renderReasoning(resumed));
+    expect(resumedChecklist).toMatch(/data-task="focus"[^>]*><button[^>]*aria-current="step"/);
+    expect(resumedChecklist).toContain('1 of 4 core tasks checked');
   });
 
   it('keeps one labelled action group after the task and before closed help in all three reasoning panels', () => {

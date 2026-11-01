@@ -7,7 +7,7 @@ import { Modal } from '../components/CycleManager';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
-import { BuilderNavigation } from '../components/BuilderNavigation';
+import { StageChecklist } from '../components/StageChecklist';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { WorkflowActions } from '../components/WorkflowActions';
 import './ReasoningWorkspace.css';
@@ -24,11 +24,6 @@ interface ReasoningWorkspaceProps {
 
 type Beat = 'notice' | 'test' | 'choose';
 type Source = EvidenceId | 'task';
-const beats: { id: Beat; label: string }[] = [
-  { id: 'notice', label: 'Notice' },
-  { id: 'test', label: 'Test an alternative' },
-  { id: 'choose', label: 'Choose a focus' },
-];
 
 function TaskAndRubric({ headingLevel = 'h3' }: { headingLevel?: 'h3' | 'h4' }) {
   const Heading = headingLevel;
@@ -104,6 +99,7 @@ function SourceReader({ state, reference, source, onSourceChange, headingLevel =
 
 export function ReasoningWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError }: ReasoningWorkspaceProps) {
   const [beat, setBeat] = useState<Beat>(() => state.challenged || hasFocus(state) ? 'choose' : 'notice');
+  const [focusTask, setFocusTask] = useState<'focus' | 'confirm'>(() => state.focus.trim().length >= 25 ? 'confirm' : 'focus');
   const [source, setSource] = useState<Source>(() => reference.responses.find(item => state.selected.includes(item.id))?.id ?? 'assessment');
   const [sourceOpen, setSourceOpen] = useState(false);
   const [focusAttempt, setFocusAttempt] = useState(0);
@@ -123,6 +119,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     // Clearing a validation message must not erase focus requested by beat navigation.
     if (!target) return;
     pendingFocus.current = errorField;
+    if (target === 'choose') setFocusTask('focus');
     setBeat(target);
   }, [errorField, errorAttempt]);
   useEffect(() => {
@@ -144,6 +141,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
   }
 
   function goToBeat(next: Beat, focusEditor = false) {
+    if (next === 'choose') setFocusTask('focus');
     const changedBeat = next !== beat;
     requestFocus(next === 'notice' ? focusEditor || !changedBeat ? 'interpretation' : 'reasoning-notice-guide'
       : next === 'test' ? 'reasoning-test-title'
@@ -157,6 +155,12 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     }
   }
   const confirmedFocus = hasFocus(state);
+  function reviewFocus() {
+    clearError();
+    setBeat('choose');
+    setFocusTask('confirm');
+    requestFocus('focus-confirm');
+  }
 
   return <div className="reasoning-workspace" ref={workspace}>
     <aside className="reasoning-source-pane" aria-label="Original evidence beside your writing">
@@ -165,15 +169,14 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     </aside>
 
     <div className="reasoning-writing">
-      <BuilderNavigation label="Reasoning sequence" current={beat}
-        steps={beats.map(item => ({ ...item, panelId: `reasoning-${item.id === 'choose' ? 'focus' : item.id}-guide` }))}
-        onSelect={(next, moveFocus) => {
-          if (!beats.some(item => item.id === next)) return;
-          if (moveFocus) { goToBeat(next as Beat); return; }
-          pendingFocus.current = null;
-          clearError();
-          setBeat(next as Beat);
-        }} />
+      <StageChecklist title="Interpretation checklist" description="Turn an observed pattern into a teaching focus you can defend."
+        currentId={beat === 'choose' ? focusTask : beat}
+        items={[
+          { id: 'notice', label: 'Write your interpretation', detail: 'Connect the pattern to a specific source.', status: interpretationReady ? 'done' : state.interpretation.trim() ? 'started' : 'todo', statusLabel: interpretationReady ? 'Drafted' : undefined, onSelect: () => goToBeat('notice', true) },
+          { id: 'test', label: 'Consider an alternative', detail: 'Decide how another explanation changes your thinking.', status: state.challenged ? 'done' : 'todo', statusLabel: state.challenged ? 'Considered by you' : undefined, onSelect: () => goToBeat('test') },
+          { id: 'focus', label: 'Write one teaching focus', detail: 'Name the learning need the meeting will investigate.', status: focusReady ? 'done' : state.focus.trim() ? 'started' : 'todo', statusLabel: focusReady ? 'Drafted' : undefined, onSelect: () => goToBeat('choose', true) },
+          { id: 'confirm', label: 'Review and confirm your focus', detail: 'Own the decision before building the meeting plan.', status: confirmedFocus ? 'done' : 'todo', statusLabel: confirmedFocus ? 'Confirmed by you' : undefined, onSelect: reviewFocus },
+        ]} note="Drafted means the writing minimum is met. Confirmation is your separate decision; edits can require it again." />
       <aside className="reasoning-mobile-evidence" aria-label="Evidence reference while writing">
         {selectedResponse ? <>
           <p><strong>{selectedResponse.label} · {reference.assessment.date}</strong></p>
@@ -278,7 +281,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           description={missingFocusStep ? <p>{missingFocusStep === 'notice' ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.' : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p> : undefined}
           status={confirmedFocus ? <p>Focus confirmed by you. Continue with this decision, or revise your writing and confirm it again.</p> : undefined}
           secondary={<button type="button" className="btn secondary" onClick={() => goToBeat('test')}>Back to the alternative</button>}
-          primary={{ label: confirmedFocus ? 'Continue to meeting plan' : missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => confirmedFocus ? dispatch({ type: 'go', step: 2 }) : missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
+          primary={{ id: 'focus-confirm', label: confirmedFocus ? 'Continue to meeting plan' : missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue', onClick: () => confirmedFocus ? dispatch({ type: 'go', step: 2 }) : missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus'), arrow: true }} />
         <TaskExplanation title="Choose the learning need the meeting will investigate" disclosureLabel="How to choose a teaching focus"
           why="A focus narrows the team’s attention to one aspect of student thinking. The next workspace turns that focus into a specific teacher action and meeting plan."
           steps={[

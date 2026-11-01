@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FieldError, TextArea, useFieldError } from '../components/Field';
 import { hasReflection, type Action, type PlanState } from '../model';
 import { StepCoach } from '../components/StepCoach';
-import { BuilderNavigation } from '../components/BuilderNavigation';
+import { StageChecklist, type ChecklistTask } from '../components/StageChecklist';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { WorkflowActions } from '../components/WorkflowActions';
 import { CollectionSummary } from '../components/CollectionSummary';
@@ -85,8 +85,18 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
   }
   const implementationLabel = s.implementation === 'yes' ? 'Used as planned' : s.implementation === 'partial' ? 'Partially used' : s.implementation === 'no' ? 'Not yet used' : 'Not reported yet';
   const recordIsReady = recorded && !unsaved;
+  const reflectionWritten = s.reflection.trim().length >= 30;
+  const checklistItems: ChecklistTask[] = [
+    { id: 'attempt', label: 'Report the teaching attempt', detail: 'Choose used as planned, partly used or not yet used.', status: s.implementation ? 'done' : 'todo', statusLabel: s.implementation ? 'Reported' : 'To do', onSelect: () => showTask('attempt') },
+    { id: 'next-step', label: 'Write the supported next action', detail: 'Name what to collect or change, who will act and when to revisit it.', status: reflectionWritten ? 'done' : s.reflection.trim() ? 'started' : 'todo', statusLabel: reflectionWritten ? 'Drafted' : s.reflection.trim() ? 'In progress' : 'To do', onSelect: () => showTask('next-step') },
+    { id: 'question', label: 'Keep a question for the next PLC', detail: 'Save an unresolved question alongside this reflection.', optional: true, status: s.nextCycleQuestion.trim() ? 'done' : 'todo', statusLabel: s.nextCycleQuestion.trim() ? 'Drafted' : 'Not added', onSelect: () => { setQuestionOpen(true); showTask('next-step', true, 'next-cycle-question'); } },
+    { id: 'record', label: 'Review and record your next step', detail: 'Check your report and explicitly record the decision with this plan.', status: recordIsReady ? 'done' : recorded ? 'started' : 'todo', statusLabel: recordIsReady ? 'Recorded' : recorded ? 'Save pending' : reflectionWritten && s.implementation ? 'Ready to record' : 'Not recorded', onSelect: () => showTask('next-step', true, recordIsReady && !onOpenRecord ? 'reflection' : 'reflect-record') },
+  ];
+  const checklistCurrent = task === 'attempt' ? 'attempt' : focusRequest?.id === 'next-cycle-question' ? 'question' : focusRequest?.id === 'reflection' ? 'next-step' : focusRequest?.id === 'reflect-record' || reflectionWritten ? 'record' : 'next-step';
   return <div className="reflect-workspace">
-    <BuilderNavigation label="Reflection tasks" current={task} steps={reflectionTasks} onSelect={showTask} />
+    <StageChecklist title="Reflect checklist" description="Turn the teaching attempt into a specific next decision."
+      items={checklistItems} currentId={checklistCurrent}
+      note="Not yet used is a valid report. Checkmarks track your report and writing; they do not establish a learning gain. Recording is a separate action." />
     <p className="reflect-draft-status">{unsaved ? recorded ? 'Recorded in this draft · save pending' : 'Unsaved changes · keep this page open' : recorded ? 'Next step recorded' : 'Draft reflection · record your decision when ready'}</p>
     <details className="reflect-collection-disclosure" open={collectionOpen} onToggle={event => setCollectionOpen(event.currentTarget.open)}>
       <summary>Review planned checks</summary>

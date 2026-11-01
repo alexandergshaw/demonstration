@@ -138,7 +138,7 @@ describe('workspace defaults keep one decision in view', () => {
     expect(panel).toContain('<details class="evidence-source-details">');
     expect(markup).not.toMatch(/<details\b[^>]*\bopen=/);
     expect(panel).toContain('Totals do not tell us which students met both criteria.');
-    expect(primaryAction(workflowActions(panel, 'Assessment actions'))).toContain('Continue to student work');
+    expect(primaryAction(workflowActions(panel, 'Assessment actions'))).toContain('Continue to task &amp; scoring');
   });
 
   it('starts a fresh interpretation at Notice with the other writing steps hidden', () => {
@@ -179,7 +179,7 @@ describe('workspace defaults keep one decision in view', () => {
     }
     expect(markup).not.toContain('<dialog');
     expect(markup).not.toContain('Approve meeting plan');
-    expect(markup).toContain('Review &amp; approve');
+    expect(markup).toContain('Review the kit and approve the plan');
     expect(markup).toContain('Preview draft meeting kit');
     expect(markup).not.toContain('class="planning-disclosure rehearsal-guide"');
     expect(hasPlan(state)).toBe(false);
@@ -239,14 +239,14 @@ describe('guidance points to required work without completing it', () => {
     const markup = renderToStaticMarkup(createElement(EvidenceWorkspace, options));
     const panel = visibleWorkspacePanel(markup, 'evidence-builder-panel', 3);
     const actions = workflowActions(panel, 'Assessment actions');
-    expect(primaryAction(actions)).toContain('Continue to student work');
+    expect(primaryAction(actions)).toContain('Continue to task &amp; scoring');
     expect(actions).toContain('Use the task and scoring criteria to understand the counts.');
     for (const label of ['Results', 'By class', 'Task &amp; sources']) expect(panel).toContain(label);
     expect(markup).toContain('Continue to interpretation');
     expect(markup).toContain('Student work selection is optional');
     expect(panel.indexOf('>Results</button>')).toBeLessThan(panel.indexOf('>Task &amp; sources</button>'));
     expect(panel.indexOf('>Task &amp; sources</button>')).toBeLessThan(panel.indexOf('>By class</button>'));
-    expect(markup).toContain('Check the task and scoring');
+    expect(markup).toContain('Read the task and scoring');
     expect(markup).not.toContain('disabled=');
     expect(options.state).toEqual(before);
     expect(options.dispatch).not.toHaveBeenCalled();
@@ -322,7 +322,7 @@ describe('guidance points to required work without completing it', () => {
     const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
     const footer = workflowActions(visibleReasoningPanel(markup), 'Interpretation actions');
     expect(primaryAction(footer)).toContain(`<span>${label}</span>`);
-    expect(markup).toContain('aria-label="Reasoning sequence"');
+    expect(markup).toContain('Interpretation checklist');
     expect(options.dispatch).not.toHaveBeenCalled();
     expect(options.submit).not.toHaveBeenCalled();
   });

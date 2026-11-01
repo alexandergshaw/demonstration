@@ -53,6 +53,14 @@ The useful payoff is the educator's own inspectable work: a selected evidence se
 
 These choices apply Tyler Nakatsu's product lens and Antoinette Melvin's consistency lens to a shared navigation pattern; LeAnita Garner's and Nia Ladson's instructional lenses to source inspection and authored reasoning; and Sandra Jin's and Sabrina Ware's strategy lenses to clear approval, draft recovery and implementation boundaries. This is our role-based design rationale, not a statement of their preferences or an endorsement.
 
+### Stage checklists
+
+Each main tab now starts with an actionable checklist, replacing its local task strip. The literal reference is [Canvas's Course Setup Checklist](https://community.instructure.com/en/kb/articles/660754-how-do-i-use-the-course-setup-checklist): named preparation tasks link to their work areas, while publication remains a separate action. Playlab and SchoolAI continue to inform optional references, preserved drafts and preview before release. These documented patterns do not establish that every panel member personally uses Canvas, and the checklist is our adaptation rather than a copied product screen.
+
+Evidence lists results, task/scoring, optional class comparison, optional student work and selection review. A check requires the educator's explicit acknowledgment in the corresponding work area; opening a source does not check it. Acknowledgments persist with the cycle, selection edits reopen its selection review, and duplication, reset or revised evidence starts with fresh checks. Existing cycles default to no acknowledgments without changing saved approvals. These are advisory reminders, not new navigation or approval requirements.
+
+Interpretation separates drafted interpretation, considered alternative, drafted focus and explicit confirmation. Plan separates the move/owner, activities, both checks, optional collection arrangements and approval; unchanged activity starters retain a review cue until the educator accepts them in an approved plan. Reflect separates the implementation report, next-action draft, optional next-PLC question and saved recording. Task rows navigate to the work; they do not themselves approve or record it. Checkmarks use precise status labels such as Drafted, Reviewed by you and Recorded, and optional rows do not increase the core-task total. The approved Plan landing keeps its checklist and routes back to the corresponding task.
+
 ### Full-flow gap review
 
 This pass compared the actual workflow with the documented professional patterns above. The [IM Grade 4 lesson structure](https://im.kendallhunt.com/k5/teachers/grade-4/unit-2/lesson-4/lesson.html) also separates named, timed activities into launch, student work and synthesis. The consequences below are design judgments; they are not claims about individual interviewers' preferences or measured improvements.

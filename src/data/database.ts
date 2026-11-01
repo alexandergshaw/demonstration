@@ -161,7 +161,7 @@ export function createLocalBackend(storageGetter: () => StorageLike, options: { 
         if (database.cycles.length >= MAX_CYCLES) throw new DatabaseError('cycle-limit', `You can keep up to ${MAX_CYCLES} cycles. Delete an unused cycle first.`);
         const newCycleId = idFor(database.cycles), time = timestamp();
         const state: PlanState = { ...copy(source.state), step: 0, challenged: false, focusStamp: null, planStamp: null, reflectionStamp: null, consent: false, implementation: '', reflection: '', review: true,
-          nextCycleQuestion: '', evidenceCollector: '', collectionDate: '', reviewDate: '' };
+          nextCycleQuestion: '', evidenceCollector: '', collectionDate: '', reviewDate: '', evidenceReviewed: [] };
         database.cycles.push({ id: newCycleId, title: `${source.title.slice(0, 73).trimEnd()} (copy)`, createdAt: time, updatedAt: time, revision: 0, state }); database.activeCycleId = newCycleId;
       });
     },
@@ -173,7 +173,7 @@ export function createLocalBackend(storageGetter: () => StorageLike, options: { 
         const newCycleId = idFor(database.cycles), time = timestamp();
         const state: PlanState = { ...copy(source.state), evidenceVersion: 'oct29', updateAvailable: false, updateReviewed: false,
           step: 0, selected: ['assessment'], challenged: false, focusStamp: null, planStamp: null, reflectionStamp: null, consent: false,
-          implementation: '', reflection: '', review: true, nextCycleQuestion: '', evidenceCollector: '', collectionDate: '', reviewDate: '' };
+          implementation: '', reflection: '', review: true, nextCycleQuestion: '', evidenceCollector: '', collectionDate: '', reviewDate: '', evidenceReviewed: [] };
         database.cycles.push({ id: newCycleId, title: `${source.title.slice(0, 64).trimEnd()} · Oct 29 review`, createdAt: time, updatedAt: time, revision: 0, state });
         database.activeCycleId = newCycleId;
         return 'A new draft uses the October 29 evidence. Your original cycle and its approvals are preserved. Review the new work, revise your reasoning and confirm the decisions again.';

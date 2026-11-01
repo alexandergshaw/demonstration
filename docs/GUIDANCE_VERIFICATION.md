@@ -59,6 +59,14 @@ All **409 tests across 23 files passed**. `npm run build` passed TypeScript and 
 
 The existing local Vite server returned HTTP 200 at `http://127.0.0.1:5173/`. Browser access remains disabled; this release uses the user's existing source-only exception. No desktop, narrow-screen, keyboard or screen-reader behavior was visually or interactively verified. Source tests cannot establish actual focus or layout behavior.
 
+## Stage checklist pass — October 31, 2026
+
+The four stages and the approved Plan landing now use a shared actionable checklist. Evidence acknowledgment persistence is separate from instructional approval. Added model and database checks cover legacy backfill, bounded review IDs, cycle isolation, invalid input, idempotence, selection-change invalidation and fresh review checks after copy/reset/revised evidence. Checklist tests distinguish optional work, draft presence, supplied starters, confirmation, approval and saved reflection. Opening task rows does not mutate or approve the plan.
+
+All **436 tests across 25 files passed**. TypeScript/Vite production build and `git diff --check` passed. The local Vite app and the new checklist module returned HTTP 200. Source review corrected focus-writing versus confirmation destinations, removal focus when an edit remains in an unsaved draft, and direct task entry from the approved Plan checklist.
+
+The source-only release exception still applies. The local server and automated checks do not replace browser verification. Remaining hands-on checks include checklist row focus and scroll on desktop/phone, review-checkbox saving and undo, switching cycles, reopening saved reviews, direct task entry from an approved plan, and checkbox/row behavior with keyboard, screen readers and enlarged text.
+
 ## Verification limits
 
 Browser testing was unavailable because browser use is disabled in the app settings. This pass therefore has no observed browser-rendered layout, keyboard-flow, screen-reader, text-zoom or pointer-interaction results. Source inspection and server-render tests can establish content and state contracts, but cannot demonstrate those interactive behaviors.

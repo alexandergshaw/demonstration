@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createLocalBackend, DATABASE_KEY, DatabaseError, MAX_CYCLES } from './database';
 import { createReferenceData } from './seed';
-import { encodeDraft, hasFocus, hasPlan, hasReflection, initialState, reducer, STORAGE_KEY, type PlanState } from '../model';
+import { encodeDraft, evidenceReviewTasks, hasFocus, hasPlan, hasReflection, initialState, reducer, STORAGE_KEY, type PlanState } from '../model';
 
 type Backend = ReturnType<typeof createLocalBackend>;
 type Snapshot = ReturnType<Backend['load']>;
@@ -89,6 +89,66 @@ const mutations: Array<[string, (backend: Backend, snapshot: Snapshot) => Snapsh
   ['delete', (db, s) => db.deleteCycle(s.activeCycleId, s.revision)],
   ['reset', (db, s) => db.resetCycle(s.activeCycleId, s.revision)],
 ];
+
+describe('cycle-scoped evidence acknowledgments', () => {
+  it('persists acknowledgments without changing approvals and isolates them from other cycles', () => {
+    const { backend } = setup();
+    let snapshot = backend.load();
+    const originalId = snapshot.activeCycleId;
+    const completed = completedState();
+    const reviewed = { ...completed, evidenceReviewed: [...evidenceReviewTasks] };
+    snapshot = backend.saveCycle(originalId, reviewed, snapshot.revision);
+    expect(active(backend.load()).state).toEqual(reviewed);
+    expect(hasReflection(active(snapshot).state)).toBe(true);
+    snapshot = backend.createCycle('Another evidence cycle', snapshot.revision);
+    expect(active(snapshot).state.evidenceReviewed).toEqual([]);
+    snapshot = backend.selectCycle(originalId, snapshot.revision);
+    expect(active(snapshot).state).toEqual(reviewed);
+    expect(active(snapshot).state.planStamp).toBe(completed.planStamp);
+  });
+
+  it.each(['duplicate', 'revise', 'reset'] as const)('clears acknowledgments for %s without copying reviewed status to a new task', operation => {
+    const { backend } = setup();
+    let snapshot = backend.load();
+    const reviewed = { ...completedState(), evidenceReviewed: [...evidenceReviewTasks], updateAvailable: true };
+    snapshot = backend.saveCycle(snapshot.activeCycleId, reviewed, snapshot.revision);
+    const original = structuredClone(active(snapshot));
+    const next = operation === 'duplicate' ? backend.duplicateCycle(original.id, snapshot.revision)
+      : operation === 'revise' ? backend.reviseWithLatest(original.id, snapshot.revision)
+      : backend.resetCycle(original.id, snapshot.revision);
+    expect(active(next).state.evidenceReviewed).toEqual([]);
+    expect(active(backend.load()).state.evidenceReviewed).toEqual([]);
+    if (operation !== 'reset') expect(next.cycles.find(cycle => cycle.id === original.id)).toEqual(original);
+    expect(hasFocus(active(next).state)).toBe(false);
+    expect(hasPlan(active(next).state)).toBe(false);
+    expect(hasReflection(active(next).state)).toBe(false);
+  });
+
+  it('loads legacy records with empty acknowledgments without rewriting the saved record', () => {
+    const { backend, storage } = setup();
+    let snapshot = backend.load();
+    snapshot = backend.saveCycle(snapshot.activeCycleId, completedState(), snapshot.revision);
+    const legacy = JSON.parse(storage.getItem(DATABASE_KEY)!);
+    delete legacy.cycles[0].state.evidenceReviewed;
+    const bytes = JSON.stringify(legacy);
+    storage.setItem(DATABASE_KEY, bytes);
+    const writes = storage.writes;
+    const loaded = backend.load();
+    expect(active(loaded).state.evidenceReviewed).toEqual([]);
+    expect(hasReflection(active(loaded).state)).toBe(true);
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+    expect(storage.writes).toBe(writes);
+  });
+
+  it('rejects invalid acknowledgment data without replacing the stored cycle', () => {
+    const { backend, storage } = setup();
+    const snapshot = backend.load();
+    const bytes = storage.getItem(DATABASE_KEY);
+    const invalid = { ...initialState(), evidenceReviewed: ['selection', 'selection'] } as PlanState;
+    expectCode(() => backend.saveCycle(snapshot.activeCycleId, invalid, snapshot.revision), 'invalid-input');
+    expect(storage.getItem(DATABASE_KEY)).toBe(bytes);
+  });
+});
 
 describe('reviewing a newer evidence snapshot', () => {
   function readyForUpdate() {

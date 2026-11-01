@@ -60,15 +60,15 @@ function renderWorkspace(Component: ComponentType<ReturnType<typeof workspacePro
   return markup;
 }
 
-// Task position is navigation, not a completion or approval score.
-function navigation(markup: string, label: string, current: string, position: string) {
-  const start = markup.indexOf(`<nav class="builder-navigation" aria-label="${label}">`);
+// Checklist rows navigate; their statuses distinguish authored drafts from explicit decisions.
+function checklist(markup: string, title: string, current: string, count: string) {
+  const start = markup.indexOf('<nav class="stage-checklist"');
   expect(start).toBeGreaterThanOrEqual(0);
   const nav = markup.slice(start, markup.indexOf('</nav>', start) + '</nav>'.length);
-  expect(nav).toContain(`Task ${position}`);
+  expect(nav).toContain(`>${title}</h2>`);
+  expect(nav).toContain(`${count} core tasks checked`);
   expect(nav.match(/aria-current="step"/g)).toHaveLength(1);
-  const currentButton = nav.match(/<button\b[^>]*aria-current="step"[^>]*>[\s\S]*?<\/button>/)?.[0];
-  expect(currentButton).toContain(current);
+  expect(item(nav, current)).toContain('aria-current="step"');
   expect(nav).not.toContain('disabled=');
   expect(nav).not.toContain('role="progressbar"');
   expect(nav).not.toContain('aria-live=');
@@ -93,26 +93,26 @@ function activityOutline(markup: string) {
   return markup.slice(start, markup.indexOf('</ol>', start) + '</ol>'.length);
 }
 
-function item(markup: string, label: string) {
-  const start = markup.indexOf(label);
+function item(markup: string, id: string) {
+  const start = markup.indexOf(`<li data-task="${id}"`);
   expect(start).toBeGreaterThanOrEqual(0);
-  return markup.slice(markup.lastIndexOf('<li>', start), markup.indexOf('</li>', start));
+  return markup.slice(start, markup.indexOf('</li>', start));
 }
 
 describe('guided progress distinguishes navigation, drafts, approvals and saving', () => {
-  it('separates optional source opening from task position and permits direct interpretation', () => {
+  it('requires explicit source acknowledgments, keeps optional work separate, and permits direct interpretation', () => {
     const state = initialState();
     const markup = renderWorkspace(EvidenceWorkspace, state);
-    navigation(markup, 'Evidence review tasks', 'Assessment', '1 of 3');
-    const start = markup.indexOf('<details class="evidence-inspection-history">');
-    expect(start).toBeGreaterThanOrEqual(0);
-    const guidance = markup.slice(start, markup.indexOf('</details>', start));
-    expect(guidance).toContain('Source views opened · 1 of 4 this visit');
-    expect(item(guidance, 'Compare the results')).toContain('>Opened</span>');
-    expect(item(guidance, 'Check the task and scoring')).toContain('>Available</span>');
-    expect(guidance).toContain('not a record that you reviewed a source');
-    expect(guidance).toContain('You can interpret without opening every view; selecting work is optional.');
-    expect(guidance).toContain('This visit count resets when you leave Evidence.');
+    const guidance = checklist(markup, 'Evidence checklist', 'results', '0 of 3');
+    expect(guidance.match(/data-task=/g)).toHaveLength(5);
+    for (const id of ['results', 'task', 'classes', 'work', 'selection']) expect(item(guidance, id)).toContain('data-status="todo"');
+    for (const id of ['classes', 'work']) expect(item(guidance, id)).toContain('Optional ·');
+    for (const id of ['results', 'task', 'selection']) expect(item(guidance, id)).not.toContain('Optional ·');
+    expect(guidance).toContain('Mark each review yourself in its work area.');
+    expect(guidance).toContain('You can continue without checking every task.');
+    expect(markup).toContain('I reviewed the results and their limits.');
+    expect(markup).not.toMatch(/<input type="checkbox"[^>]*checked=/);
+    expect(state.evidenceReviewed).toEqual([]);
     expect(button(markup, 'Continue to interpretation')).not.toContain('disabled=');
     expect(button(markup, 'Interpret the evidence')).not.toContain('disabled=');
     expect(markup).toContain('Continuing does not confirm an interpretation.');
@@ -125,7 +125,8 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
     expect(focusError(draft)).toBe('');
     expect(hasFocus(draft)).toBe(false);
     const draftMarkup = renderWorkspace(ReasoningWorkspace, draft);
-    navigation(draftMarkup, 'Reasoning sequence', 'Choose a focus', '3 of 3');
+    const draftChecklist = checklist(draftMarkup, 'Interpretation checklist', 'confirm', '3 of 4');
+    expect(item(draftChecklist, 'confirm')).toContain('data-status="todo"');
     expect(button(draftMarkup, 'Confirm focus &amp; continue')).not.toContain('disabled=');
     expect(draftMarkup).not.toContain('Focus confirmed by you');
 
@@ -133,12 +134,14 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
     expect(hasPlan(approved)).toBe(true);
     expect(renderWorkspace(ReasoningWorkspace, approved)).toContain('Focus confirmed by you.');
     const approvedMarkup = renderWorkspace(PlanWorkspace, approved);
-    navigation(approvedMarkup, 'Meeting plan tasks', 'Review &amp; approve', '4 of 4');
+    const approvedChecklist = checklist(approvedMarkup, 'Plan checklist', 'review', '5 of 5');
+    expect(item(approvedChecklist, 'review')).toContain('Approved by you');
     expect(approvedMarkup).toContain('Current approved plan');
     const edited = reducer(approved, { type: 'text', field: 'focus', value: 'Use student drawings to explain equal amounts before naming an equivalence rule.' });
     expect(hasFocus(edited)).toBe(false);
     expect(hasPlan(edited)).toBe(false);
     const reasoningMarkup = renderWorkspace(ReasoningWorkspace, edited);
+    expect(item(checklist(reasoningMarkup, 'Interpretation checklist', 'confirm', '3 of 4'), 'confirm')).toContain('data-status="todo"');
     expect(reasoningMarkup).not.toContain('Focus confirmed by you');
     expect(reasoningMarkup).toContain('Confirm focus &amp; continue');
     const planMarkup = renderWorkspace(PlanWorkspace, edited);
@@ -154,7 +157,10 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
       { type: 'text', field: 'action', value: 'Ask students to show equal amounts with fraction strips and explain what stays the same.' });
     expect(state.agenda).toEqual(initialAgenda);
     const markup = renderWorkspace(PlanWorkspace, state);
-    navigation(markup, 'Meeting plan tasks', 'Meeting activities', '2 of 4');
+    const guidance = checklist(markup, 'Plan checklist', 'activities', '1 of 5');
+    expect(item(guidance, 'activities')).toContain('data-status="started"');
+    expect(item(guidance, 'activities')).toContain('0 of 6 adapted · review starters');
+    expect(item(guidance, 'collection')).toContain('Optional ·');
     expect(activityOutline(markup).match(/Starter text · /g)).toHaveLength(6);
     expect(markup).toContain('<strong>Starter text.</strong> Review and adapt these directions for your team.');
     expect(markup).toContain('Review all six before approving your plan.');
@@ -174,7 +180,10 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
   it('accepts not-yet-used as a report without claiming implementation or student learning', () => {
     const state = reducer(approvedPlan(), { type: 'implementation', value: 'no' });
     const markup = renderWorkspace(ReflectWorkspace, state);
-    navigation(markup, 'Reflection tasks', 'Next step', '2 of 2');
+    const guidance = checklist(markup, 'Reflect checklist', 'next-step', '1 of 3');
+    expect(item(guidance, 'attempt')).toContain('>Reported</span>');
+    expect(item(guidance, 'record')).toContain('data-status="todo"');
+    expect(item(guidance, 'question')).toContain('Optional ·');
     expect(reflectionStatus(markup)).toBe('Draft reflection · record your decision when ready');
     expect(markup).toContain('Used, partly used and not yet used are equally valid reports.');
     expect(markup).toContain('this does not record the reflection yet.');
@@ -190,12 +199,13 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
     const recorded = recordedReflection();
     expect(hasReflection(recorded)).toBe(true);
     const recordedMarkup = renderWorkspace(ReflectWorkspace, recorded);
+    expect(item(checklist(recordedMarkup, 'Reflect checklist', 'record', '3 of 3'), 'record')).toContain('data-status="done"');
     expect(reflectionStatus(recordedMarkup)).toBe('Next step recorded');
     expect(button(recordedMarkup, 'Reflection recorded')).toContain('disabled=');
     const edited = reducer(recorded, { type: 'text', field: 'reflection', value: `${recorded.reflection} The facilitator will bring the materials on Monday.` });
     expect(hasReflection(edited)).toBe(false);
     const markup = renderWorkspace(ReflectWorkspace, edited);
-    navigation(markup, 'Reflection tasks', 'Next step', '2 of 2');
+    expect(item(checklist(markup, 'Reflect checklist', 'record', '2 of 3'), 'record')).toContain('data-status="todo"');
     expect(reflectionStatus(markup)).toBe('Draft reflection · record your decision when ready');
     expect(markup).not.toContain('Next step recorded');
     expect(markup).not.toContain('Your next decision is recorded');
@@ -207,6 +217,9 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
     const state = recordedReflection();
     const markup = renderWorkspace(ReflectWorkspace, state, true);
     expect(hasReflection(state)).toBe(true);
+    const guidance = checklist(markup, 'Reflect checklist', 'record', '2 of 3');
+    expect(item(guidance, 'record')).toContain('data-status="started"');
+    expect(item(guidance, 'record')).toContain('Save pending');
     expect(reflectionStatus(markup)).toBe('Recorded in this draft · save pending');
     expect(reflectionStatus(markup)).not.toContain('Next step recorded');
     expect(markup).toContain('Changes are not saved. Retry saving before leaving this browser.');

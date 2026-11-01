@@ -14,7 +14,7 @@ import { EvidenceUpdate } from './components/EvidenceUpdate';
 import { referenceForVersion } from './data/evidenceSnapshots';
 import { EvidenceWorkspace } from './workspaces/EvidenceWorkspace';
 import { ReasoningWorkspace } from './workspaces/ReasoningWorkspace';
-import { PlanWorkspace } from './workspaces/PlanWorkspace';
+import { PlanWorkspace, type PlanTaskEntry } from './workspaces/PlanWorkspace';
 import { ReflectWorkspace } from './workspaces/ReflectWorkspace';
 import { DecisionHistory, FollowUpExamples } from './workspaces/WorkspaceReaders';
 import { MeetingReady } from './workspaces/MeetingReady';
@@ -59,6 +59,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const [readingOpen, setReadingOpen] = useState(false);
   const [editingApprovedPlan, setEditingApprovedPlan] = useState(false);
   const [planEntry, setPlanEntry] = useState<'learning' | undefined>();
+  const [planTaskEntry, setPlanTaskEntry] = useState<PlanTaskEntry | undefined>();
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
   const preserveStagePickerFocus = useRef(false);
   const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
@@ -78,10 +79,10 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   }, [workspace.dirty]);
   const openGuide = (step?: number) => { if (isLessonId(step)) learning.dispatch({ type: 'visitLesson', lesson: step }); setGuideEntry(step === undefined ? { view: 'home' } : { view: 'walkthrough', step }); setGuideOpen(true); };
   const canEnterStage = (step: number) => Number.isInteger(step) && step >= 0 && step < 4 && (step < 2 || (step === 2 ? focus : plan));
-  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); if (action.type === 'go') { setEditingApprovedPlan(false); setPlanEntry(undefined); } return workspace.dispatch(action); };
-  const editPlan = (collection = false) => {
+  const act = (action: Action): boolean => { setError(''); setErrorField(''); setLockNotice(''); if (action.type === 'go') { setEditingApprovedPlan(false); setPlanEntry(undefined); setPlanTaskEntry(undefined); } return workspace.dispatch(action); };
+  const editPlan = (collection = false, task?: PlanTaskEntry) => {
     setError(''); setErrorField(''); setLockNotice('');
-    setEditingApprovedPlan(true); setPlanEntry(collection ? 'learning' : undefined);
+    setEditingApprovedPlan(true); setPlanEntry(collection ? 'learning' : undefined); setPlanTaskEntry(task);
     workspace.dispatch({ type: 'go', step: 2 });
   };
   const reloadSaved = () => { if (workspace.reload()) { setReloadOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } };
@@ -176,8 +177,8 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
           {introduceFlow && <FlowIntroduction compact headingLevel="h1" headingRef={title} onContinue={beginFlow} onOpenOverview={() => openGuide()} />}
           {state.step === 0 && <EvidenceWorkspace key={state.evidenceVersion} state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
-          {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
-          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} onReturnToApproved={() => setEditingApprovedPlan(false)} />}
+          {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onEditTask={task => editPlan(false, task)} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
+          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} initialTask={planTaskEntry} onReturnToApproved={() => setEditingApprovedPlan(false)} />}
           {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} onEditCollection={() => editPlan(true)} onOpenRecord={() => setHistoryOpen(true)} onBackToPlan={() => act({ type: 'go', step: 2 })} />}
         </main>
         <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>

@@ -12,12 +12,15 @@ import { FieldError, TextArea, TextInput, useFieldError } from '../components/Fi
 import { Icon } from '../components/Icon';
 import { RehearsalGuide } from '../components/RehearsalGuide';
 import { StepCoach } from '../components/StepCoach';
-import { BuilderNavigation } from '../components/BuilderNavigation';
+import { StageChecklist } from '../components/StageChecklist';
 import { TaskExplanation } from '../components/TaskExplanation';
 import { WorkflowActions } from '../components/WorkflowActions';
 import { CollectionSummary } from '../components/CollectionSummary';
-import { initialPlanActivity, initialPlanStep, planBuilderSteps, planStepForField, type PlanBuilderStep } from './planBuilder';
+import { initialPlanActivity, initialPlanStep, planStepForField, type PlanBuilderStep } from './planBuilder';
+import { planChecklistItems } from './planChecklist';
 import './PlanWorkspace.css';
+
+export type PlanTaskEntry = 'move' | 'activities' | 'implementation' | 'learning' | 'review';
 
 interface PlanWorkspaceProps {
   state: PlanState;
@@ -29,10 +32,14 @@ interface PlanWorkspaceProps {
   clearError: () => void;
   saveError?: string;
   initialCheckEditor?: 'learning';
+  initialTask?: PlanTaskEntry;
   onReturnToApproved?: () => void;
 }
 
 type CheckEditor = 'implementation' | 'learning';
+function builderStepForEntry(task: PlanTaskEntry): PlanBuilderStep {
+  return task === 'implementation' || task === 'learning' ? 'checks' : task;
+}
 type DraftTarget = 'focus' | 'agenda' | 'action' | 'owner' | 'implementation-check' | 'learning-check' | 'collection-date' | 'review-date' | 'review';
 const draftActionLabels: Record<DraftTarget, string> = {
   focus: 'Reconfirm the focus', agenda: 'Write activity directions', action: 'Describe the teaching move',
@@ -133,12 +140,12 @@ function DraftValue({ value, empty = 'Not written yet' }: { value: string; empty
   return <p className={`pw-draft-value${value.trim() ? '' : ' pw-empty-value'}`}>{value.trim() ? value : empty}</p>;
 }
 
-export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '', initialCheckEditor, onReturnToApproved }: PlanWorkspaceProps) {
-  const [builderStep, setBuilderStep] = useState<PlanBuilderStep>(() => initialPlanStep(state, initialCheckEditor === 'learning', errorField));
+export function PlanWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError, saveError = '', initialCheckEditor, initialTask, onReturnToApproved }: PlanWorkspaceProps) {
+  const [builderStep, setBuilderStep] = useState<PlanBuilderStep>(() => errorField || initialCheckEditor || !initialTask ? initialPlanStep(state, initialCheckEditor === 'learning', errorField) : builderStepForEntry(initialTask));
   const [selectedAgenda, setSelectedAgenda] = useState(() => initialPlanActivity(state, errorField));
   const activityPickerId = useId();
   const checkPickerId = useId();
-  const [checkEditor, setCheckEditor] = useState<CheckEditor>(() => errorField === 'implementation-check' ? 'implementation' : planStepForField(errorField) === 'checks' ? 'learning' : initialCheckEditor ?? (state.implementationCheck.trim().length < 15 ? 'implementation' : 'learning'));
+  const [checkEditor, setCheckEditor] = useState<CheckEditor>(() => errorField === 'implementation-check' ? 'implementation' : planStepForField(errorField) === 'checks' ? 'learning' : initialCheckEditor ?? (initialTask === 'implementation' || initialTask === 'learning' ? initialTask : state.implementationCheck.trim().length < 15 ? 'implementation' : 'learning'));
   const reviewOpen = builderStep === 'review';
   const [reviewEdit, setReviewEdit] = useState<'action' | 'agenda' | CheckEditor | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -173,6 +180,15 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     setFocusRequest({ id: 'evidence-collector', attempt: ++focusCounter.current });
   }, [initialCheckEditor]);
 
+  useEffect(() => {
+    if (!initialTask || initialCheckEditor) return;
+    setBuilderStep(builderStepForEntry(initialTask));
+    if (initialTask === 'implementation' || initialTask === 'learning') setCheckEditor(initialTask);
+    const target = initialTask === 'move' ? 'action' : initialTask === 'activities' ? 'pw-activity-heading'
+      : initialTask === 'implementation' ? 'implementation-check' : initialTask === 'learning' ? 'learning-check' : 'pw-review-heading';
+    setFocusRequest({ id: target, attempt: ++focusCounter.current });
+  }, [initialTask, initialCheckEditor]);
+
   // Validation can target a field in another activity or a closed editor.
   // Reveal it first, then focus after React has committed that editor.
   useEffect(() => {
@@ -198,15 +214,6 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     const frame = window.requestAnimationFrame(() => focusVisibleField(focusRequest.id));
     return () => window.cancelAnimationFrame(frame);
   }, [focusRequest]);
-
-  function selectBuilderStep(id: string, moveFocus: boolean) {
-    if (!planBuilderSteps.some(step => step.id === id)) return;
-    clearError();
-    setReviewEdit(null);
-    setFocusRequest(null);
-    setBuilderStep(id as PlanBuilderStep);
-    if (moveFocus) requestFocus(id === 'move' ? 'pw-move-heading' : id === 'activities' ? 'pw-activity-heading' : id === 'checks' ? 'pw-follow-up-heading' : 'pw-review-heading');
-  }
 
   function editAction() {
     clearError();
@@ -301,9 +308,22 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   }
 
   const needsFocus = !hasFocus(state);
+  const checklistItems = planChecklistItems(state, {
+    move: () => { editAction(); if (moveTarget === 'owner') requestFocus('owner'); },
+    activities: () => editAgenda(initialPlanActivity(state)),
+    implementation: () => editCheck('implementation'),
+    learning: () => editCheck('learning'),
+    collection: () => { editCheck('learning'); requestFocus('evidence-collector'); },
+    review: openReview,
+  });
+  const checklistCurrent = builderStep === 'checks'
+    ? checkEditor === 'learning' && ['evidence-collector', 'collection-date', 'review-date'].includes(focusRequest?.id ?? '') ? 'collection' : checkEditor
+    : builderStep;
 
   return <div className="plan-workspace">
-    <BuilderNavigation label="Meeting plan tasks" current={builderStep} steps={planBuilderSteps} onSelect={selectBuilderStep} />
+    <StageChecklist title="Plan checklist" description="Prepare a meeting your team can run, then inspect the kit before approving it."
+      items={checklistItems} currentId={checklistCurrent}
+      note="Drafted means the writing is present, not that its quality has been checked. Review any starter directions; approval remains your decision. Check the save status before leaving." />
     <div className="pw-entry">
       <p className="pw-save-explanation">Edits save in this browser as you work. Check the save status before leaving; approval is a separate decision.</p>
       {approved && onReturnToApproved && <button type="button" className="textlink" onClick={onReturnToApproved}>Return to approved plan</button>}

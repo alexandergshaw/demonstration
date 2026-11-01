@@ -9,6 +9,8 @@ export const evidenceLabels = {
 };
 export type EvidenceId = keyof typeof evidenceLabels;
 export type EvidenceVersion = 'oct28' | 'oct29';
+export const evidenceReviewTasks = ['results', 'task', 'classes', 'work', 'selection'] as const;
+export type EvidenceReviewTask = typeof evidenceReviewTasks[number];
 export type Lens = 'wording' | 'meaning' | 'variation';
 export const minutes = [5, 10, 10, 15, 5, 5];
 export const initialAgenda = [
@@ -25,6 +27,7 @@ export interface PlanState {
   reflection: string; reflectionStamp: string | null; review: boolean;
   evidenceCollector: string; collectionDate: string; reviewDate: string; nextCycleQuestion: string;
   evidenceVersion: EvidenceVersion; updateAvailable: boolean; updateReviewed: boolean;
+  evidenceReviewed: EvidenceReviewTask[];
 }
 export const initialState = (): PlanState => ({
   step: 0, selected: ['assessment'], interpretation: '', lens: 'wording', challenged: false,
@@ -32,7 +35,7 @@ export const initialState = (): PlanState => ({
   action: '', owner: 'Grade 4 teaching team', implementationCheck: '', learningCheck: '', accessParticipation: '',
   consent: false, planStamp: null, implementation: '', reflection: '', reflectionStamp: null, review: false,
   evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '',
-  evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false,
+  evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false, evidenceReviewed: [],
 });
 const focusSignature = (s: PlanState) => JSON.stringify([s.selected, s.interpretation, s.lens, s.challenged, s.focus, s.confidence,
   ...(s.evidenceVersion !== 'oct28' ? [{ extension: 'evidence-v4', version: s.evidenceVersion }] : []),
@@ -84,6 +87,7 @@ type TextField = 'interpretation' | 'focus' | 'action' | 'owner' | 'implementati
 export type Action =
   | { type: 'text'; field: TextField; value: string }
   | { type: 'evidence'; id: EvidenceId }
+  | { type: 'evidence-review'; item: EvidenceReviewTask; reviewed: boolean }
   | { type: 'lens'; value: Lens }
   | { type: 'confidence'; value: PlanState['confidence'] }
   | { type: 'agenda'; index: number; value: string }
@@ -102,6 +106,11 @@ export function reducer(s: PlanState, action: Action): PlanState {
     case 'reset': return initialState();
     case 'simulate-evidence-update': return s.evidenceVersion !== 'oct28' || s.updateAvailable ? s : { ...s, updateAvailable: true, updateReviewed: false };
     case 'keep-current-evidence': return !s.updateAvailable || s.updateReviewed ? s : { ...s, updateReviewed: true };
+    case 'evidence-review': {
+      if (!evidenceReviewTasks.includes(action.item) || typeof action.reviewed !== 'boolean' || s.evidenceReviewed.includes(action.item) === action.reviewed) return s;
+      // This records the educator's acknowledgment, not source quality or instructional approval.
+      return { ...s, evidenceReviewed: action.reviewed ? [...s.evidenceReviewed, action.item] : s.evidenceReviewed.filter(item => item !== action.item) };
+    }
     case 'text': {
       if (s[action.field] === action.value) return s;
       const value = action.value.slice(0, 4000);
@@ -111,7 +120,7 @@ export function reducer(s: PlanState, action: Action): PlanState {
     }
     case 'evidence':
       if (action.id === 'assessment') return s;
-      return { ...invalidateFocus(s), challenged: false, selected: s.selected.includes(action.id) ? s.selected.filter(id => id !== action.id) : [...s.selected, action.id] };
+      return { ...invalidateFocus(s), challenged: false, selected: s.selected.includes(action.id) ? s.selected.filter(id => id !== action.id) : [...s.selected, action.id], evidenceReviewed: s.evidenceReviewed.filter(item => item !== 'selection') };
     case 'lens': return action.value === s.lens ? s : { ...invalidateFocus(s), lens: action.value, challenged: false };
     case 'confidence': return action.value === s.confidence ? s : { ...invalidateFocus(s), confidence: action.value };
     case 'agenda': {
@@ -156,7 +165,7 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
   if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(value).length > MAX_DRAFT_LENGTH) throw new Error('Invalid draft');
   const source = value as Record<string, unknown>;
   // A missing optional field is an older cycle, while a present invalid value remains an error.
-  const input: Record<string, unknown> = { accessParticipation: '', evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '', evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false, ...source };
+  const input: Record<string, unknown> = { accessParticipation: '', evidenceCollector: '', collectionDate: '', reviewDate: '', nextCycleQuestion: '', evidenceVersion: 'oct28', updateAvailable: false, updateReviewed: false, evidenceReviewed: [], ...source };
   const base = initialState();
   for (const [key, expected] of Object.entries(base)) {
     const actual = input[key];
@@ -165,6 +174,7 @@ export function parseStoredState(value: unknown): { state: PlanState; stale: boo
     else if (typeof actual !== typeof expected || (typeof actual === 'string' && actual.length > 4000)) throw new Error('Invalid field');
   }
   if (!Array.isArray(input.selected) || input.selected.length > 4 || !input.selected.includes('assessment') || new Set(input.selected).size !== input.selected.length || !input.selected.every(id => typeof id === 'string' && Object.hasOwn(evidenceLabels, id))) throw new Error('Invalid evidence');
+  if (!Array.isArray(input.evidenceReviewed) || input.evidenceReviewed.length > evidenceReviewTasks.length || new Set(input.evidenceReviewed).size !== input.evidenceReviewed.length || !input.evidenceReviewed.every(item => evidenceReviewTasks.includes(item))) throw new Error('Invalid evidence review');
   if (!Array.isArray(input.agenda) || input.agenda.length !== minutes.length || !input.agenda.every(text => typeof text === 'string' && text.length <= 4000)) throw new Error('Invalid agenda');
   if (![0, 1, 2, 3].includes(input.step as number) || !['wording', 'meaning', 'variation'].includes(input.lens as string) || !['tentative', 'moderate', 'strong'].includes(input.confidence as string) || !['', 'yes', 'partial', 'no'].includes(input.implementation as string)) throw new Error('Invalid choice');
   if (!['oct28', 'oct29'].includes(input.evidenceVersion as string) || (input.updateReviewed && !input.updateAvailable) || (input.evidenceVersion === 'oct29' && (input.updateAvailable || input.updateReviewed))) throw new Error('Invalid evidence snapshot');

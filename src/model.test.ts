@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  decodeDraft, encodeDraft, exportPlan, focusError, hasFocus, hasPlan,
+  decodeDraft, encodeDraft, evidenceReviewTasks, exportPlan, focusError, hasFocus, hasPlan,
   hasReflection, initialState, isCalendarDate, minutes, parseStoredState, planError, reducer, reflectionError,
   type Action, type PlanState,
 } from './model';
@@ -40,6 +40,69 @@ function completed(): PlanState {
     { type: 'save-reflection' },
   );
 }
+
+describe('educator evidence-review acknowledgments', () => {
+  it('records and clears an explicit acknowledgment idempotently without editing evidence or decisions', () => {
+    const original = completed();
+    const before = structuredClone(original);
+    const reviewed = reducer(original, { type: 'evidence-review', item: 'results', reviewed: true });
+    expect(reviewed).toEqual({ ...original, evidenceReviewed: ['results'] });
+    expect(original).toEqual(before);
+    expect(reducer(reviewed, { type: 'evidence-review', item: 'results', reviewed: true })).toBe(reviewed);
+    expect(hasFocus(reviewed)).toBe(true);
+    expect(hasPlan(reviewed)).toBe(true);
+    expect(hasReflection(reviewed)).toBe(true);
+    const cleared = reducer(reviewed, { type: 'evidence-review', item: 'results', reviewed: false });
+    expect(cleared).toEqual(original);
+    expect(reducer(cleared, { type: 'evidence-review', item: 'results', reviewed: false })).toBe(cleared);
+  });
+
+  it('does not grant approval, consideration or a new navigation gate when every source is acknowledged', () => {
+    const original = initialState();
+    const reviewed = evidenceReviewTasks.reduce((state, item) => reducer(state, { type: 'evidence-review', item, reviewed: true }), original);
+    expect(reviewed.evidenceReviewed).toEqual(evidenceReviewTasks);
+    expect(reviewed.selected).toEqual(['assessment']);
+    expect(reviewed.challenged).toBe(false);
+    expect(reviewed.consent).toBe(false);
+    expect(hasFocus(reviewed)).toBe(false);
+    expect(hasPlan(reviewed)).toBe(false);
+    expect(hasReflection(reviewed)).toBe(false);
+    expect(reducer(original, { type: 'go', step: 1 }).step).toBe(1);
+    expect(reducer(reviewed, { type: 'go', step: 1 }).step).toBe(1);
+    expect(reducer(reviewed, { type: 'go', step: 2 })).toBe(reviewed);
+  });
+
+  it('reopens selection review when sources change while preserving acknowledgment of unchanged reading', () => {
+    const original = { ...completed(), evidenceReviewed: [...evidenceReviewTasks] };
+    expect(reducer(original, { type: 'evidence', id: 'assessment' })).toBe(original);
+    const changed = reducer(original, { type: 'evidence', id: 'responseC' });
+    expect(changed.evidenceReviewed).toEqual(['results', 'task', 'classes', 'work']);
+    expect(hasFocus(changed)).toBe(false);
+    expect(hasPlan(changed)).toBe(false);
+    expect(hasReflection(changed)).toBe(false);
+    expect(changed.interpretation).toBe(original.interpretation);
+    expect(changed.reflection).toBe(original.reflection);
+    expect(original.evidenceReviewed).toEqual(evidenceReviewTasks);
+  });
+
+  it('backfills legacy drafts without changing approval bytes and round-trips current acknowledgments', () => {
+    const original = completed();
+    const legacy: Record<string, unknown> = { ...original };
+    delete legacy.evidenceReviewed;
+    expect(parseStoredState(legacy)).toEqual({ state: original, stale: false });
+    const reviewed = { ...original, evidenceReviewed: [...evidenceReviewTasks] };
+    expect(decodeDraft(encodeDraft(reviewed)).state).toEqual(reviewed);
+    expect(parseStoredState(reviewed).stale).toBe(false);
+  });
+
+  it.each([null, 'results', {}, ['unknown'], ['results', 'results'], [1], ['results', 'task', 'classes', 'work', 'selection', 'results']].map(evidenceReviewed => ({ evidenceReviewed })))('rejects malformed stored acknowledgment data: $evidenceReviewed', ({ evidenceReviewed }) => {
+    expect(() => parseStoredState({ ...initialState(), evidenceReviewed })).toThrow(/Invalid/);
+  });
+
+  it('clears all acknowledgments on reset', () => {
+    expect(reducer({ ...completed(), evidenceReviewed: [...evidenceReviewTasks] }, { type: 'reset' })).toEqual(initialState());
+  });
+});
 
 describe('dated evidence and incoming results', () => {
   it('does not revoke an approved snapshot when new results arrive or the leader keeps it', () => {

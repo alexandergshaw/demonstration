@@ -1,12 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { BuilderNavigation } from '../components/BuilderNavigation';
+import { StageChecklist, type ChecklistTask } from '../components/StageChecklist';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
 import { WorkflowActions } from '../components/WorkflowActions';
 import { TaskExplanation } from '../components/TaskExplanation';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
-import type { Action, EvidenceId, PlanState } from '../model';
+import type { Action, EvidenceId, EvidenceReviewTask, PlanState } from '../model';
 import { AssessmentResults, ClassResults, TaskSources } from './EvidenceViews';
 import './EvidenceWorkspace.css';
 
@@ -29,7 +29,6 @@ const evidenceSteps = [
 export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorkspaceProps) {
   const [step, setStep] = useState<EvidenceStep>('assessment');
   const [view, setView] = useState<EvidenceView>('results');
-  const [opened, setOpened] = useState<EvidencePlace[]>(['results']);
   const [focusAttempt, setFocusAttempt] = useState(0);
   const pendingFocus = useRef<EvidenceStep | null>(null);
   const pendingReviewRemoval = useRef<EvidenceId | null>(null);
@@ -61,33 +60,47 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
     return () => window.cancelAnimationFrame(frame);
   }, [step, focusAttempt, state.selected]);
 
-  function markOpened(place: EvidencePlace) {
-    setOpened(previous => previous.includes(place) ? previous : [...previous, place]);
-  }
   function selectStep(id: string, focus: boolean) {
     if (!evidenceSteps.some(item => item.id === id)) return;
     const next = id as EvidenceStep;
     pendingReviewRemoval.current = null;
-    if (next === 'work') markOpened('work');
     pendingFocus.current = focus ? next : null;
     setStep(next);
     // Also cancels a queued button focus when a native selector is used.
     setFocusAttempt(previous => previous + 1);
   }
   function inspectPlace(place: EvidencePlace, focus = false) {
-    markOpened(place);
     if (place !== 'work') setView(place);
     selectStep(place === 'work' ? 'work' : 'assessment', focus);
   }
   function removeFromReview(id: EvidenceId) {
     if (!state.selected.includes(id)) return;
     pendingReviewRemoval.current = id;
-    if (dispatch({ type: 'evidence', id }) === false) pendingReviewRemoval.current = null;
+    // A failed save can retain this edit as a local draft. Observe the actual selection before restoring focus.
+    dispatch({ type: 'evidence', id });
   }
   const selectionStatus = `Class results included${selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}${observationSelected ? ' · Historical context included' : ''}`;
+  const reviewTasks: { id: EvidenceReviewTask; label: string; detail: string; optional?: boolean }[] = [
+    { id: 'results', label: 'Compare the results', detail: 'Notice the difference between answers and explanations.' },
+    { id: 'task', label: 'Read the task and scoring', detail: 'Check what students were asked to show.' },
+    { id: 'classes', label: 'Compare classes', detail: 'Look for variation before generalizing.', optional: true },
+    { id: 'work', label: 'Examine student work', detail: 'Choose examples that help the team discuss reasoning.', optional: true },
+    { id: 'selection', label: 'Review your evidence selection', detail: 'Check the sources and limits you will take forward.' },
+  ];
+  const checklist: ChecklistTask[] = reviewTasks.map(item => ({
+    ...item, status: state.evidenceReviewed.includes(item.id) ? 'done' : 'todo',
+    statusLabel: state.evidenceReviewed.includes(item.id) ? 'Reviewed by you' : 'To review',
+    onSelect: () => item.id === 'selection' ? selectStep('review', true) : inspectPlace(item.id, true),
+  }));
+  function reviewCheck(item: EvidenceReviewTask, label: string) {
+    return <label className="evidence-review-acknowledgment"><input type="checkbox" checked={state.evidenceReviewed.includes(item)}
+      onChange={event => dispatch({ type: 'evidence-review', item, reviewed: event.target.checked })} /><span>{label}</span></label>;
+  }
 
   return <div className="evidence-workspace">
-    <BuilderNavigation label="Evidence review tasks" current={step} steps={evidenceSteps} onSelect={selectStep} />
+    <StageChecklist title="Evidence checklist" description="Build an evidence set you can explain to your team."
+      items={checklist} currentId={step === 'assessment' ? view : step === 'review' ? 'selection' : 'work'}
+      note="Mark each review yourself in its work area. Checks save with this cycle; check the save status before leaving. You can continue without checking every task." />
     <div className="evidence-builder-status">
       <p aria-live="polite">{selectionStatus}</p>
       <button type="button" className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>{returningToWriting ? 'Return to interpretation' : 'Continue to interpretation'}<Icon name="arrow" size={16} /></button>
@@ -110,9 +123,11 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         {view === 'classes' && <ClassResults reference={reference} />}
         {view === 'task' && <TaskSources reference={reference} version={state.evidenceVersion} />}
       </div>
+      {reviewCheck(view, view === 'results' ? 'I reviewed the results and their limits.' : view === 'task' ? 'I reviewed the task and scoring criteria.' : 'I reviewed the class comparison.')}
       <WorkflowActions label="Assessment actions"
         description={<p>Use the task and scoring criteria to understand the counts. Next, inspect examples of student reasoning.</p>}
-        primary={{ label: 'Continue to student work', onClick: () => selectStep('work', true), arrow: true }} />
+        secondary={view !== 'results' ? <button type="button" className="btn secondary" onClick={() => inspectPlace('results', true)}>Back to results</button> : undefined}
+        primary={{ label: view === 'results' ? 'Continue to task & scoring' : 'Continue to student work', onClick: () => view === 'results' ? inspectPlace('task', true) : selectStep('work', true), arrow: true }} />
       <details className="evidence-source-details">
         <summary>Learning goal & assessment context</summary>
         <div><p><strong>Learning goal:</strong> {lessonContext.goal}</p><p>This short end-of-lesson task gives the team a starting point for discussion. The assessment is included automatically and carries into your interpretation and meeting materials.</p></div>
@@ -138,7 +153,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           return <article className={`evidence-response${selected ? ' is-selected' : ''}`} key={response.id}>
             <p className="evidence-response-label">{response.label}</p>
             <blockquote>“{response.quote}”</blockquote>
-            <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove this work' : 'Select this work'}: ${response.label}`} onClick={() => { markOpened('work'); dispatch({ type: 'evidence', id: response.id }); }}>
+            <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove this work' : 'Select this work'}: ${response.label}`} onClick={() => dispatch({ type: 'evidence', id: response.id })}>
               <Icon name={selected ? 'check' : 'plus'} size={17} />{selected ? 'Remove this work' : 'Select this work'}
             </button>
           </article>;
@@ -156,6 +171,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         <p className="evidence-history-caution">{observation.caution}</p>
         {observationSelected && <p className="evidence-history-next-check"><strong>Next check:</strong> Ask for a recent, dated observation or lesson artifact from the relevant classrooms before inferring current practice. Name what to gather in Plan’s implementation check.</p>}
       </div>
+      {reviewCheck('work', 'I examined the student work and its limits.')}
       <WorkflowActions label="Student work actions"
         secondary={<button type="button" className="btn secondary" onClick={() => selectStep('assessment', true)}>Back to assessment</button>}
         primary={{ label: 'Review selected evidence', onClick: () => selectStep('review', true), arrow: true }} />
@@ -186,16 +202,12 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         <div className="evidence-section-heading"><h3>Historical context · {observation.date}</h3><button type="button" className="textlink" onClick={() => removeFromReview('observation')}>Remove historical context</button></div>
         <blockquote>“{observation.quote}”</blockquote><p>{observation.caution}</p>
       </section>}
+      {reviewCheck('selection', 'I reviewed the evidence I am taking forward.')}
       <WorkflowActions label="Evidence actions"
         description={<p>When you can name a pattern and a question worth investigating, write your own explanation in the next step. Continuing does not confirm an interpretation.</p>}
         secondary={<button type="button" className="btn secondary" onClick={() => selectStep('work', true)}>Back to student work</button>}
         primary={{ label: 'Interpret the evidence', onClick: () => dispatch({ type: 'go', step: 1 }), arrow: true }} />
     </section>
 
-    <details className="evidence-inspection-history">
-      <summary>Source views opened · {opened.length} of 4 this visit</summary>
-      <p>This is a navigation aid, not a record that you reviewed a source. You can interpret without opening every view; selecting work is optional. This visit count resets when you leave Evidence.</p>
-      <ul>{([['results', 'Compare the results'], ['task', 'Check the task and scoring'], ['classes', 'Compare classes'], ['work', 'Examine student work']] as const).map(([id, label]) => <li key={id}><button type="button" className="textlink" onClick={() => inspectPlace(id, true)}>{label}</button><span>{opened.includes(id) ? 'Opened' : 'Available'}</span></li>)}</ul>
-    </details>
   </div>;
 }
