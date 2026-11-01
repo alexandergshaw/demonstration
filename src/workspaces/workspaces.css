@@ -32,3 +32,26 @@
 :root[data-spacious=true]{--line-body:1.8}
 :root[data-spacious=true] :is(p,blockquote,dt,dd,li,label,textarea,input,select,button,summary){line-height:1.8!important}
 :root[data-spacious=true] p{margin-bottom:2em!important}
+
+/* Stage labels need room for whole words, including enlarged reading sizes. */
+.path{grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr))}
+.path .step{min-width:0}
+.path .step-copy{flex:1;overflow-wrap:normal;word-break:normal}
+.path .nav-short{white-space:nowrap}
+.path .step-state{flex:0 0 14px;margin-left:0}
+.path .step-state:empty{display:none}
+.path .step-timing{overflow-wrap:normal;word-break:normal}
+
+/* The intro grid already supplies separation around its compact context labels. */
+:root[data-spacious=true] .page .intro .flow-phase{margin-bottom:.65rem!important}
+:root[data-spacious=true] .page .intro .flow-purpose{margin-bottom:0!important}
+
+@media(max-width:700px){
+  .app-topbar .topbar-actions{gap:0 12px;justify-content:flex-start}
+  .app-topbar .save-indicator{flex-basis:100%;margin:0;padding-bottom:4px}
+  .app-topbar .topbar-actions>.guide-button{flex:1 1 5.5rem;justify-content:center;text-align:center;padding:8px 0;overflow-wrap:normal;word-break:normal}
+  .path{grid-template-columns:repeat(auto-fit,minmax(min(100%,max(7rem,calc((100% - 16px)/2))),1fr));gap:0 16px}
+  .path .step{gap:8px;min-height:52px;padding:10px 0}
+  .workspace-shell .page{padding-top:24px}
+  .page .intro{row-gap:.5rem}
+}
