@@ -24,7 +24,7 @@ export function ReadingSettings({ reading }: { reading: ReadingController }) {
           <option value="standard">Standard · 100%</option><option value="large">Large · 125%</option><option value="largest">Larger · 150%</option>
         </select>
       </div>
-      <label className="reading-choice"><input type="checkbox" checked={reading.value.spacious} onChange={event => reading.update({ ...reading.value, spacious: event.target.checked })} /><span>More space between lines, words and letters</span></label>
+      <label className="reading-choice"><input type="checkbox" checked={reading.value.spacious} onChange={event => reading.update({ ...reading.value, spacious: event.target.checked })} /><span>More space between lines</span></label>
       <p className="caption reading-help">You can also use your browser’s zoom and device accessibility settings. Use Tab to move between controls, Enter or Space to activate them, and Escape to close a dialog.</p>
       <p className="caption reading-status" role="status">{reading.message || 'Settings save only on this browser. No account is needed.'}</p>
       <div className="modal-actions"><button className="btn secondary" onClick={() => reading.update(defaultPreferences())}>Restore defaults</button><button className="btn" onClick={() => setOpen(false)}>Done</button></div>

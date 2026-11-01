@@ -40,7 +40,7 @@ const stages: { label: string; short: string; detail: string }[] = [
   { label: 'Meeting plan', short: 'Plan', detail: 'Turn the focus into action' },
   { label: 'Reflection', short: 'Reflect', detail: 'Return after trying the teaching move' },
 ];
-const titles = ['What does the work show?', 'What is your interpretation?', 'Build the meeting around one move.', 'What can we decide now?'];
+const titles = ['Read the evidence', 'Choose a teaching focus', 'Plan the meeting', 'Review what changed'];
 function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?: 'info' | 'warning' | 'success' }) {
   return <div className={`notice ${tone}`}><Icon name={tone === 'success' ? 'check' : tone === 'warning' ? 'warning' : 'info'} size={18} /><div>{children}</div></div>;
 }
@@ -57,11 +57,16 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const [editingApprovedPlan, setEditingApprovedPlan] = useState(false);
   const [planEntry, setPlanEntry] = useState<'learning' | undefined>();
   const title = useRef<HTMLHeadingElement>(null), errorBox = useRef<HTMLDivElement>(null);
+  const preserveStagePickerFocus = useRef(false);
   const focus = hasFocus(state), plan = hasPlan(state), reflection = hasReflection(state);
   const meetingReady = state.step === 2 && plan && !editingApprovedPlan;
   const introduceFlow = shouldIntroduceFlow(state, learning.progress.welcomeDismissed);
   const orientation = meetingReady ? meetingOrientation : flowOrientation[state.step];
-  useEffect(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }, [state.step, meetingReady]);
+  useEffect(() => {
+    if (!preserveStagePickerFocus.current) title.current?.focus();
+    preserveStagePickerFocus.current = false;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [state.step, meetingReady]);
   useEffect(() => {
     if (!workspace.dirty) return;
     const protectDraft = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
@@ -104,8 +109,36 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
   const savedLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
-    <header className="app-topbar"><div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div><CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)} /><div className="topbar-actions"><span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span><button className="guide-button" onClick={() => setHistoryOpen(true)}>Decisions</button><ReadingSettings reading={reading} /><button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}><span>Guide</span></button></div></header>
+    <header className="app-topbar">
+      <div className="brand"><span className="brandmark"><Icon name="mark" size={23} /></span><span className="brandname">throughline</span></div>
+      <CycleManager compact workspace={workspace} onReset={() => setResetOpen(true)} />
+      <div className="topbar-actions">
+        <span className={`save-indicator ${workspace.dirty || saveError ? 'unsaved' : ''}`} role="status"><span className="status-dot" />{savedLabel}</span>
+        <details className="workspace-tools">
+          <summary>Tools</summary>
+          <div className="workspace-tool-actions">
+            <button className="guide-button" onClick={() => setHistoryOpen(true)}>Decisions</button>
+            <ReadingSettings reading={reading} />
+            <button className="guide-button" aria-label="Open guide" onClick={() => openGuide()}>Guide</button>
+          </div>
+        </details>
+      </div>
+    </header>
     <div className="app-shell"><div className="workflow-rail">
+      <nav className="mobile-stage-nav" aria-label="Planning stages">
+        <label htmlFor="mobile-stage">Stage</label>
+        <select id="mobile-stage" value={state.step} aria-describedby="mobile-stage-hint" onChange={event => {
+          const step = Number(event.target.value);
+          if (step === state.step || !canEnterStage(step)) return;
+          preserveStagePickerFocus.current = true;
+          if (!act({ type: 'go', step })) preserveStagePickerFocus.current = false;
+        }}>
+          {stages.map((stage, i) => <option key={stage.label} value={i} disabled={!canEnterStage(i)}>
+            {i + 1}. {stage.short}{i === 3 ? ' — after teaching' : ''}{!canEnterStage(i) ? i === 2 ? ' — confirm a focus first' : ' — approve a plan first' : ''}
+          </option>)}
+        </select>
+        <span id="mobile-stage-hint" className="sr-only">Choosing a stage opens that workspace.</span>
+      </nav>
       <nav className="path" aria-label="Planning stages">{stages.map((stage, i) => {
         const locked = (i === 2 && !focus) || (i === 3 && !plan);
         const detail = i === 2 && !focus ? 'Confirm a focus first' : i === 3 && !plan ? 'Approve a plan first' : stage.detail;
@@ -115,14 +148,19 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       {lockNotice && <p className="nav-help" role="status">{lockNotice}</p>}
     </div><div className="workspace-shell">
       <div className="page">{!introduceFlow && <header className="intro"><div className="flow-heading">
-        <p className="flow-phase">{orientation.phase}</p>
         <h1 ref={title} tabIndex={-1}>{meetingReady ? 'Your meeting is ready.' : titles[state.step]}</h1>
         <p className="flow-purpose">{orientation.purpose}</p>
-      </div><div className="intro-actions"><button className="textlink" onClick={() => openGuide(state.step)}>Help with this step</button>{plan && !meetingReady && <button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button>}</div>
-        <dl className="flow-context">
-          <div><dt>Why this step matters</dt><dd>{orientation.why}</dd></div>
-          <div><dt>You’ll take forward</dt><dd>{orientation.outcome}</dd></div>
-        </dl>
+      </div>
+        <details className="flow-help" key={state.step}>
+          <summary>About this step</summary>
+          <p className="flow-phase">{orientation.phase}</p>
+          <dl className="flow-context">
+            <div><dt>Why this step matters</dt><dd>{orientation.why}</dd></div>
+            <div><dt>You’ll take forward</dt><dd>{orientation.outcome}</dd></div>
+          </dl>
+          <button className="textlink" onClick={() => openGuide(state.step)}>Open step guide</button>
+        </details>
+        {plan && !meetingReady && <div className="intro-actions"><button className="btn secondary compact" onClick={() => setKitOpen(true)}><Icon name="book" size={16} />Meeting kit</button></div>}
       </header>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}

@@ -110,7 +110,6 @@ dialog:has(.source-reader),dialog:has(.meeting-kit){width:calc(100% - 24px)}.kit
 /* Reading choices preserve the browser's own font-size preference. */
 :root[data-text-size=large]{font-size:125%}
 :root[data-text-size=largest]{font-size:150%}
-:root[data-spacious=true] body{letter-spacing:.12em;word-spacing:.16em}
 
 
 .reading-choice{display:flex;align-items:flex-start;gap:12px;min-height:44px;line-height:var(--line-body);cursor:pointer}
@@ -159,7 +158,6 @@ dialog:has(.learning-guide){width:min(820px,calc(100% - 32px))}
 #glossary-search{width:100%;min-width:0;min-height:44px;padding:11px 13px;border:1px solid var(--input-border);border-radius:3px;background:#fff}
 .learning-glossary{margin:20px 0}.learning-glossary>div{padding:16px 0;border-bottom:1px solid var(--border)}.learning-glossary dt{font-weight:600;}.learning-glossary dd{margin:6px 0 0}
 .glossary-empty{margin-top:20px}.learning-storage{border-top:1px solid var(--border);padding-top:18px;margin-top:24px}
-:root[data-spacious=true] .learning-section p{margin-bottom:2em}
 @media(max-width:520px){.lesson-picker,.practice-picker{grid-template-columns:minmax(0,1fr)}.learning-pager>.btn{width:100%}.learning-nav{gap:4px 12px}.practice-feedback{padding:12px}.learning-invitation .btn{white-space:normal}}
 @media(max-width:700px){.learning-invitation{flex-direction:column;align-items:flex-start}.learning-invitation .button-group{flex-shrink:1;max-width:100%}.intro-actions{justify-content:flex-start}}
 @media(max-width:700px){.cycle-selector label{display:block;position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}}

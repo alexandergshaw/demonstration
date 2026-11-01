@@ -41,8 +41,6 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
   }
 
   return <div className="evidence-workspace">
-    <p className="evidence-goal"><span>Learning goal</span>{lessonContext.goal}</p>
-
     <div className="evidence-composition">
       <section className="evidence-results" aria-labelledby="evidence-results-title">
         <div className="evidence-section-heading">
@@ -50,7 +48,6 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           <span className="evidence-included"><Icon name="check" size={15} />Included</span>
         </div>
         <p className="evidence-source-date">Fictional cool-down · <time dateTime={assessment.isoDate}>{assessment.date}, 2026</time> · {assessment.total} responses · {classes.length} classes</p>
-        <p className="evidence-note">This short end-of-lesson task gives the team a starting point for discussion. The assessment is included automatically and carries into your interpretation and meeting materials.</p>
 
         <div className="evidence-view-switch" role="group" aria-label="View assessment evidence">
           {([
@@ -67,6 +64,14 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           {view === 'classes' && <ClassResults reference={reference} />}
           {view === 'task' && <TaskSources reference={reference} version={state.evidenceVersion} />}
         </div>
+
+        <details className="evidence-source-details">
+          <summary>Learning goal & assessment context</summary>
+          <div>
+            <p><strong>Learning goal:</strong> {lessonContext.goal}</p>
+            <p>This short end-of-lesson task gives the team a starting point for discussion. The assessment is included automatically and carries into your interpretation and meeting materials.</p>
+          </div>
+        </details>
 
         <div className="evidence-next-inspection">
           <p className="evidence-next-label">Next evidence to inspect</p>
@@ -88,7 +93,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
         <div className="evidence-section-heading"><h2 id="evidence-work-title" ref={studentWorkHeading} tabIndex={-1}>Examine student work</h2></div>
         <p className="evidence-source-date">Two illustrative samples · {assessment.date}</p>
         <p className="evidence-rubric-anchor">Look for equal amounts of the same whole.</p>
-        <p className="evidence-selection-intro">Select a sample to keep its exact quotation beside your writing and in the meeting materials. Selection is optional. The assessment stays included.</p>
+        <p className="evidence-selection-intro">Selection is optional. The assessment stays included.</p>
         <div className="evidence-response-list">
           {responses.map(response => {
             const selected = state.selected.includes(response.id);
@@ -101,12 +106,18 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             </article>;
           })}
         </div>
-        <TaskExplanation title="Choose work that helps the team think"
-          why="These two examples make the reasoning visible in a way that totals cannot. They are illustrations to discuss, not a representative sample of the whole grade."
-          steps={[
-            { label: 'Name what the student already understands.', detail: 'Look at the choice, words and reasoning. Then identify what the response leaves uncertain about equal amounts of the same whole.' },
-            { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Use Remove this work to take it out of your selection. The assessment remains included either way.' },
-          ]} />
+        <details className="evidence-source-details">
+          <summary>How to choose student work</summary>
+          <div>
+            <p>Select a sample to keep its exact quotation beside your writing and in the meeting materials. Selection is optional. The assessment stays included.</p>
+            <TaskExplanation title="Choose work that helps the team think"
+              why="These two examples make the reasoning visible in a way that totals cannot. They are illustrations to discuss, not a representative sample of the whole grade."
+              steps={[
+                { label: 'Name what the student already understands.', detail: 'Look at the choice, words and reasoning. Then identify what the response leaves uncertain about equal amounts of the same whole.' },
+                { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Use Remove this work to take it out of your selection. The assessment remains included either way.' },
+              ]} />
+          </div>
+        </details>
       </section>
     </div>
 

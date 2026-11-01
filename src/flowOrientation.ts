@@ -4,7 +4,7 @@ import { initialState, type PlanState } from './model';
 export const flowOrientation = [
   {
     phase: 'Prepare your meeting · 1 of 3',
-    purpose: 'Throughline helps you turn student work into a focused team meeting and one teaching change. Start with evidence you can explain.',
+    purpose: 'Compare the results, task and student work.',
     outcome: 'Evidence you can point to in the meeting.',
     why: 'Scores show a pattern; original work, the task and dates help you judge what it can support.',
   },
