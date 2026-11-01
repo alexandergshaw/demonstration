@@ -4,7 +4,7 @@
   margin: 1.5rem 0;
   padding: 1.25rem 0 0;
   border-top: 1px solid var(--border);
-  color: var(--ink);
+  color:var(--ink);
   overflow-wrap: anywhere;
 }
 .task-explanation .task-explanation-title {
@@ -20,7 +20,7 @@
 .task-explanation .task-explanation-steps { margin: 1rem 0; padding-left: 1.3rem; }
 .task-explanation-steps li { padding-left: .25rem; }
 .task-explanation-steps li + li { margin-top: 1rem; }
-.task-explanation-steps li::marker { color: var(--muted); font-weight: 600; }
+.task-explanation-steps li::marker { color:var(--ink); font-weight: 600; }
 .task-explanation-steps strong { display: block; font-weight: 600; line-height: var(--line-body); }
 .task-explanation-steps span { display: block; margin-top: .2rem; color:var(--ink); }
 .task-explanation .task-explanation-handoff {
@@ -35,7 +35,7 @@
 .task-explanation-example summary {
   min-height: 44px;
   padding: .65rem 0;
-  color: var(--accent-dark);
+  color:var(--ink);
   font-size: var(--text-support);
   line-height: var(--line-body);
   cursor: pointer;
@@ -47,6 +47,6 @@
   line-height: var(--line-body);
   white-space: pre-line;
 }
-.task-explanation .task-explanation-example-note { color: var(--muted); font-size: var(--text-support); }
+.task-explanation .task-explanation-example-note { color:var(--ink); font-size: var(--text-support); }
 @media (max-width: 480px) { .task-explanation { margin: 1.25rem 0; } }
 @media (forced-colors: active) { .task-explanation { border-color: CanvasText; } }

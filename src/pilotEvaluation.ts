@@ -94,7 +94,7 @@ a:focus-visible{outline:3px solid #31578b;outline-offset:3px}
 .source-url{font-size:var(--text-meta);overflow-wrap:anywhere}
 .manual-notes{margin-top:2rem;border-top:2px solid #17202b}
 .note-line{min-height:3rem;border-bottom:1px solid #bbc1ca}
-.note-line span{font-size:var(--text-support);color:var(--muted)}
+.note-line span{font-size:var(--text-support);color:var(--ink)}
 footer{margin-top:2rem;border-top:1px solid #bbc1ca;padding-top:1rem;font-size:var(--text-support)}
 @media(max-width:640px){main{padding:24px 16px}table{min-width:650px}}
 @media print{

@@ -19,10 +19,10 @@
 .meeting-ready-checks p{font-size:var(--text-body);line-height:var(--line-body);margin-top:.65rem;white-space:pre-wrap}
 .meeting-ready-arrangements{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem;margin:1.5rem 0 0;border-top:1px solid var(--border);padding-top:1.25rem}
 .meeting-ready-arrangements>div{min-width:0}
-.meeting-ready-arrangements dt{font-size:var(--text-support);line-height:var(--line-body);color:var(--muted)}
+.meeting-ready-arrangements dt{font-size:var(--text-support);line-height:var(--line-body);color:var(--ink)}
 .meeting-ready-arrangements dd{font-size:var(--text-body);line-height:var(--line-body);margin:.25rem 0 0;white-space:pre-wrap}
-.meeting-ready-arrangements .is-unresolved{color:var(--muted)}
-.meeting-ready-note{font-size:var(--text-support);line-height:var(--line-body);color:var(--muted);margin-top:1rem}
+.meeting-ready-arrangements .is-unresolved{color:var(--ink)}
+.meeting-ready-note{font-size:var(--text-support);line-height:var(--line-body);color:var(--ink);margin-top:1rem}
 .meeting-ready-next{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem}
 .meeting-ready-next>div{min-width:0}
 .meeting-ready-next p{font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin-top:.5rem;max-width:60ch}

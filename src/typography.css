@@ -1,10 +1,10 @@
 /* One type system for the app and portable documents. */
 :root {
-  --font-family: 'IBM Plex Sans', Arial, sans-serif;
+  --font-family: 'IBM Plex Sans', sans-serif;
   --font-regular: 400;
   --font-semibold: 600;
+  /* All non-link text shares one color, including controls and supporting copy. */
   --ink: #242424;
-  --muted: #616161;
   --text-link: #163f99;
   --text-title: 2rem;
   --text-display: var(--text-title);

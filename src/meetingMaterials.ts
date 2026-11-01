@@ -82,8 +82,8 @@ header{padding-bottom:0}
 p{margin:0}
 h2{margin-top:12px}
 p{white-space:pre-wrap;overflow-wrap:anywhere}
-.eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:var(--muted)}
-header p{font-size:var(--text-support);color:var(--muted);margin-top:12px}
+.eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:var(--ink)}
+header p{font-size:var(--text-support);color:var(--ink);margin-top:12px}
 .sheet{background:#fff;border:1px solid #ccd4de;min-height:70vh;scroll-margin-top:20px}
 .block{margin:22px 0;padding-top:18px;border-top:1px solid #ccd4de}
 .block p{font-size:var(--text-body)}
