@@ -34,8 +34,7 @@ h1, h2, h3, h4, h5, h6 {
   overflow-wrap: anywhere;
 }
 h1 { font-size: var(--text-title); }
-h2 { font-size: var(--text-section); }
-h3, h4, h5, h6 { font-size: var(--text-body); }
+h2, h3, h4, h5, h6 { font-size: var(--text-section); }
 small { font-size: var(--text-meta); }
 
 @media print { :root { font-size: 12pt; } }
