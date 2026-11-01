@@ -6,7 +6,6 @@ import { FieldErrorProvider } from './components/Field';
 import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
 import { MeetingKit } from './components/MeetingKit';
-import { exportMeetingNotes } from './meetingMaterials';
 import { ReadingSettings, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
@@ -102,10 +101,6 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
     if (saved && kind === 'plan') { setEditingApprovedPlan(false); setPlanEntry(undefined); }
     return saved;
   };
-  const download = () => {
-    try { const url = URL.createObjectURL(new Blob([exportMeetingNotes(state, reference)], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Throughline_PLC_Meeting_Plan.txt'; document.body.append(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
-    catch (caught) { setErrorField(''); setError(caught instanceof Error ? caught.message : 'The plan could not be exported. Please try again.'); window.requestAnimationFrame(() => errorBox.current?.focus()); }
-  };
   const savedLabel = saveError ? 'Save failed' : workspace.dirty ? 'Unsaved changes' : workspace.externalChanged ? 'Newer version available' : 'Saved on this browser';
   return <FieldErrorProvider value={{ field: errorField, message: error }}>
     <a className="skip-link" href="#workspace">Skip to planning workspace</a>
@@ -142,13 +137,13 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
           {state.step === 0 && <EvidenceWorkspace state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
           {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
-          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} />}
+          {state.step === 2 && !meetingReady && <PlanWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} saveError={saveError} initialCheckEditor={planEntry} onReturnToApproved={() => setEditingApprovedPlan(false)} />}
           {state.step === 3 && <ReflectWorkspace state={state} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} openExamples={() => setExamplesOpen(true)} unsaved={workspace.dirty} onEditCollection={() => editPlan(true)} />}
         </main>
         <footer className="footnote"><span>Fictional demo · Scripted prompts</span><span>PLC planning workbook</span></footer>
       </div>
     </div></div>
-    {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} downloadNotes={download} />}
+    {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} />}
     {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty} onClose={() => setHistoryOpen(false)} />}
     {examplesOpen && <FollowUpExamples onClose={() => setExamplesOpen(false)} />}
     {resetOpen && <ConfirmationDialog title="Reset this cycle?" confirmLabel="Reset cycle" error={workspace.operationError} onClose={() => setResetOpen(false)} onConfirm={() => { if (workspace.resetCycle(snapshot.activeCycleId)) { setResetOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } }}><p>This clears this cycle's draft, approvals, and reflection. Other saved cycles stay unchanged.</p></ConfirmationDialog>}

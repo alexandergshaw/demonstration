@@ -3,6 +3,9 @@
 .pw-explanation,.pw-check-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
 .pw-entry{margin:0 0 1.75rem}
 .pw-entry-explanation{margin:0}
+.pw-return-approved{margin-top:1rem;max-width:100%;white-space:normal}
+.pw-activity-purpose{max-width:65ch;margin:0 0 1.25rem;line-height:var(--line-body)}
+.pw-activity-purpose strong{display:block;margin-bottom:.25rem}
 .pw-save-explanation,.pw-outline-explanation{max-width:65ch;color:var(--ink);font-size:var(--text-support);line-height:var(--line-body);margin:.65rem 0 0;overflow-wrap:anywhere}
 .pw-outline-explanation{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
 .pw-check-explanation{margin:.75rem 0 1rem}

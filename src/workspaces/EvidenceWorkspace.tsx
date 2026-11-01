@@ -95,8 +95,8 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             return <article className={`evidence-response${selected ? ' is-selected' : ''}`} key={response.id}>
               <p className="evidence-response-label">{response.label}</p>
               <blockquote>“{response.quote}”</blockquote>
-              <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove' : 'Select'} ${response.label}`} onClick={() => dispatch({ type: 'evidence', id: response.id })}>
-                <Icon name={selected ? 'check' : 'plus'} size={17} />{selected ? 'Selected for interpretation' : 'Select this work'}
+              <button type="button" className="evidence-select" aria-pressed={selected} aria-label={`${selected ? 'Remove this work' : 'Select this work'}: ${response.label}`} onClick={() => dispatch({ type: 'evidence', id: response.id })}>
+                <Icon name={selected ? 'check' : 'plus'} size={17} />{selected ? 'Remove this work' : 'Select this work'}
               </button>
             </article>;
           })}
@@ -105,7 +105,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
           why="These two examples make the reasoning visible in a way that totals cannot. They are illustrations to discuss, not a representative sample of the whole grade."
           steps={[
             { label: 'Name what the student already understands.', detail: 'Look at the choice, words and reasoning. Then identify what the response leaves uncertain about equal amounts of the same whole.' },
-            { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Select it again to remove it. The assessment remains included either way.' },
+            { label: 'Select a useful discussion example.', detail: 'Select this work keeps its exact quotation available beside your writing and in the approved source packet. Use Remove this work to take it out of your selection. The assessment remains included either way.' },
           ]} />
       </section>
     </div>

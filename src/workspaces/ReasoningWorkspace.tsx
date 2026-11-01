@@ -140,11 +140,11 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     setFocusAttempt(attempt => attempt + 1);
   }
 
-  function goToBeat(next: Beat) {
+  function goToBeat(next: Beat, focusEditor = false) {
     const changedBeat = next !== beat;
-    requestFocus(next === 'notice' ? changedBeat ? 'reasoning-notice-guide' : 'interpretation'
+    requestFocus(next === 'notice' ? focusEditor || !changedBeat ? 'interpretation' : 'reasoning-notice-guide'
       : next === 'test' ? 'reasoning-test-title'
-      : changedBeat ? 'reasoning-focus-guide' : 'focus');
+      : focusEditor || !changedBeat ? 'focus' : 'reasoning-focus-guide');
     clearError();
     setBeat(next);
   }
@@ -193,8 +193,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
       <section className="reasoning-beat-panel" hidden={beat !== 'test'} aria-labelledby="reasoning-test-title">
         <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
         <div className="reasoning-previous-writing">
-          <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice')}>{state.interpretation.trim() ? 'Edit' : 'Write interpretation'}<Icon name="pencil" size={14} /></button></div>
-          <p>{state.interpretation.trim() || 'Start with what you notice in the selected work.'}</p>
+          <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice', true)}>{state.interpretation.trim() ? 'Edit interpretation' : 'Write interpretation'}<Icon name="pencil" size={14} /></button></div>
+          {state.interpretation.trim() ? <details className="reasoning-interpretation-disclosure"><summary>Read full interpretation</summary><p>{state.interpretation}</p></details> : <p>Start with what you notice in the selected work.</p>}
         </div>
         <div className="reasoning-work-area reasoning-alternative-work">
           <div className="reasoning-question">
@@ -204,7 +204,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <div className="reasoning-lens-choice"><label htmlFor="reasoning-lens">Try another angle</label><select id="reasoning-lens" aria-describedby="reasoning-lens-help" value={state.lens} onChange={event => dispatch({ type: 'lens', value: event.target.value as Lens })}>{reference.challenges.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
           <p id="reasoning-lens-help" className="reasoning-panel-help">Each angle opens a different scripted question. Changing it asks you to consider that question before confirming your focus again.</p>
           <div className="reasoning-challenge-routes" role="group" aria-label="Respond to the alternative">
-            <button className="btn secondary" onClick={() => goToBeat('notice')}><Icon name="pencil" size={16} />Revise interpretation</button>
+            <button id="challenge" className="btn reasoning-keep-interpretation" aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={() => interpretationReady ? considerQuestion() : goToBeat('notice', true)}>{interpretationReady ? 'Keep interpretation & explain uncertainty' : 'Write interpretation first'}<Icon name="arrow" size={17} /></button>
+            <button className="btn secondary" onClick={() => goToBeat('notice', true)}><Icon name="pencil" size={16} />Revise interpretation</button>
             <button className="btn secondary" onClick={() => setSourceOpen(true)}><Icon name="evidence" size={16} />Inspect source</button>
           </div>
           <p id="reasoning-challenge-help" className="reasoning-panel-help">If you keep your interpretation, carry the alternative and remaining uncertainty into your focus.</p>
@@ -241,8 +242,8 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           <p className="reasoning-ownership">This is your judgment, not a score from the app. Confirm when you can explain the focus in your own words. The writing minimum only checks that you have entered a response; it does not establish that the interpretation is sound.</p>
         </div>
         <div className="reasoning-previous-writing">
-          <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice')}>Edit<Icon name="pencil" size={14} /></button></div>
-          <p>{state.interpretation.trim() || 'Your interpretation will appear here.'}</p>
+          <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice', true)}>Edit interpretation<Icon name="pencil" size={14} /></button></div>
+          {state.interpretation.trim() ? <details className="reasoning-interpretation-disclosure"><summary>Read full interpretation</summary><p>{state.interpretation}</p></details> : <p>Your interpretation will appear here.</p>}
           <button className="textlink reasoning-review-question" onClick={() => goToBeat('test')}><Icon name={state.challenged ? 'check' : 'reasoning'} size={15} />{state.challenged ? 'Revisit the alternative' : 'Consider an alternative'}</button>
         </div>
         <TaskExplanation title="Choose the learning need the meeting will investigate"
@@ -260,18 +261,17 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
         </StepCoach>
       </section>
 
-      <footer className="reasoning-footer">
+      {beat !== 'test' && <footer className="reasoning-footer">
         {beat === 'notice' && <p className="reasoning-next-requirement">{interpretationReady
           ? 'Next, compare your interpretation with another explanation before choosing a focus.'
           : 'Start with your observation and possible explanation. Use at least 30 characters, then test another explanation.'}</p>}
         {beat === 'choose' && missingFocusStep && <p className="reasoning-next-requirement">{missingFocusStep === 'notice'
           ? 'Before confirming: write the interpretation that supports this focus, using at least 30 characters. Your focus draft stays here.'
           : 'Before confirming: consider an alternative explanation. Your focus draft stays here.'}</p>}
-        {beat !== 'test' && <button className="textlink" onClick={() => beat === 'notice' ? dispatch({ type: 'go', step: 0 }) : goToBeat('test')}>{beat === 'notice' ? 'Review evidence' : 'Revisit alternative'}</button>}
+        <button className="textlink" onClick={() => beat === 'notice' ? dispatch({ type: 'go', step: 0 }) : goToBeat('test')}>{beat === 'notice' ? 'Review evidence' : 'Revisit alternative'}</button>
         {beat === 'notice' ? <button className="btn" onClick={() => goToBeat(interpretationReady ? 'test' : 'notice')}>{interpretationReady ? 'Test an alternative' : state.interpretation.trim() ? 'Add detail to your interpretation' : 'Write your interpretation'}<Icon name="arrow" size={17} /></button>
-          : beat === 'test' ? <button id="challenge" className="btn reasoning-keep-interpretation" aria-invalid={challengeError.invalid || undefined} aria-describedby={challengeError.describedBy} onClick={() => interpretationReady ? considerQuestion() : goToBeat('notice')}>{interpretationReady ? 'Keep interpretation & explain uncertainty' : 'Write interpretation first'}<Icon name="arrow" size={17} /></button>
-          : <button className="btn" onClick={() => missingFocusStep ? goToBeat(missingFocusStep) : !focusReady ? goToBeat('choose') : submit('focus')}>{missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue'}<Icon name="arrow" size={17} /></button>}
-      </footer>
+          : <button className="btn" onClick={() => missingFocusStep ? goToBeat(missingFocusStep, true) : !focusReady ? goToBeat('choose', true) : submit('focus')}>{missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue'}<Icon name="arrow" size={17} /></button>}
+      </footer>}
     </div>
     {sourceOpen && <Modal title="Selected evidence & original task" onClose={() => setSourceOpen(false)}><div className="reasoning-source-modal"><SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} headingLevel="h3" /><button className="btn secondary" onClick={() => setSourceOpen(false)}>Return to my writing</button></div></Modal>}
   </div>;
