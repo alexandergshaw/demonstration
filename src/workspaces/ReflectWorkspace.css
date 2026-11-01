@@ -4,7 +4,7 @@
 .reflect-action>.caption{font-size:var(--text-support);line-height:var(--line-body)}
 .reflect-evidence-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,40px);align-items:start;margin:2rem 0}
 .reflect-implementation fieldset{border:0;padding:0;margin:0}
-.reflect-implementation legend{font-size:var(--text-section);line-height:var(--line-heading);font-weight:600;margin-bottom:1rem}
+.reflect-implementation legend{font-size:var(--text-body);line-height:var(--line-heading);font-weight:600;margin-bottom:1rem}
 .reflect-status-options{display:flex;flex-direction:column;gap:.75rem}
 .reflect-status-options label{display:flex;align-items:flex-start;gap:.75rem;min-height:48px;padding:.875rem 1rem;border:1px solid var(--border);border-radius:4px;font-size:var(--text-body)}
 .reflect-status-options label.selected{border-color:var(--accent);background:var(--accent-light)}

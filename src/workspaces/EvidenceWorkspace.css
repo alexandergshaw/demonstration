@@ -156,7 +156,7 @@
 }
 
 .evidence-workspace .evidence-score-values > strong {
-  font-size: var(--text-section);
+  font-size:var(--text-body);
   font-weight: 600;
   white-space: nowrap;
 }

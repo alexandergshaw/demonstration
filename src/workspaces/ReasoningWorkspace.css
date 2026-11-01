@@ -17,7 +17,7 @@
 .reasoning-source-totals{display:grid;gap:20px;margin:24px 0}
 .reasoning-source-totals div{display:flex;flex-direction:column-reverse;gap:4px}
 .reasoning-source-totals dt{font-size:var(--text-support);color:var(--ink)}
-.reasoning-source-totals dd{margin:0;font-size:var(--text-section);font-weight:600;line-height:var(--line-heading);font-variant-numeric:tabular-nums}
+.reasoning-source-totals dd{margin:0;font-size:var(--text-body);font-weight:600;line-height:var(--line-heading);font-variant-numeric:tabular-nums}
 .reasoning-source-totals dd span{font-size:var(--text-task);font-weight:400;color:var(--ink)}
 .reasoning-source-disclosure{border-top:1px solid var(--border);margin-top:18px}
 .reasoning-source-disclosure+ .reasoning-source-disclosure{margin-top:0}
