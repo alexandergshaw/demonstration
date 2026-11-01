@@ -22,6 +22,18 @@ function approved(): PlanState {
 }
 
 describe('meeting materials preserve educator ownership', () => {
+  it('keeps the shared typeface available offline without allowing external resources', () => {
+    const html = exportMeetingHtml(approved(), reference);
+    const stylesheet = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+    const fontUrls = [...stylesheet.matchAll(/url\(([^)]+)\)/g)];
+    expect(html).toContain("default-src 'none'");
+    expect(html).toContain('font-src data:;');
+    expect(stylesheet).toContain('IBM Plex Sans');
+    expect(stylesheet).not.toMatch(/@import\b/);
+    expect(fontUrls).toHaveLength(2);
+    for (const font of fontUrls) expect(font[1]).toMatch(/^['"]?data:font\/woff2;base64,[A-Za-z0-9+/]+=*['"]?$/);
+  });
+
   it('exports each plan with its own evidence snapshot even when passed the base reference', () => {
     const original = approved();
     const changed = parseStoredState({ ...original, evidenceVersion: 'oct29' }).state;

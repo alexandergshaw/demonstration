@@ -58,7 +58,7 @@
 .reasoning-question{margin:0 0 1.25rem}
 .reasoning-question-copy{margin-top:12px;font-size:var(--text-task);line-height:1.55;max-width:48ch}
 .reasoning-lens-choice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
-.reasoning-lens-choice label,.reasoning-confidence label{font-size:var(--text-label);font-weight:500;color:var(--ink);line-height:1.5}
+.reasoning-lens-choice label,.reasoning-confidence label{font-size:var(--text-label);font-weight:600;color:var(--ink);line-height:1.5}
 .reasoning-lens-choice select{width:auto;max-width:100%;min-width:0;font-size:var(--text-body)}
 .reasoning-challenge-routes{display:flex;align-items:stretch;flex-wrap:wrap;gap:12px;margin-top:26px}
 .reasoning-challenge-routes>.btn{font-size:var(--text-support);text-align:left}

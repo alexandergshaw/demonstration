@@ -10,13 +10,13 @@
   margin: 0 0 1.5rem;
   padding: 0 0 1rem;
   border-bottom: 1px solid var(--border, #ccd4de);
-  font-size: 1rem;
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
 .evidence-workspace .evidence-goal > span {
   color: var(--muted, #526170);
-  font-size: .8125rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -46,7 +46,7 @@
 
 .evidence-workspace h2 {
   margin: 0;
-  font-size: var(--text-section, 1.5rem);
+  font-size: var(--text-section);
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -.025em;
@@ -58,13 +58,13 @@
   gap: .35rem;
   flex-shrink: 0;
   color: #39564a;
-  font-size: .8125rem;
+  font-size: var(--text-meta);
 }
 
 .evidence-workspace .evidence-source-date {
   margin: .65rem 0 0;
   color: var(--muted, #526170);
-  font-size: var(--text-support, .875rem);
+  font-size: var(--text-support);
   line-height: 1.6;
 }
 
@@ -86,7 +86,7 @@
   background: transparent;
   color: var(--muted, #526170);
   font: inherit;
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .evidence-workspace .evidence-view-lead {
-  font-size: var(--text-task, 1.25rem);
+  font-size: var(--text-task);
   font-weight: 600;
   line-height: 1.5;
 }
@@ -145,7 +145,7 @@
 }
 
 .evidence-workspace .evidence-measure-label {
-  font-size: 1rem;
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 
@@ -164,20 +164,20 @@
 }
 
 .evidence-workspace .evidence-score-values > strong {
-  font-size: var(--text-section, 1.5rem);
+  font-size: var(--text-section);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .evidence-workspace .evidence-score-values > strong > span {
   color: var(--muted, #526170);
-  font-size: .875rem;
+  font-size: var(--text-support);
   font-weight: 400;
 }
 
 .evidence-workspace .evidence-rate {
   color: var(--muted, #526170);
-  font-size: .8125rem;
+  font-size: var(--text-meta);
   white-space: nowrap;
 }
 
@@ -205,7 +205,7 @@
 .evidence-workspace .evidence-note {
   margin: 0;
   color: var(--muted, #526170);
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.6;
 }
 
@@ -215,7 +215,7 @@
 
 .evidence-workspace .evidence-rubric-anchor {
   margin: .75rem 0 0;
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   line-height: 1.6;
   color: var(--ink, #172637);
 }
@@ -224,14 +224,14 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
 
 .evidence-workspace .evidence-class-view caption {
   text-align: left;
-  font-size: .8125rem;
+  font-size: var(--text-meta);
   color: var(--muted, #526170);
   margin: .5rem 0 .75rem;
 }
@@ -270,7 +270,7 @@
 
 .evidence-workspace .evidence-class-view .evidence-score-values > strong,
 .evidence-workspace .evidence-class-view .evidence-score-values > strong > span {
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
 }
 
 .evidence-workspace .evidence-class-view .evidence-score-track {
@@ -280,7 +280,7 @@
 
 .evidence-workspace .evidence-original-task h3 {
   margin: 0 0 .5rem;
-  font-size: var(--text-task, 1.25rem);
+  font-size: var(--text-task);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -289,12 +289,12 @@
   margin: .75rem 0 1rem;
   border: 0;
   padding: 0;
-  font-size: 1rem;
+  font-size: var(--text-body);
   line-height: 1.65;
 }
 
 .evidence-workspace .evidence-task-provenance {
-  font-size: var(--text-support, .875rem);
+  font-size: var(--text-support);
   color: var(--muted, #526170);
   line-height: 1.6;
 }
@@ -315,14 +315,14 @@
 }
 
 .evidence-workspace .evidence-scoring-summary dt {
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   font-weight: 600;
   line-height: 1.6;
 }
 
 .evidence-workspace .evidence-scoring-summary dd {
   margin: .25rem 0 0;
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
@@ -333,7 +333,7 @@
 .evidence-workspace .evidence-source-details > summary {
   min-height: 2.75rem;
   padding: .65rem 0;
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.6;
   color: var(--accent-dark, #163f99);
   cursor: pointer;
@@ -341,7 +341,7 @@
 
 .evidence-workspace .evidence-source-details > div {
   padding: 0 0 1rem;
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.65;
 }
 
@@ -375,7 +375,7 @@
   border-left: 2px solid #9aa8ba;
   background: #f6f8fb;
   color: var(--muted, #526170);
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.6;
 }
 
@@ -409,7 +409,7 @@
 .evidence-workspace .evidence-response-label {
   margin: 0;
   color: var(--muted, #526170);
-  font-size: .8125rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   line-height: 1.5;
 }
@@ -418,7 +418,7 @@
   margin: .75rem 0 1.25rem;
   padding: 0;
   border: 0;
-  font-size: 1.25rem;
+  font-size: var(--text-task);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: -.015em;
@@ -437,7 +437,7 @@
   background: white;
   color: var(--ink, #172637);
   font: inherit;
-  font-size: .875rem;
+  font-size: var(--text-support);
   font-weight: 600;
   line-height: 1.4;
   text-align: left;
@@ -489,7 +489,7 @@
   content: '+';
   margin-left: auto;
   color: var(--muted, #526170);
-  font-size: 1.25rem;
+  font-size: var(--text-task);
 }
 
 .evidence-workspace .evidence-history details[open] summary::after {
@@ -500,14 +500,14 @@
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  font-size: 1rem;
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
 .evidence-workspace .evidence-history-meta,
 .evidence-workspace .evidence-history-status {
   color: var(--muted, #526170);
-  font-size: var(--text-support, .875rem);
+  font-size: var(--text-support);
   line-height: 1.5;
 }
 
@@ -525,14 +525,14 @@
   margin: .75rem 0 1rem;
   padding: 0;
   border: 0;
-  font-size: 1.125rem;
+  font-size: var(--text-label);
   line-height: 1.6;
 }
 
 .evidence-workspace .evidence-history-caution {
   margin: .25rem 0 0 1.5625rem;
   color: var(--muted, #526170);
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.6;
 }
 
@@ -540,7 +540,7 @@
   max-width: 85ch;
   margin: .5rem 0 0 1.5625rem;
   color: var(--muted, #526170);
-  font-size: .875rem;
+  font-size: var(--text-support);
   line-height: 1.6;
 }
 
@@ -563,7 +563,7 @@
   max-width: 65ch;
   margin: 0;
   color: var(--muted, #526170);
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 

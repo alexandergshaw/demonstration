@@ -16,6 +16,14 @@ describe('standalone proposed pilot handout', () => {
     expect(html.match(/class="note-line"/g)).toHaveLength(6);
     expect(html).toContain('No results collected');
     expect(html).toContain('separate from an approved PLC meeting kit');
+    expect(html).toContain("default-src 'none'");
+    expect(html).toContain('font-src data:;');
+    const stylesheet = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+    const fontUrls = [...stylesheet.matchAll(/url\(([^)]+)\)/g)];
+    expect(stylesheet).toContain('IBM Plex Sans');
+    expect(stylesheet).not.toMatch(/@import\b/);
+    expect(fontUrls).toHaveLength(2);
+    for (const font of fontUrls) expect(font[1]).toMatch(/^['"]?data:font\/woff2;base64,[A-Za-z0-9+/]+=*['"]?$/);
     for (const link of html.matchAll(/href="([^"]+)"/g)) expect(link[1]).toMatch(/^https:\/\//);
   });
 

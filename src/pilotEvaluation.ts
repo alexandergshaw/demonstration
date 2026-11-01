@@ -1,3 +1,5 @@
+import { portableFontCsp, portableTypographyCss } from './portableTypography';
+
 export interface PilotEvaluationProtocol {
   title: string;
   status: string;
@@ -66,9 +68,50 @@ export function exportPilotEvaluationHtml(protocol: PilotEvaluationProtocol = pi
     return `<li>${href ? `<a href="${href}">${text(item.title)}</a>` : text(item.title)}<p>${text(item.relevance)}</p>${href ? `<p class="source-url">${text(item.url)}</p>` : ''}</li>`;
   }).join('');
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Throughline · ${text(protocol.title)}</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; ${portableFontCsp} base-uri 'none'; form-action 'none'"><title>Throughline · ${text(protocol.title)}</title>
 <style>
-*{box-sizing:border-box}body{margin:0;color:#17202b;background:#fff;font:16px/1.55 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:40px 28px}h1{font-size:2rem;line-height:1.15}h2{margin-top:2rem;font-size:1.3rem}h3{font-size:1.05rem}p{margin:.6rem 0 1rem}.status{font-weight:700;color:#163c73}.boundary{border-left:3px solid #31578b;padding-left:1rem}dt{font-weight:700;margin-top:1rem}dd{margin:.3rem 0 1rem}ol{padding-left:1.4rem}li{padding-left:.3rem}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.94rem}caption{text-align:left;font-weight:700;margin-bottom:.7rem}th,td{border:1px solid #b4bbc4;padding:12px;vertical-align:top;text-align:left;overflow-wrap:anywhere}thead th{background:#eef1f5}tbody th{width:22%}a{color:#163c73;text-decoration:underline}.source-url{font-size:.8rem;overflow-wrap:anywhere}.manual-notes{margin-top:2rem;border-top:2px solid #17202b}.note-line{min-height:3rem;border-bottom:1px solid #bbc1ca}.note-line span{font-size:.85rem;color:#3f4c5d}footer{margin-top:2rem;border-top:1px solid #bbc1ca;padding-top:1rem;font-size:.85rem}@media(max-width:640px){main{padding:24px 16px}table{min-width:650px}}@media print{@page{margin:18mm}body{font-size:10pt}main{max-width:none;padding:0}h2,h3{break-after:avoid}tr{break-inside:avoid}thead{display:table-header-group}.table-scroll{overflow:visible}table{min-width:0;font-size:9pt}a{color:inherit}.manual-notes{break-before:page}.note-line{min-height:4rem}}
+${portableTypographyCss}
+*{box-sizing:border-box}
+body{margin:0;color:#17202b;background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:1.6}
+main{max-width:1100px;margin:auto;padding:40px 28px}
+h1,h2,h3{font-weight:var(--font-semibold);line-height:1.25}
+h1{font-size:var(--text-title);letter-spacing:-.03em}
+h2{margin-top:2rem;font-size:var(--text-section);letter-spacing:-.02em}
+h3{font-size:var(--text-task)}
+p{margin:.6rem 0 1rem}
+.status{font-size:var(--text-support);font-weight:var(--font-semibold);color:#163c73}
+.boundary{border-left:3px solid #31578b;padding-left:1rem}
+dt{font-size:var(--text-label);font-weight:var(--font-semibold);margin-top:1rem}
+dd{margin:.3rem 0 1rem}
+ol{padding-left:1.4rem}
+li{padding-left:.3rem}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:var(--text-body)}
+caption{text-align:left;font-size:var(--text-label);font-weight:var(--font-semibold);margin-bottom:.7rem}
+th{font-weight:var(--font-semibold)}
+th,td{border:1px solid #b4bbc4;padding:12px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+thead th{background:#eef1f5}
+tbody th{width:22%}
+a{color:#163c73;text-decoration:underline}
+a:focus-visible{outline:3px solid #31578b;outline-offset:3px}
+.source-url{font-size:var(--text-meta);overflow-wrap:anywhere}
+.manual-notes{margin-top:2rem;border-top:2px solid #17202b}
+.note-line{min-height:3rem;border-bottom:1px solid #bbc1ca}
+.note-line span{font-size:var(--text-support);color:#3f4c5d}
+footer{margin-top:2rem;border-top:1px solid #bbc1ca;padding-top:1rem;font-size:var(--text-support)}
+@media(max-width:640px){main{padding:24px 16px}table{min-width:650px}}
+@media print{
+  @page{margin:18mm}
+  main{max-width:none;padding:0}
+  h2,h3{break-after:avoid}
+  tr{break-inside:avoid}
+  thead{display:table-header-group}
+  .table-scroll{overflow:visible}
+  table{min-width:0;font-size:var(--text-support)}
+  a{color:inherit}
+  .manual-notes{break-before:page}
+  .note-line{min-height:4rem}
+}
 </style></head><body><main>
 <p class="status">${text(protocol.status)}</p><h1>${text(protocol.title)}</h1><p>${text(protocol.purpose)}</p>
 <p class="boundary">${text(protocol.scope)}</p><p>Standalone research proposal. This handout is separate from an approved PLC meeting kit and contains no saved cycle, participant or student records. Open it locally and use your browser’s Print command for paper or PDF.</p>

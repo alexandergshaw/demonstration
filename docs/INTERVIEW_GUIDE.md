@@ -26,6 +26,21 @@ The quoted talking points above are suggested presenter language, not quotations
 
 The final explanatory candidate passed all 352 regression tests and the production build. Source review checked current evidence counts, separate illustrations, control consequences and focus targets. Browser access remains disabled; the user authorized deployment without the visual check. Do not present automated checks as validation of rendered layout, browser focus behavior or educator comprehension.
 
+## Explaining the consistent typography
+
+Treat this as our design rationale, not a statement of the interviewers' personal font preferences. The [typography rationale and verified role sources](onboarding/research.md#consistent-typography-across-the-app-and-portable-materials) connect the six names to the decisions:
+
+- **Tyler Nakatsu — Senior Director of Digital Products and Strategy:** one recognizable system carries the leader's work from app to usable meeting materials.
+- **LeAnita Garner — Director of AI-Enabled Instruction, Math:** clear counts, denominators, percentages and times use tabular numerals and consistent labels; evidence remains readable without a separate numeric font.
+- **Nia Ladson — Senior Director of AI-Enabled Instruction, ELA:** body-size explanations, regular reading text and semibold labels make the assistance understandable while explicit wording preserves educator ownership.
+- **Antoinette Melvin — Senior Director of Innovation:** a stable hierarchy makes purpose, task, evidence, example and next decision easier to distinguish without stripping away the explanation.
+- **Sandra Jin — Senior Director of AI Strategy:** the same reading conventions continue across planning, the classroom interval and the separate implementation and learning checks.
+- **Sabrina Ware — Associate Director, Innovation–AI Strategy:** consistent help, status and collection details support return to the work; portable HTML preserves typography offline.
+
+Suggested presenter language: “I chose IBM Plex Sans throughout, using regular 400 and semibold 600. The same semantic scale organizes the app, Guide and dialogs, and the same family and role hierarchy carry into the HTML meeting kit and pilot worksheet. Essential reading stays body-sized; optional help remains readable. The app serves its fonts locally and the HTML downloads embed them, so neither needs an external font request. A plain-text export uses the recipient's viewer settings.” This is suggested language, not a quotation from a panelist. Keep the interviewers' names in the design discussion, not the teacher's controls.
+
+For the demonstration, follow one authored decision from its editor through the review dialog into the meeting materials and point out the recurring heading, body and metadata roles. Explain that a paper layout can use a different scale while retaining those roles. The consistency pass has 354 passing tests, including offline-font/export checks, and the embedded pack matches the app's source fonts. Do not claim that typography was visually checked or that the font choice has demonstrated a readability or learning benefit; browser access remains disabled and the user authorized deployment without that check.
+
 ## Example inputs
 
 Type or adapt these as fictional demonstration notes; the app does not supply them as the leader's decisions.
