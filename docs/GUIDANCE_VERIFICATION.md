@@ -43,6 +43,12 @@ New regression coverage checks that draft preview preserves writing without perm
 
 The user's explicit source-only exception remains in effect. No local visual check was performed because browser access is disabled. Additional hands-on checks are required for desktop and narrow layout, 125/150% text, selector keyboard behavior, source-reader focus, review → draft kit → activity editing → review, Guide focus when first-use controls disappear, and actual file downloads/recovery under failed storage. The first-use overview is now compact; the full structural preview is reached through **How it works**. Approved kit downloads remain gated, while draft preview is available before approval.
 
+## Repeated-workflow consistency pass — October 31, 2026
+
+The shared action row now keeps validation guidance/status, secondary controls and primary controls in a stable DOM order. Interpret actions precede optional help, matching Plan activity editing and Reflect. Teaching-move and check editors use Done editing, or Return to review when entered from review. Task explanations share their disclosure treatment with thinking support. Plan and Interpret use the same narrow-screen selector pattern; 150% text also exposes the inline evidence reference. Collection summaries share labels and empty states across Plan, review, meeting-ready and Reflect, and kit-preview return labels match their destination.
+
+All **389 tests across 19 files passed**, including new source-render checks for control order, accessible error associations, preservation of authored collection values, contextual draft-preview returns, labelled six-activity selection and all three Reasoning action/help sequences. TypeScript/Vite build passed. The local development server returned HTTP 200. Native selector keyboard behavior, actual focus restoration, mobile layout and enlarged-text rendering still need a browser check; the user's source-only release exception continues to apply.
+
 ## Verification limits
 
 Browser testing was unavailable because browser use is disabled in the app settings. This pass therefore has no observed browser-rendered layout, keyboard-flow, screen-reader, text-zoom or pointer-interaction results. Source inspection and server-render tests can establish content and state contracts, but cannot demonstrate those interactive behaviors.

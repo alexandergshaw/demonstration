@@ -4,6 +4,8 @@ import { hasReflection, type Action, type PlanState } from '../model';
 import { StepCoach } from '../components/StepCoach';
 import { StepProgress } from '../components/StepProgress';
 import { TaskExplanation } from '../components/TaskExplanation';
+import { WorkflowActions } from '../components/WorkflowActions';
+import { CollectionSummary } from '../components/CollectionSummary';
 import './ReflectWorkspace.css';
 
 interface ReflectWorkspaceProps {
@@ -13,8 +15,9 @@ interface ReflectWorkspaceProps {
   unsaved?: boolean;
   onEditCollection?: () => void;
   onOpenRecord?: () => void;
+  onBackToPlan?: () => void;
 }
-export function ReflectWorkspace({ state: s, dispatch, submit, errorField, errorAttempt, openExamples, unsaved = false, onEditCollection, onOpenRecord }: ReflectWorkspaceProps) {
+export function ReflectWorkspace({ state: s, dispatch, submit, errorField, errorAttempt, openExamples, unsaved = false, onEditCollection, onOpenRecord, onBackToPlan }: ReflectWorkspaceProps) {
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [questionOpen, setQuestionOpen] = useState(() => Boolean(s.nextCycleQuestion.trim()));
   const recorded = hasReflection(s);
@@ -103,12 +106,8 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
       <div><h3>Check implementation</h3><p className="caption">The planned record of what the teacher and students did during the move.</p><p>{s.implementationCheck}</p></div>
       <div><h3>Check student learning</h3><p className="caption">The planned student work and criteria for examining their reasoning.</p><p>{s.learningCheck}</p></div>
       <p className="caption">Request dated work, the task and rubric, expected and actual response counts, and an implementation record. Check comparability before drawing a conclusion.</p>
-      <dl className="reflect-commitments">
-        <div><dt>Who will collect</dt><dd>{s.evidenceCollector.trim() || 'Not assigned yet'}</dd></div>
-        <div><dt>Planned collection</dt><dd>{s.collectionDate || 'Date not set'}</dd></div>
-        <div><dt>Planned review</dt><dd>{s.reviewDate || 'Date not set'}</dd></div>
-      </dl>
-      {onEditCollection && <div className="reflect-collection-action"><button className="btn secondary" onClick={onEditCollection}>Update collection plan</button><p className="caption">Changing planned checks or dates requires plan approval again. Your reflection draft stays available.</p></div>}
+      <CollectionSummary state={s} />
+      {onEditCollection && <div className="reflect-collection-action"><button className="btn secondary" onClick={onEditCollection}>Edit collection details</button><p className="caption">Changing planned checks or dates requires plan approval again. Your reflection draft stays available.</p></div>}
       {s.accessParticipation.trim() && <p className="caption">Access & participation plan: {s.accessParticipation}</p>}
       <button type="button" className="textlink reflect-collection-continue" onClick={() => focusControl(s.implementation ? 'reflection' : 'implementation-yes')}>{s.implementation ? 'Continue to your next step' : 'First, report whether the move was tried'}</button>
     </section>}
@@ -127,11 +126,11 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         <TextArea id="next-cycle-question" label="What should the team examine next?" hint="Optional: turn an unresolved issue into a question for the next meeting, such as what drawings would reveal about equal amounts. It is recorded with this reflection; it does not create another evidence cycle."
           value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} />
       </details>
-      <div className="reflect-save reflect-record-actions"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>
-        <button id="reflect-record" className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
-      <details className="reflect-writing-help">
-        <summary>How to shape a useful next step</summary>
-        <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision"
+      <WorkflowActions label="Reflection actions"
+        status={<p role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</p>}
+        secondary={onBackToPlan ? <button type="button" className="btn secondary" onClick={onBackToPlan}>Back to meeting plan</button> : undefined}
+        primary={{ id: 'reflect-record', label: nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step', onClick: () => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection') }} />
+        <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision" disclosureLabel="How to shape a useful next step"
         why="An approved plan records an intention. Reflection begins with what happened in class, then asks what the available evidence can support. Needing more evidence is a useful next decision when the collection plan is specific."
         steps={[
           { label: 'Report whether the move was used', detail: 'Compare the agreed move above with the classroom attempt. Choose Used as planned, Partially used or Not yet used. This is your report of implementation, not a measurement of student learning.' },
@@ -140,7 +139,6 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         ]}
         example={reflectionGuidance.example}
         handoff="Record next step saves your implementation report and next action with this plan. It does not upload evidence, create a new cycle or certify that the teaching move worked." />
-      </details>
       <StepCoach question={reflectionQuestion} ready="Can you name the next action, who will take it, and when the team will revisit it?">
         <p>{s.implementation === 'no'
           ? 'Describe the barrier, one adjustment and the next opportunity to try the move. It has not been tested, so an outcome judgment would be premature.'

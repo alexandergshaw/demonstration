@@ -61,6 +61,16 @@ The incentive is a useful, inspectable output: selected evidence beside writing,
 
 Remaining product gaps are substantive: shared accounts and permissions, collaboration, real curriculum and student-work ingestion, revision history, adjustable meeting length, and linked follow-up evidence. The prototype remains one browser-local fictional math workflow with scripted prompts. Adding interface promises for those capabilities would misrepresent the product; they require a separately scoped implementation. Desktop/mobile rendering, real keyboard interaction and screen-reader behavior also remain unverified while browser access is disabled. Source-only review uses the user's existing explicit exception.
 
+## Consistency across repeated work
+
+Authoring follows the same order in Interpret, Plan activities and checks, and Reflect: write or choose, use the action row, then open optional help. `WorkflowActions` gives each row the same description/status placement and secondary-before-primary DOM order. Desktop places the primary action on the right; narrow screens stack without reversing keyboard order. Callers retain the existing validation, save and approval semantics. Done editing closes an editor; Return to review restores the review the editor came from. Neither approves writing.
+
+Task directions and thinking support use the same closed disclosure treatment, touch target, focus indicator and expanded-content spacing. Plan activity guidance and the meeting-ready handoff now follow this pattern too. Necessary field instructions stay visible.
+
+Interpret and the six-activity Plan outline use labelled native task selectors at the same narrow-screen breakpoint and at 150% reading size. Desktop retains the full navigation. Selection preserves native keyboard focus and the draft; button-driven next/back actions still focus the relevant editor. At 150% text, the inline evidence reference replaces the desktop source pane so source access remains available.
+
+`CollectionSummary` renders the same collector, planned collection and planned review labels and empty states in Plan, review, meeting-ready and Reflect. Both collection edit routes say Edit collection details. Draft-kit return buttons name their actual destination: planning or review. These shared components keep repeated patterns aligned as content changes, without treating planning, approval and classroom implementation as the same event.
+
 ## Guided progress and practical incentives
 
 The same references inform the next layer of guidance. Playlab makes building, testing and deliberate publication separate actions; IM connects preparation to usable teaching activities and reflection; EdLight connects work analysis to instructional next steps. Our inference is to make the useful output of each step visible and provide a direct route to the next unfinished part. The sources do not establish that this design increases completion or learning outcomes.

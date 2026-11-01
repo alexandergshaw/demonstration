@@ -174,15 +174,18 @@ describe('Reflection keeps its single recording action beside the authored repor
       state, dispatch, submit, errorField: '', errorAttempt: 0, openExamples: vi.fn(),
     }));
     expect(markup.match(/id="reflect-record"/g)).toHaveLength(1);
-    expect(markup.match(new RegExp(`>${actionLabel}</button>`, 'g'))).toHaveLength(1);
+    expect(markup.match(new RegExp(`<span>${actionLabel}</span>`, 'g'))).toHaveLength(1);
     const action = markup.indexOf('id="reflect-record"');
     const report = markup.indexOf('id="reflection"');
     const question = markup.indexOf('id="next-cycle-question"');
-    const help = markup.indexOf('<details class="reflect-writing-help">');
+    const help = markup.indexOf('<details class="task-explanation-disclosure">');
     expect(report).toBeGreaterThanOrEqual(0);
     expect(question).toBeGreaterThan(report);
     expect(action).toBeGreaterThan(question);
     expect(help).toBeGreaterThan(action);
+    expect(markup).toContain('role="group" aria-label="Reflection actions"');
+    expect(markup).toContain('How to shape a useful next step</summary>');
+    expect(markup).not.toMatch(/<details\b[^>]*class="task-explanation-disclosure"[^>]*\bopen/);
     expect(markup.indexOf('class="step-coach"')).toBeGreaterThan(action);
     expect(markup.slice(markup.indexOf('class="workspace-stage-footer"'))).not.toContain('id="reflect-record"');
     expect(dispatch).not.toHaveBeenCalled();

@@ -1,0 +1,44 @@
+/* A shared interaction treatment for optional task directions and thinking support. */
+:is(.step-coach-help, .task-explanation-disclosure) {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  color: var(--ink);
+}
+
+:is(.step-coach-help, .task-explanation-disclosure) > summary {
+  min-height: 44px;
+  max-width: 100%;
+  padding: .65rem 0;
+  font-family: inherit;
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+:is(.step-coach-help, .task-explanation-disclosure) > summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+:is(.step-coach-content, .task-explanation-content) {
+  min-width: 0;
+  max-width: 68ch;
+  margin: .25rem 0 .5rem;
+  padding: .5rem 0 .75rem 1rem;
+  border-left: 2px solid var(--border);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+:is(.step-coach-content, .task-explanation-content) > :first-child { margin-top: 0; }
+
+@media (max-width: 480px) {
+  :is(.step-coach-content, .task-explanation-content) { padding-left: .75rem; }
+}
+
+@media (forced-colors: active) {
+  :is(.step-coach-help, .task-explanation-disclosure, .step-coach-content, .task-explanation-content) { border-color: CanvasText; }
+}

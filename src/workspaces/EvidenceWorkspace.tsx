@@ -2,6 +2,7 @@ import { useId, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { StepCoach } from '../components/StepCoach';
 import { StepProgress } from '../components/StepProgress';
+import { WorkflowActions } from '../components/WorkflowActions';
 import { TaskExplanation } from '../components/TaskExplanation';
 import type { ReferenceData } from '../data/seed';
 import { lessonContext } from '../lessonContext';
@@ -158,12 +159,9 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
       {observationSelected && <p className="evidence-history-next-check"><strong>Next check:</strong> Ask for a recent, dated observation or lesson artifact from the relevant classrooms before inferring current practice. Name what to gather in Plan’s implementation check.</p>}
     </div>
 
-    <footer className="evidence-next">
-      <div><p className="evidence-next-label">Ready to interpret?</p>
-        <p>When you can name a pattern and a question worth investigating, write your own explanation in the next step.</p>
-        <p className="evidence-selection-status" aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}{observationSelected ? ' · Historical context included' : ''}</p>
-      </div>
-      <button type="button" className="btn" onClick={() => dispatch({ type: 'go', step: 1 })}>Interpret the evidence<Icon name="arrow" size={18} /></button>
-    </footer>
+    <WorkflowActions label="Evidence actions"
+      description={<p>When you can name a pattern and a question worth investigating, write your own explanation in the next step.</p>}
+      status={<p aria-live="polite">Class results included{selectedWork > 0 ? ` · ${selectedWork} work ${selectedWork === 1 ? 'sample' : 'samples'} selected` : ' · Student work selection is optional'}{observationSelected ? ' · Historical context included' : ''}</p>}
+      primary={{ label: 'Interpret the evidence', onClick: () => dispatch({ type: 'go', step: 1 }), arrow: true }} />
   </div>;
 }

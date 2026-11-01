@@ -1,5 +1,7 @@
 import { Icon } from '../components/Icon';
 import { TaskExplanation } from '../components/TaskExplanation';
+import { CollectionSummary } from '../components/CollectionSummary';
+import { WorkflowActions } from '../components/WorkflowActions';
 import { hasPlan, type PlanState } from '../model';
 import './MeetingReady.css';
 
@@ -32,7 +34,7 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
       <p className="meeting-ready-owner">Who will try it · {state.owner}</p>
     </section>
 
-    <TaskExplanation headingLevel="h2" title="Use the kit, then gather evidence"
+    <TaskExplanation headingLevel="h2" title="Use the kit, then gather evidence" disclosureLabel="How to use your meeting kit"
       why="Approval finishes preparation in Throughline. The meeting and classroom attempt happen next, so this screen is a handoff into the team’s work."
       steps={[
         { label: 'Prepare the materials', detail: 'Open meeting kit to review the six presentation sections, source packet and participant activity. Print or download the materials your team will need.' },
@@ -48,14 +50,12 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
         <div><h3>Evidence the move happened</h3><p>{state.implementationCheck}</p></div>
         <div><h3>Evidence of student reasoning</h3><p>{state.learningCheck}</p></div>
       </div>
-      <dl className="meeting-ready-arrangements">
-        <div><dt>Who will collect</dt><dd className={state.evidenceCollector.trim() ? '' : 'is-unresolved'}>{state.evidenceCollector.trim() || 'Not yet agreed'}</dd></div>
-        <div><dt>Planned collection</dt><dd className={state.collectionDate ? '' : 'is-unresolved'}>{state.collectionDate || 'Date not yet agreed'}</dd></div>
-        <div><dt>Planned team review</dt><dd className={state.reviewDate ? '' : 'is-unresolved'}>{state.reviewDate || 'Date not yet agreed'}</dd></div>
-      </dl>
+      <CollectionSummary state={state} />
       <p className="meeting-ready-note">{collectionIncomplete ? 'The meeting plan is approved. Agree the remaining collection details with your team.' : 'These are your team’s planned commitments. Collected follow-up evidence is still needed.'}</p>
     </section>
 
-    <footer className="meeting-ready-next"><div><h2>After the lesson</h2><p>Return to report whether the move was used as planned, partially used or not yet used. Then record the supported next decision, including an action, owner and review point. If the move was not tried or evidence is missing, explain the barrier and what to gather next.</p></div><button className="btn secondary" onClick={onReflect}>Go to reflection<Icon name="arrow" size={17} /></button></footer>
+    <WorkflowActions label="After the lesson"
+      description={<><h2>After the lesson</h2><p>Return to report whether the move was used as planned, partially used or not yet used. Then record the supported next decision, including an action, owner and review point. If the move was not tried or evidence is missing, explain the barrier and what to gather next.</p></>}
+      primary={{ label: 'Go to reflection', onClick: onReflect, arrow: true }} />
   </div>;
 }

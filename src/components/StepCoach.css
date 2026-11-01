@@ -13,37 +13,6 @@
   overflow-wrap: anywhere;
 }
 
-.step-coach .step-coach-help > summary {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 2.75rem;
-  padding: .65rem 0;
-  color:var(--ink);
-  font-size: var(--text-support);
-  line-height:var(--line-body);
-  cursor: pointer;
-  overflow-wrap: anywhere;
-}
-
-.step-coach .step-coach-help > summary:focus-visible {
-  outline: 3px solid var(--accent, #225cd5);
-  outline-offset: 3px;
-}
-
-.step-coach .step-coach-content {
-  max-width: 68ch;
-  padding: .25rem 0 .5rem 1rem;
-  border-left: 2px solid #b9cbe5;
-  color:var(--ink);
-  font-size: var(--text-support);
-  line-height:var(--line-body);
-  overflow-wrap: anywhere;
-}
-
-.step-coach .step-coach-content > :first-child {
-  margin-top: 0;
-}
-
 .step-coach .step-coach-content p {
   margin: .75rem 0;
 }
@@ -68,10 +37,4 @@
   margin-bottom: .2rem;
   font-size: var(--text-meta);
   font-weight: 600;
-}
-
-@media (max-width: 480px) {
-  .step-coach .step-coach-content {
-    padding-left: .75rem;
-  }
 }

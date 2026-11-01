@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import './StepCoach.css';
+import './TaskHelp.css';
 
 interface StepCoachProps {
   question: string;

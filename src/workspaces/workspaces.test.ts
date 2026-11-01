@@ -9,6 +9,8 @@ import { PlanWorkspace } from './PlanWorkspace';
 import { ReasoningWorkspace } from './ReasoningWorkspace';
 import { ReflectWorkspace } from './ReflectWorkspace';
 import { MeetingReady } from './MeetingReady';
+import { agendaHeadings } from '../meetingMaterials';
+import { minutes } from '../model';
 
 const apply = (state: PlanState, ...actions: Action[]) => actions.reduce(reducer, state);
 const reference = createReferenceData();
@@ -63,6 +65,25 @@ function visibleReasoningPanel(markup: string) {
   expect(panels).toHaveLength(3);
   expect(visible).toHaveLength(1);
   return visible[0].content;
+}
+
+function workflowActions(markup: string, label: string) {
+  const group = markup.indexOf(`role="group" aria-label="${label}"`);
+  expect(group).toBeGreaterThanOrEqual(0);
+  const start = markup.lastIndexOf('<div class="workflow-actions">', group);
+  expect(start).toBeGreaterThanOrEqual(0);
+  let depth = 0;
+  for (const tag of markup.slice(start).matchAll(/<\/?div\b[^>]*>/g)) {
+    depth += tag[0].startsWith('</') ? -1 : 1;
+    if (depth === 0) return markup.slice(start, start + tag.index! + tag[0].length);
+  }
+  throw new Error(`Unclosed workflow actions: ${label}`);
+}
+
+function primaryAction(markup: string) {
+  const button = markup.match(/<button\b[^>]*class="btn workflow-actions-primary"[^>]*>([\s\S]*?)<\/button>/)?.[1];
+  expect(button).toBeDefined();
+  return button!;
 }
 
 describe('workspace evidence belongs to the selected collection', () => {
@@ -232,8 +253,8 @@ describe('guidance points to required work without completing it', () => {
     const options = props({ ...planned(), ...changes });
     const before = structuredClone(options.state);
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
-    const footer = markup.match(/<footer class="pw-footer">([\s\S]*?)<\/footer>/)?.[1];
-    expect(footer).toContain(`class="btn">${target}`);
+    const footer = workflowActions(markup, 'Meeting plan actions');
+    expect(primaryAction(footer)).toContain(`<span>${target}</span>`);
     const error = planError({ ...options.state, consent: true });
     if (error) expect(footer).toContain(error);
     expect(footer).toContain('Review meeting plan');
@@ -267,8 +288,8 @@ describe('guidance points to required work without completing it', () => {
   ])('keeps Notice on its required writing until it can be tested: %s', (interpretation, label) => {
     const options = props({ ...initialState(), interpretation });
     const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
-    const footer = markup.match(/<footer class="reasoning-footer">([\s\S]*?)<\/footer>/)?.[1];
-    expect(footer).toContain(`class="btn">${label}`);
+    const footer = workflowActions(visibleReasoningPanel(markup), 'Interpretation actions');
+    expect(primaryAction(footer)).toContain(`<span>${label}</span>`);
     expect(markup).toContain('aria-label="Reasoning sequence"');
     expect(options.dispatch).not.toHaveBeenCalled();
     expect(options.submit).not.toHaveBeenCalled();
@@ -281,8 +302,8 @@ describe('guidance points to required work without completing it', () => {
   ])('asks for the focus before offering confirmation: %s', (focus, label) => {
     const options = props({ ...focused(), focus });
     const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, options));
-    const footer = markup.match(/<footer class="reasoning-footer">([\s\S]*?)<\/footer>/)?.[1];
-    expect(footer).toContain(`class="btn">${label}`);
+    const footer = workflowActions(visibleReasoningPanel(markup), 'Teaching focus actions');
+    expect(primaryAction(footer)).toContain(`<span>${label}</span>`);
     expect(visibleReasoningPanel(markup)).toContain('id="focus"');
     expect(options.submit).not.toHaveBeenCalled();
   });
@@ -295,11 +316,44 @@ describe('guidance points to required work without completing it', () => {
     expect(markup).toContain('Activity 4 of 6:');
     expect(markup).toContain('aria-describedby="agenda-3-hint agenda-3-limit agenda-3-requirement"');
     expect(markup).toContain('id="agenda-3-requirement">Required · at least 5 characters');
-    expect(markup).toContain('class="btn secondary compact">Write activity directions');
+    expect(primaryAction(workflowActions(markup, 'Meeting activity actions'))).toContain('<span>Write activity directions</span>');
     expect(markup).toContain('Previous activity');
     expect(markup).toContain('class="planning-disclosure rehearsal-guide"');
     expect(state.agenda[3]).toBe('Ask');
     expect(options.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('offers the same six meeting activities through a labelled selector linked to the active editor', () => {
+    const state = { ...planned(), agenda: planned().agenda.map((entry, index) => index === 3 ? 'Ask' : entry) };
+    const before = structuredClone(state);
+    const options = props(state);
+    const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
+    const pickerStart = markup.indexOf('class="pw-activity-picker task-picker"');
+    expect(pickerStart).toBeGreaterThanOrEqual(0);
+    const picker = markup.slice(pickerStart, markup.indexOf('</div>', pickerStart));
+    const labelId = picker.match(/<label for="([^"]+)">Meeting activity<\/label>/)?.[1];
+    expect(labelId).toBeTruthy();
+    expect(picker).toContain(`<select id="${labelId}"`);
+    expect(picker).toContain('aria-controls="pw-agenda-editor"');
+    const activityOptions = [...picker.matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)];
+    expect(activityOptions).toHaveLength(6);
+    activityOptions.forEach((option, index) => {
+      const label = `${index + 1}. ${agendaHeadings[index]} · ${minutes[index]} min`;
+      const escaped = renderToStaticMarkup(createElement('span', null, label)).slice(6, -7);
+      expect(option[1]).toContain(`value="${index}"`);
+      expect(option[2]).toBe(escaped);
+      expect(option[1].includes('selected=""')).toBe(index === 3);
+    });
+    expect(markup).toContain('id="pw-agenda-editor"');
+    expect(markup).toContain('id="agenda-3"');
+    expect(markup).toContain('class="pw-agenda-list"');
+    expect(markup).toContain('<details class="task-explanation-disclosure">');
+    expect(markup).toContain('How to guide this activity</summary>');
+    expect(markup).not.toMatch(/<details\b[^>]*class="task-explanation-disclosure"[^>]*\bopen/);
+    expect(markup.indexOf('aria-label="Meeting activity actions"')).toBeLessThan(markup.indexOf('How to guide this activity</summary>'));
+    expect(state).toEqual(before);
+    expect(options.dispatch).not.toHaveBeenCalled();
+    expect(options.submit).not.toHaveBeenCalled();
   });
 
   it('shows short teaching-move and owner requirements before an approval attempt', () => {
@@ -308,7 +362,7 @@ describe('guidance points to required work without completing it', () => {
     expect(markup).toContain('id="action-requirement">Required · at least 25 characters');
     expect(markup).toContain('id="owner-requirement">Required · at least 3 characters');
     expect(markup).toContain('aria-describedby="action-hint action-limit action-requirement"');
-    expect(markup).toContain('class="textlink pw-section-next">Describe the teaching move');
+    expect(primaryAction(workflowActions(markup, 'Teaching move actions'))).toContain('<span>Describe the teaching move</span>');
     expect(markup).not.toContain('Next: shape the meeting activities');
     expect(options.submit).not.toHaveBeenCalled();
   });
@@ -317,7 +371,7 @@ describe('guidance points to required work without completing it', () => {
     const options = { ...props({ ...planned(), learningCheck: 'Work' }), initialCheckEditor: 'learning' as const };
     const markup = renderToStaticMarkup(createElement(PlanWorkspace, options));
     expect(markup).toContain('id="learning-check-requirement">Required · at least 15 characters');
-    expect(markup).toContain('class="btn secondary compact">Write the student learning check');
+    expect(primaryAction(workflowActions(markup, 'Student learning check actions'))).toContain('<span>Write the student learning check</span>');
     expect(markup).not.toContain('Next: review the whole plan');
     expect(options.submit).not.toHaveBeenCalled();
   });
@@ -340,7 +394,7 @@ describe('guidance points to required work without completing it', () => {
   ] as const)('directs reflection toward its next required control: %s / %s', (implementation, reflection, action) => {
     const options = props({ ...planned(), implementation, reflection });
     const markup = renderToStaticMarkup(createElement(ReflectWorkspace, options));
-    expect(markup).toContain(`class="btn">${action}</button>`);
+    expect(primaryAction(workflowActions(markup, 'Reflection actions'))).toContain(`<span>${action}</span>`);
     expect(markup).toContain('id="reflection-requirement">Required · at least 30 characters');
     expect(markup).toContain('no collected follow-up dataset');
     expect(options.dispatch).not.toHaveBeenCalled();

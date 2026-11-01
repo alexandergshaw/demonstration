@@ -87,9 +87,10 @@ describe('guided progress distinguishes navigation, drafts, approvals and saving
     expect(guidance).toContain('not a record that you reviewed a source');
     expect(guidance).toContain('You can interpret without opening every view; selecting work is optional.');
     expect(guidance).toContain('This visit count resets when you leave Evidence.');
-    const footer = markup.slice(markup.indexOf('<footer'));
-    expect(footer).toContain('Interpret the evidence');
-    expect(footer).not.toContain('disabled=');
+    const actions = markup.match(/role="group" aria-label="Evidence actions">([\s\S]*?)<\/button>/)?.[1];
+    expect(actions).toBeDefined();
+    expect(actions).toContain('Interpret the evidence');
+    expect(actions).not.toContain('disabled=');
     expect(state.selected).toEqual(['assessment']);
     expect(reducer(state, { type: 'go', step: 1 }).step).toBe(1);
   });

@@ -14,7 +14,7 @@ function renderReasoning(state = initialState(), reference = createReferenceData
 }
 
 function taskPicker(markup: string) {
-  const start = markup.indexOf('class="reasoning-task-picker"');
+  const start = markup.indexOf('class="reasoning-task-picker task-picker"');
   expect(start).toBeGreaterThanOrEqual(0);
   return markup.slice(start, markup.indexOf('</div>', start));
 }
@@ -56,6 +56,38 @@ describe('reasoning guidance and source clarity', () => {
     expect(initial).toContain('id="reasoning-test-guide"');
     const resumed: PlanState = { ...initialState(), challenged: true };
     expect(taskPicker(renderReasoning(resumed))).toContain('aria-controls="reasoning-focus-guide"');
+  });
+
+  it('keeps one labelled action group after the task and before closed help in all three reasoning panels', () => {
+    const state = initialState();
+    const before = structuredClone(state);
+    const dispatch = vi.fn(() => true), submit = vi.fn(() => true);
+    const markup = renderToStaticMarkup(createElement(ReasoningWorkspace, {
+      state, reference: createReferenceData(), dispatch, submit, clearError: vi.fn(), errorField: '', errorAttempt: 0,
+    }));
+    const starts = [...markup.matchAll(/<section\b[^>]*class="reasoning-beat-panel"[^>]*>/g)];
+    expect(starts).toHaveLength(3);
+    const contexts = [
+      { task: 'id="interpretation"', actions: 'Interpretation actions', help: 'How to write an interpretation' },
+      { task: 'id="reasoning-challenge-help"', actions: 'Respond to the alternative', help: 'How to test an alternative' },
+      { task: 'id="focus"', actions: 'Teaching focus actions', help: 'How to choose a teaching focus' },
+    ];
+    contexts.forEach(({ task, actions, help }, index) => {
+      const panel = markup.slice(starts[index].index, starts[index + 1]?.index ?? markup.length);
+      const taskPosition = panel.indexOf(task);
+      const actionPosition = panel.indexOf(`role="group" aria-label="${actions}"`);
+      const helpPosition = panel.indexOf('<details class="task-explanation-disclosure">');
+      expect(taskPosition).toBeGreaterThanOrEqual(0);
+      expect(actionPosition).toBeGreaterThan(taskPosition);
+      expect(helpPosition).toBeGreaterThan(actionPosition);
+      expect(panel.indexOf('class="step-coach"')).toBeGreaterThan(actionPosition);
+      expect(panel.match(/class="btn workflow-actions-primary"/g)).toHaveLength(1);
+      expect(panel).toContain(`${help}</summary>`);
+      expect(panel).not.toMatch(/<details\b[^>]*class="(?:task-explanation-disclosure|step-coach-help)"[^>]*\bopen/);
+    });
+    expect(state).toEqual(before);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(submit).not.toHaveBeenCalled();
   });
 
   it('uses the current source data in the narrow reference instead of requiring a modal for every comparison', () => {

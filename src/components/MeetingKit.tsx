@@ -5,12 +5,13 @@ import { buildDraftMeetingKit, buildMeetingKit, exportMeetingHtml, exportMeeting
 import { Modal } from './CycleManager';
 import { Icon } from './Icon';
 
-export function MeetingKit({ state, reference, onClose, mode = 'approved', onEditActivity }: {
+export function MeetingKit({ state, reference, onClose, mode = 'approved', onEditActivity, returnLabel = 'Return to planning' }: {
   state: PlanState;
   reference: ReferenceData;
   onClose: () => void;
   mode?: 'approved' | 'draft';
   onEditActivity?: (index: number) => void;
+  returnLabel?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState<{ kind: 'error' | 'status'; text: string } | null>(null);
@@ -68,7 +69,7 @@ export function MeetingKit({ state, reference, onClose, mode = 'approved', onEdi
         <div className="source-blocks">{page.blocks.map(block => <section key={block.heading}><h4>{block.heading}</h4><p>{block.text}</p></section>)}</div>
       </article>
       <div className="kit-pagination"><button className="btn secondary" disabled={index === 0} onClick={() => changePage(index - 1, true)}>Previous</button><span role="status">{index + 1} of {pages.length}</span><button className="btn secondary" disabled={index === pages.length - 1} onClick={() => changePage(index + 1, true)}>Next</button></div>
-      {draft ? <div className="modal-actions"><button type="button" className="btn secondary" onClick={onClose}>Return to planning</button></div> : <>
+      {draft ? <div className="modal-actions"><button type="button" className="btn secondary" onClick={onClose}>{returnLabel}</button></div> : <>
         <p className="caption"><strong>Choose what to take into the meeting.</strong> Download meeting kit gives you a self-contained HTML file to present offline. Open that file and use your browser’s Print command for a PDF or paper handouts. Download text plan gives you the written agenda, decisions and source excerpts for reference. Long content continues naturally; no text is truncated.</p>
         <p className="caption">Each download is a snapshot of the approved plan. If you change the plan, review and approve it again, then download a new copy. Closing this preview returns to your cycle; check the save status before leaving. It does not mark the meeting or classroom teaching as completed.</p>
         {downloadMessage && <p className={downloadMessage.kind === 'error' ? 'form-error' : 'caption'} role={downloadMessage.kind === 'error' ? 'alert' : 'status'}>{downloadMessage.text}</p>}
