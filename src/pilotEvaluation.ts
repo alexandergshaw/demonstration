@@ -72,14 +72,14 @@ export function exportPilotEvaluationHtml(protocol: PilotEvaluationProtocol = pi
 <style>
 ${portableTypographyCss}
 *{box-sizing:border-box}
-body{margin:0;color:#17202b;background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
+body{margin:0;color:var(--ink);background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 main{max-width:1100px;margin:auto;padding:40px 28px}
 h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
 h1{font-size:var(--text-title);}
 h2{margin-top:2rem;font-size:var(--text-section);}
 h3{font-size:var(--text-task)}
 p{margin:.6rem 0 1rem}
-.status{font-size:var(--text-support);font-weight:var(--font-semibold);color:#163c73}
+.status{font-size:var(--text-support);font-weight:var(--font-semibold);color:var(--ink)}
 .boundary{border-left:3px solid #31578b;padding-left:1rem}
 dt{font-size:var(--text-label);font-weight:var(--font-semibold);margin-top:1rem}
 dd{margin:.3rem 0 1rem}
@@ -92,12 +92,12 @@ th{font-weight:var(--font-semibold)}
 th,td{border:1px solid #b4bbc4;padding:12px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
 thead th{background:#eef1f5}
 tbody th{width:22%}
-a{color:#163c73;text-decoration:underline}
+a{color:var(--text-link);text-decoration:underline}
 a:focus-visible{outline:3px solid #31578b;outline-offset:3px}
 .source-url{font-size:var(--text-meta);overflow-wrap:anywhere}
 .manual-notes{margin-top:2rem;border-top:2px solid #17202b}
 .note-line{min-height:3rem;border-bottom:1px solid #bbc1ca}
-.note-line span{font-size:var(--text-support);color:#3f4c5d}
+.note-line span{font-size:var(--text-support);color:var(--muted)}
 footer{margin-top:2rem;border-top:1px solid #bbc1ca;padding-top:1rem;font-size:var(--text-support)}
 @media(max-width:640px){main{padding:24px 16px}table{min-width:650px}}
 @media print{

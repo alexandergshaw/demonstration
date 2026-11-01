@@ -76,23 +76,23 @@ export function exportMeetingHtml(state: PlanState, reference: ReferenceData): s
 ${portableTypographyCss}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;color:#172637;background:#f3f5f8;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
+body{margin:0;color:var(--ink);background:#f3f5f8;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 header,nav,.sheet{max-width:1040px;margin:28px auto;padding:36px}
 header{padding-bottom:0}
 h1,h2,h3,p{margin:0}
 h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
 h1{font-size:var(--text-title);}
 h2{font-size:var(--text-section);margin:12px 0 28px}
-h3{font-size:var(--text-label);color:#172637;margin-bottom:9px}
+h3{font-size:var(--text-label);color:var(--ink);margin-bottom:9px}
 p{white-space:pre-wrap;overflow-wrap:anywhere}
-.eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:#526170}
-header p{font-size:var(--text-support);color:#526170;margin-top:12px}
+.eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:var(--muted)}
+header p{font-size:var(--text-support);color:var(--muted);margin-top:12px}
 .sheet{background:#fff;border:1px solid #ccd4de;min-height:70vh;scroll-margin-top:20px}
 .block{margin:22px 0;padding-top:18px;border-top:1px solid #ccd4de}
 .block p{font-size:var(--text-body)}
 footer{border-top:1px solid #ccd4de;padding-top:18px;margin-top:32px}
 nav{display:flex;flex-wrap:wrap;gap:8px 22px;padding-top:0;padding-bottom:0}
-nav a{color:#163f99;font-size:var(--text-support);padding:10px 0;text-underline-offset:5px}
+nav a{color:var(--text-link);font-size:var(--text-support);padding:10px 0;text-underline-offset:5px}
 a:focus-visible{outline:3px solid #225cd5;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media(max-width:600px){header,nav,.sheet{margin:12px;padding:20px}.sheet{min-height:0}}

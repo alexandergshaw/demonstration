@@ -3,6 +3,9 @@
   --font-family: 'IBM Plex Sans', Arial, sans-serif;
   --font-regular: 400;
   --font-semibold: 600;
+  --ink: #242424;
+  --muted: #616161;
+  --text-link: #163f99;
   --text-title: 2rem;
   --text-display: var(--text-title);
   --text-section: 1.25rem;
@@ -19,7 +22,8 @@
   font-synthesis: none;
 }
 
-body { font-family: var(--font-family); font-size: var(--text-body); font-weight: var(--font-regular); line-height: var(--line-body); }
+body { color: var(--ink); font-family: var(--font-family); font-size: var(--text-body); font-weight: var(--font-regular); line-height: var(--line-body); }
+:where(a, a:visited) { color: var(--text-link); }
 button, input, select, textarea { font-family: inherit; }
 h1, h2, h3, h4, h5, h6, strong, b { font-weight: var(--font-semibold); }
 h1, h2, h3, h4, h5, h6 { line-height: var(--line-heading); }

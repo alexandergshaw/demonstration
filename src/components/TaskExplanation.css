@@ -20,13 +20,13 @@
   font-size: var(--text-body);
   line-height: var(--line-body);
 }
-.task-explanation .task-explanation-why { margin: 0; color: var(--muted); }
+.task-explanation .task-explanation-why { margin: 0; color:var(--ink); }
 .task-explanation .task-explanation-steps { margin: 1rem 0; padding-left: 1.3rem; }
 .task-explanation-steps li { padding-left: .25rem; }
 .task-explanation-steps li + li { margin-top: 1rem; }
 .task-explanation-steps li::marker { color: var(--muted); font-weight: 600; }
 .task-explanation-steps strong { display: block; font-weight: 600; line-height: var(--line-body); }
-.task-explanation-steps span { display: block; margin-top: .2rem; color: var(--muted); }
+.task-explanation-steps span { display: block; margin-top: .2rem; color:var(--ink); }
 .task-explanation .task-explanation-handoff {
   max-width: 65ch;
   margin: 1rem 0 0;
@@ -34,7 +34,7 @@
   line-height: var(--line-body);
 }
 .task-explanation-handoff strong { display: block; margin-bottom: .25rem; font-weight: 600; }
-.task-explanation-handoff span { display: block; color: var(--muted); }
+.task-explanation-handoff span { display: block; color:var(--ink); }
 .task-explanation-example { max-width: 65ch; margin-top: .5rem; }
 .task-explanation-example summary {
   min-height: 44px;

@@ -17,7 +17,7 @@
 .reflect-empty{background:var(--bg);padding:1.5rem;border:1px solid var(--border);border-radius:4px}
 .reflect-empty>.context-label{font-size:var(--text-meta)}
 .reflect-empty h2{font-size:var(--text-task);line-height:var(--line-heading);margin:.5rem 0 .875rem;max-width:32ch}
-.reflect-empty>p:not(.context-label){font-size:var(--text-body);line-height:var(--line-body);color:var(--muted);max-width:65ch}
+.reflect-empty>p:not(.context-label){font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);max-width:65ch}
 .reflect-empty .textlink{margin-top:1rem;min-height:44px}
 .reflect-collection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem 2rem;padding:1.5rem 0;border-top:1px solid var(--border)}
 .reflect-collection-header{grid-column:1/-1}

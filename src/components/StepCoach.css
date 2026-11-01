@@ -6,7 +6,7 @@
 .step-coach .step-coach-question {
   margin: 0;
   max-width: 65ch;
-  color: var(--ink, #172637);
+  color: var(--ink);
   font-size: var(--text-body);
   font-weight: 600;
   line-height:var(--line-body);
@@ -18,7 +18,7 @@
   max-width: 100%;
   min-height: 2.75rem;
   padding: .65rem 0;
-  color: var(--accent-dark, #163f99);
+  color: var(--accent-dark);
   font-size: var(--text-support);
   line-height:var(--line-body);
   cursor: pointer;
@@ -34,7 +34,7 @@
   max-width: 68ch;
   padding: .25rem 0 .5rem 1rem;
   border-left: 2px solid #b9cbe5;
-  color: var(--muted, #526170);
+  color: var(--muted);
   font-size: var(--text-support);
   line-height:var(--line-body);
   overflow-wrap: anywhere;
@@ -60,7 +60,7 @@
 
 .step-coach .step-coach-content .step-coach-self-check {
   margin: 1rem 0 0;
-  color: var(--ink, #172637);
+  color: var(--ink);
 }
 
 .step-coach .step-coach-self-check strong {
