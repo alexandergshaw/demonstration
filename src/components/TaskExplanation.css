@@ -48,5 +48,15 @@
   white-space: pre-line;
 }
 .task-explanation .task-explanation-example-note { color:var(--ink); font-size: var(--text-support); }
+.task-explanation.is-collapsible { padding-top: 0; }
+.task-explanation-disclosure > summary {
+  min-height: 44px;
+  padding: .65rem 0;
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  cursor: pointer;
+}
+.task-explanation-disclosure > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.task-explanation-content { padding: .5rem 0 1rem; }
 @media (max-width: 480px) { .task-explanation { margin: 1.25rem 0; } }
 @media (forced-colors: active) { .task-explanation { border-color: CanvasText; } }

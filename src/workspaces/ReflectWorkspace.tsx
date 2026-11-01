@@ -122,7 +122,16 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
           : 'Write what you can support and what remains unknown. Then name the next action or evidence to collect, who is responsible and when the team will review it.'}
         value={s.reflection} onChange={value => dispatch({ type: 'text', field: 'reflection', value })}
         placeholder={s.implementation === 'no' ? 'The move was not tried because… Next, [who] will… We will revisit this on…' : 'We can say… We still need… [Who] will collect… We will revisit this on…'} />
-      <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision"
+      <details className="reflect-next-question" open={questionOpen} onToggle={event => setQuestionOpen(event.currentTarget.open)}>
+        <summary>Question for the next PLC <span className="caption">Optional</span></summary>
+        <TextArea id="next-cycle-question" label="What should the team examine next?" hint="Optional: turn an unresolved issue into a question for the next meeting, such as what drawings would reveal about equal amounts. It is recorded with this reflection; it does not create another evidence cycle."
+          value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} />
+      </details>
+      <div className="reflect-save reflect-record-actions"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>
+        <button id="reflect-record" className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
+      <details className="reflect-writing-help">
+        <summary>How to shape a useful next step</summary>
+        <TaskExplanation title="Connect the teaching attempt to the next evidence-based decision"
         why="An approved plan records an intention. Reflection begins with what happened in class, then asks what the available evidence can support. Needing more evidence is a useful next decision when the collection plan is specific."
         steps={[
           { label: 'Report whether the move was used', detail: 'Compare the agreed move above with the classroom attempt. Choose Used as planned, Partially used or Not yet used. This is your report of implementation, not a measurement of student learning.' },
@@ -131,6 +140,7 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         ]}
         example={reflectionGuidance.example}
         handoff="Record next step saves your implementation report and next action with this plan. It does not upload evidence, create a new cycle or certify that the teaching move worked." />
+      </details>
       <StepCoach question={reflectionQuestion} ready="Can you name the next action, who will take it, and when the team will revisit it?">
         <p>{s.implementation === 'no'
           ? 'Describe the barrier, one adjustment and the next opportunity to try the move. It has not been tested, so an outcome judgment would be premature.'
@@ -140,16 +150,9 @@ export function ReflectWorkspace({ state: s, dispatch, submit, errorField, error
         <p>Before comparing results, inspect the dated tasks, rubric, response coverage and teaching conditions. If these differ, describe what the current work shows and limit claims about change.</p>
         <p>Needing more evidence is a valid decision. Make it actionable by naming what to collect, who will bring it and the next review point.</p>
       </StepCoach>
-      <details className="reflect-next-question" open={questionOpen} onToggle={event => setQuestionOpen(event.currentTarget.open)}>
-        <summary>Question for the next PLC <span className="caption">Optional</span></summary>
-        <TextArea id="next-cycle-question" label="What should the team examine next?" hint="Optional: turn an unresolved issue into a question for the next meeting, such as what drawings would reveal about equal amounts. It is recorded with this reflection; it does not create another evidence cycle."
-          value={s.nextCycleQuestion} onChange={value => dispatch({ type: 'text', field: 'nextCycleQuestion', value })} />
-      </details>
     </section>
     <div className="workspace-stage-footer">
       <button className="textlink" onClick={openExamples}>Explore a worked example</button>
-      <div className="reflect-save"><span className="caption" role="status">{unsaved ? 'Changes are not saved. Retry saving before leaving this browser.' : recorded ? 'Reflection recorded with this plan.' : 'Your report remains separate from demonstration examples.'}</span>
-        <button id="reflect-record" className="btn" onClick={() => nextRequiredControl ? focusControl(nextRequiredControl) : submit('reflection')}>{nextRequiredControl === 'implementation-yes' ? 'Report implementation first' : nextRequiredControl === 'reflection' ? s.reflection.trim() ? 'Add detail to your next step' : 'Write your next step' : recorded && !unsaved ? 'Reflection recorded' : 'Record next step'}</button></div>
     </div>
   </div>;
 }

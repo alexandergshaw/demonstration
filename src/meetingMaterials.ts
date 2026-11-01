@@ -1,4 +1,4 @@
-import { exportPlan, hasPlan, hasReflection, minutes, type PlanState } from './model';
+import { exportPlan, hasPlan, hasReflection, initialAgenda, minutes, type PlanState } from './model';
 import type { ReferenceData } from './data/seed';
 import { evidenceSnapshotDescription, referenceForVersion } from './data/evidenceSnapshots';
 import { selectedSourceBlocks, taskBlocks, type MaterialBlock } from './lessonContext';
@@ -24,6 +24,17 @@ function plannedCollectionBlocks(state: PlanState): MaterialBlock[] {
 }
 export function buildMeetingKit(state: PlanState, reference: ReferenceData): MeetingPage[] {
   if (!hasPlan(state)) throw new Error('Approve the current plan before opening meeting materials.');
+  return buildMeetingPages(state, reference, false);
+}
+/** Inspect the current writing without approving it or making it exportable. */
+export function buildDraftMeetingKit(state: PlanState, reference: ReferenceData): MeetingPage[] {
+  return buildMeetingPages(state, reference, true).map(page => ({
+    ...page,
+    label: 'DRAFT · ' + page.label,
+    blocks: page.blocks.map(block => ({ ...block, text: block.text.trim() ? block.text : 'Not written yet.' })),
+  }));
+}
+function buildMeetingPages(state: PlanState, reference: ReferenceData, draft: boolean): MeetingPage[] {
   reference = referenceForVersion(reference, state.evidenceVersion);
   const challenge = reference.challenges.find(item => item.id === state.lens);
   const selectedWork = reference.responses.filter(response => state.selected.includes(response.id));
@@ -34,13 +45,13 @@ export function buildMeetingKit(state: PlanState, reference: ReferenceData): Mee
   const content: MaterialBlock[][] = [
     [{ heading: 'Our instructional focus', text: state.focus }, { heading: 'Leader interpretation', text: state.interpretation }, { heading: 'Confidence', text: state.confidence }],
     [{ heading: 'Current evidence · ' + reference.assessment.date, text: `${reference.assessment.correct}/${reference.assessment.total} correct fractions; ${reference.assessment.explanations}/${reference.assessment.total} adequate explanations. Full task, rubric and class counts are in the source packet.` }, ...selectedWork.map(response => ({ heading: response.label, text: '“' + response.quote + '”' }))],
-    [{ heading: 'Alternative considered · scripted question', text: challenge?.prompt ?? '' }, { heading: 'Leader-shaped focus after considering the challenge', text: state.focus }, { heading: 'Discussion prompt', text: 'Which evidence supports this interpretation? What else could explain the pattern, and what remains uncertain?' }],
-    [{ heading: 'Teaching action to develop', text: state.action }, ...accessPlan, { heading: 'Optional rehearsal support', text: 'Follow the approved facilitation directions above. If a rehearsal supports them, use a selected student response or the original task to practice a teacher question. Anticipate student reasoning, invite peer feedback, and revise the question. Keep the explanation with the student.' }],
+    [{ heading: draft ? 'Alternative to consider · scripted question' : 'Alternative considered · scripted question', text: challenge?.prompt ?? '' }, { heading: draft ? 'Proposed instructional focus' : 'Leader-shaped focus after considering the challenge', text: state.focus }, { heading: 'Discussion prompt', text: 'Which evidence supports this interpretation? What else could explain the pattern, and what remains uncertain?' }],
+    [{ heading: 'Teaching action to develop', text: state.action }, ...accessPlan, { heading: 'Optional rehearsal support', text: `Follow the ${draft ? 'draft' : 'approved'} facilitation directions above. If a rehearsal supports them, use a selected student response or the original task to practice a teacher question. Anticipate student reasoning, invite peer feedback, and revise the question. Keep the explanation with the student.` }],
     [{ heading: 'Who will try it', text: state.owner }, { heading: 'Teaching action', text: state.action }, { heading: 'PLANNED · Check that teaching changed', text: state.implementationCheck }],
     [{ heading: 'PLANNED · Check student learning', text: state.learningCheck }, { heading: 'PLANNED · Check implementation', text: state.implementationCheck }, ...collectionPlan, { heading: 'Before concluding', text: 'Compare task, rubric, cohort, missing responses and implementation. Improvement alone does not establish causality.' }],
   ];
   return [
-    ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: 'Facilitation directions · reviewed by the leader', text: state.agenda[index] }, ...content[index]] })),
+    ...agendaHeadings.map((title, index) => ({ title, label: `Slide ${index + 1} · ${minutes[index]} minutes`, blocks: [{ heading: draft ? state.agenda[index].trim() === initialAgenda[index] ? 'Starter facilitation text · not yet adapted' : 'Draft facilitation directions' : 'Facilitation directions · reviewed by the leader', text: state.agenda[index] }, ...content[index]] })),
     { title: 'Source packet', label: 'Reference handout · fictional evidence', blocks: [{ heading: 'Evidence snapshot used for this plan', text: evidenceSnapshotDescription(state.evidenceVersion) }, ...taskBlocks(), ...selectedSourceBlocks(reference, state.selected)] },
     { title: 'Evidence-to-action activity', label: 'Participant handout · write in during the PLC', blocks: [
       { heading: 'Instructional focus', text: state.focus },
@@ -51,9 +62,9 @@ export function buildMeetingKit(state: PlanState, reference: ReferenceData): Mee
       { heading: 'Teaching action to develop', text: state.action },
       ...accessPlan,
       { heading: 'Team notes · complete together', text: 'Evidence and strengths we noticed:\n\nAlternative explanation to test:\n\nWhose perspective or work is missing, and what will we seek?\n\n' },
-      { heading: 'Optional rehearsal guide · fraction equivalence', text: 'Follow the approved facilitation directions. If useful, rehearse with a selected student response or the original task. Use the task and rubric to examine equal amounts of the same whole, beyond a doubling rule alone: how can partitioning change the number of parts while preserving the amount? Rehearse your own question; do not supply the student\'s explanation. Ask a colleague what the question could reveal, then revise it. Anticipated reasoning is a hypothesis to test, not a claim about the student.' },
+      { heading: 'Optional rehearsal guide · fraction equivalence', text: `Follow the ${draft ? 'draft' : 'approved'} facilitation directions. If useful, rehearse with a selected student response or the original task. Use the task and rubric to examine equal amounts of the same whole, beyond a doubling rule alone: how can partitioning change the number of parts while preserving the amount? Rehearse your own question; do not supply the student's explanation. Ask a colleague what the question could reveal, then revise it. Anticipated reasoning is a hypothesis to test, not a claim about the student.` },
       { heading: 'Optional rehearsal notes · complete together', text: 'Selected student response or original task and what to examine:\n\nTeacher question to rehearse:\n\nAnticipated student reasoning:\n\nPeer feedback:\n\nRevised teacher question:\n\nWhat thinking will students still do themselves?\n\n' },
-      { heading: 'PLANNED · Agreed follow-up', text: 'Implementation: ' + state.implementationCheck + '\nLearning: ' + state.learningCheck },
+      { heading: draft ? 'DRAFT · Follow-up to agree' : 'PLANNED · Agreed follow-up', text: 'Implementation: ' + (draft && !state.implementationCheck.trim() ? 'Not written yet.' : state.implementationCheck) + '\nLearning: ' + (draft && !state.learningCheck.trim() ? 'Not written yet.' : state.learningCheck) },
       ...collectionPlan,
     ] },
   ];

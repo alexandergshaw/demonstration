@@ -96,6 +96,7 @@ export function EvidenceWorkspace({ state, reference, dispatch }: EvidenceWorksp
             onNext={returningToWriting || !suggestedPlace ? () => dispatch({ type: 'go', step: 1 }) : undefined}
             progressLabel="places opened this visit" completeLabel="Opened" incompleteLabel="Available"
             note="This is a navigation aid, not a record that you reviewed a source. You can interpret without opening every view; selecting work is optional. This visit count resets when you leave Evidence." />
+          {!returningToWriting && suggestedPlace && <p><button type="button" className="textlink" onClick={() => dispatch({ type: 'go', step: 1 })}>Continue to interpretation<Icon name="arrow" size={16} /></button></p>}
           <details className="evidence-source-details">
             <summary>Why this next step?</summary>
             <div><p>{nextInspectionWhy}</p></div>

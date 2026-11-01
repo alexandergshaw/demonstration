@@ -3,6 +3,11 @@
   margin: 0 0 3rem;
   color:var(--ink);
 }
+.flow-introduction-compact{margin-bottom:24px}
+.flow-introduction-compact .flow-introduction-title{max-width:none}
+.flow-introduction-compact .flow-introduction-lead{max-width:65ch;margin-top:.5rem}
+.flow-compact-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;margin-top:12px}
+.flow-introduction-compact .flow-compact-boundary{margin-top:12px;font-size:var(--text-body)}
 
 .flow-introduction-overview {
   display: grid;

@@ -5,6 +5,7 @@ import { lessonContext, selectedSourceBlocks, taskBlocks } from '../lessonContex
 import { agendaHeadings, agendaHints } from '../meetingMaterials';
 import { hasFocus, hasPlan, initialAgenda, isCalendarDate, minutes, planError, type Action, type PlanState } from '../model';
 import { Modal } from '../components/CycleManager';
+import { MeetingKit } from '../components/MeetingKit';
 import { EvidenceCollection } from '../components/EvidenceCollection';
 import { AccessParticipation } from '../components/EquitySupport';
 import { FieldError, TextArea, TextInput, useFieldError } from '../components/Field';
@@ -136,6 +137,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewEdit, setReviewEdit] = useState<'action' | 'agenda' | Exclude<CheckEditor, null> | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [previewOrigin, setPreviewOrigin] = useState<'plan' | 'review' | null>(null);
   const [focusRequest, setFocusRequest] = useState<{ id: string; attempt: number } | null>(null);
   const focusCounter = useRef(0);
   const consentError = useFieldError('consent', 'consent-hint');
@@ -230,6 +232,24 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
     setReviewOpen(true);
   }
 
+  function openKitPreview() {
+    clearError();
+    setPreviewOrigin(reviewOpen ? 'review' : 'plan');
+    setReviewOpen(false);
+  }
+
+  function closeKitPreview() {
+    setPreviewOrigin(null);
+    if (previewOrigin === 'review') setReviewOpen(true);
+  }
+
+  function editPreviewActivity(index: number) {
+    setPreviewOrigin(null);
+    if (previewOrigin === 'review') setReviewEdit('agenda');
+    editAgenda(index, false);
+    requestFocus(`agenda-${index}`);
+  }
+
   function approvePlan() {
     if (submit('plan')) { setReviewOpen(false); setReviewEdit(null); return; }
     // A validation correction should return to the review it came from, too.
@@ -297,6 +317,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       onNext={approved ? onReturnToApproved ?? openReview : needsFocus || !nextDraftingItem ? followSuggestedAction : nextDraftingItem.onSelect}
       completion={approved ? 'Approved by you' : nextDraftingItem ? undefined : draftMessage ? 'Draft content recorded; a correction remains' : 'Draft ready for your review'}
       note="This tracks written draft content, not its quality, save status or approval. Suitable starter text can remain in your plan; it does not count as authored here." />
+    <div className="pw-preview-actions"><button type="button" className="btn secondary compact" onClick={openKitPreview}><Icon name="book" size={16} />Preview draft meeting kit</button><p>Inspect the presentation, source packet and participant activity before approval.</p></div>
 
     <section className="pw-focus-context" aria-labelledby="pw-focus-heading">
       <div className="pw-section-heading">
@@ -416,7 +437,7 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       </div>
     </section>
 
-    <p className="pw-explanation pw-approval-explanation">Review meeting plan opens the complete draft without approving it. Check that the directions fit your team, including any starter text you kept. Your ownership confirmation and approval then make the meeting kit available; they do not certify the plan’s quality or report that teaching has happened.</p>
+    <p className="pw-explanation pw-approval-explanation">Review meeting plan opens the complete draft without approving it. Check that the directions fit your team, including any starter text you kept. Your ownership confirmation and approval then make the kit available for download; they do not certify the plan’s quality or report that teaching has happened.</p>
     <footer className="pw-footer">
       <div className="pw-next-guidance"><p><strong>Suggested next</strong> {draftMessage || (approved ? 'Review your current approved plan. Editing it will require approval again.' : 'Review every activity and both checks, including any starter text, before approving.')}</p>{draftTarget !== 'review' && <button type="button" className="textlink" onClick={openReview}>Review meeting plan</button>}</div>
       <button type="button" className="btn" onClick={followSuggestedAction}>{draftActionLabels[draftTarget]}<Icon name="arrow" size={17} /></button>
@@ -432,10 +453,13 @@ export function PlanWorkspace({ state, reference, dispatch, submit, errorField, 
       <div className="modal-actions"><button className="btn secondary" onClick={() => { clearError(); setSourcesOpen(false); }}>Return to my plan</button></div>
     </Modal>}
 
+    {previewOrigin && <MeetingKit state={state} reference={reference} mode="draft" onClose={closeKitPreview} onEditActivity={editPreviewActivity} />}
+
     {reviewOpen && <Modal title="Review your meeting plan" onClose={closeReview}>
       <div className="pw-plan-review">
         <p className="pw-review-status">{approved ? 'Current approved plan' : 'Draft · Awaiting your approval'} · 50-minute PLC</p>
-        <p className="pw-explanation pw-review-explanation">Read this as the facilitator who will run the meeting: can you identify the evidence, the participant task and the intended output of each activity? Use Edit beside a section to revise it. Approval assembles these exact decisions into a kit; it does not replace your review or establish a classroom outcome.</p>
+        <p className="pw-explanation pw-review-explanation">Read this as the facilitator who will run the meeting: can you identify the evidence, the participant task and the intended output of each activity? Use Edit beside a section to revise it. Preview the assembled kit before approving; approval makes this version available for download and does not establish a classroom outcome.</p>
+        <button type="button" className="btn secondary compact" onClick={openKitPreview}><Icon name="book" size={16} />Preview draft meeting kit</button>
         <section className="pw-review-section"><h3>Learning goal & confirmed focus</h3><p className="pw-meta">{lessonContext.goal}</p><DraftValue value={state.focus} /></section>
         <section className="pw-review-section pw-review-move">
           <div className="pw-check-heading"><h3>The teaching move</h3><button className="textlink" onClick={editAction}>Edit<span className="sr-only"> teaching move</span></button></div>

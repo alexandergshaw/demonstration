@@ -3,6 +3,9 @@
 .plan-workspace :is(h2,h3,h4,button,span),.pw-plan-review :is(h3,h4,button,span){overflow-wrap:anywhere}
 .pw-explanation,.pw-check-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
 .pw-entry{margin:0 0 1rem}
+.pw-preview-actions{display:flex;align-items:center;gap:.75rem 1rem;flex-wrap:wrap;margin:0 0 1.5rem}
+.pw-preview-actions>.btn{max-width:100%;white-space:normal;text-align:left}
+.pw-preview-actions>p{flex:1;min-width:min(100%,18rem);font-size:var(--text-body);line-height:var(--line-body)}
 .pw-activity-purpose{max-width:65ch;margin:0 0 1.25rem;line-height:var(--line-body)}
 .pw-activity-purpose strong{display:block;margin-bottom:.25rem}
 .pw-save-explanation,.pw-outline-explanation{max-width:65ch;color:var(--ink);font-size:var(--text-support);line-height:var(--line-body);margin:.65rem 0 0;overflow-wrap:anywhere}

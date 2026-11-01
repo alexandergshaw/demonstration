@@ -6,6 +6,7 @@ import { FieldErrorProvider } from './components/Field';
 import { Icon } from './components/Icon';
 import type { ReferenceData } from './data/seed';
 import { MeetingKit } from './components/MeetingKit';
+import { DraftCopyButton } from './components/DraftCopy';
 import { ReadingSettings, ReadingSettingsDialog, useReadingPreferences, type ReadingController } from './components/ReadingSettings';
 import { LearningGuide, useLearningProgress, type LearningController } from './components/LearningGuide';
 import { isLessonId } from './learning';
@@ -47,6 +48,7 @@ function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?:
 function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; reading: ReadingController; learning: LearningController }) {
   const { state, snapshot, notice, setNotice, saveError } = workspace;
   const reference = useReference();
+  const cycleTitle = snapshot.cycles.find(cycle => cycle.id === snapshot.activeCycleId)?.title ?? 'PLC cycle';
   const [error, setError] = useState(''), [errorField, setErrorField] = useState('');
   const [errorAttempt, setErrorAttempt] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false), [examplesOpen, setExamplesOpen] = useState(false);
@@ -118,6 +120,7 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
           <button onClick={() => { closeMenu(); setHistoryOpen(true); }}><Icon name="clock" size={18} />Decisions</button>
           <button onClick={() => { closeMenu(); setReadingOpen(true); }}><Icon name="settings" size={18} />Reading settings</button>
           <button onClick={() => { closeMenu(); openGuide(); }}><Icon name="book" size={18} />Guide</button>
+          <DraftCopyButton state={state} reference={reference} cycleTitle={cycleTitle} />
         </>} />
     </header>
     <div className="app-shell"><div className="workflow-rail">
@@ -163,14 +166,14 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
       </header>}
         {!guideOpen && learning.message && <p className="caption learning-page-status" role="status">{learning.message}</p>}
         {notice && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>{notice}</span><button className="icon-button" aria-label="Dismiss draft notice" onClick={() => setNotice('')}><Icon name="close" size={16} /></button></div>}
-        {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
+        {saveError && <Notice tone="warning"><div role="alert"><strong>Changes are not saved.</strong> {saveError}</div><div className="button-group"><button className="btn secondary compact" onClick={workspace.retrySave} disabled={workspace.externalChanged}>Retry save</button><DraftCopyButton state={state} reference={reference} cycleTitle={cycleTitle} className="btn secondary compact" /><button className="btn secondary compact" onClick={() => setReloadOpen(true)}>Reload saved data</button></div></Notice>}
         {workspace.externalChanged && !saveError && <div className="restore-note" role="status"><Icon name="info" size={17} /><span>Another tab changed this workspace. Reload to see its saved cycles.</span><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div>}
         {workspace.operationError && <Notice tone="warning"><span role="alert">{workspace.operationError}</span><div className="button-group"><button className="btn secondary compact" onClick={requestReload}>Reload saved data</button></div></Notice>}
         <EvidenceUpdate state={state} base={snapshot.reference} dispatch={act} onRevise={workspace.reviseWithLatest} error={workspace.operationError} saveError={saveError} onRetrySave={workspace.retrySave} />
         <main id="workspace" className="main focused-workspace" tabIndex={-1}>
           {state.review && <div role="status"><Notice tone="warning"><strong>Review required.</strong> A source or decision changed. Your drafts are preserved; reconfirm the affected decisions.</Notice></div>}
           {error && <div ref={errorBox} tabIndex={-1} role="alert" className="form-error">{errorField ? 'Review the highlighted field to continue.' : error}{errorField && <button className="textlink" onClick={() => { setErrorAttempt(value => value + 1); window.requestAnimationFrame(() => focusField(errorField)); }}>Go to that field<Icon name="arrow" size={14} /></button>}</div>}
-          {introduceFlow && <FlowIntroduction headingLevel="h1" headingRef={title} onContinue={beginFlow} />}
+          {introduceFlow && <FlowIntroduction compact headingLevel="h1" headingRef={title} onContinue={beginFlow} onOpenOverview={() => openGuide()} />}
           {state.step === 0 && <EvidenceWorkspace key={state.evidenceVersion} state={state} reference={reference} dispatch={act} />}
           {state.step === 1 && <ReasoningWorkspace state={state} reference={reference} dispatch={act} submit={submit} errorField={errorField} errorAttempt={errorAttempt} clearError={clearError} />}
           {meetingReady && <MeetingReady state={state} onOpenKit={() => setKitOpen(true)} onEditPlan={() => editPlan()} onReflect={() => act({ type: 'go', step: 3 })} onEditCollection={() => editPlan(true)} />}
@@ -182,14 +185,22 @@ function Planner({ workspace, reading, learning }: { workspace: ReadyWorkspace; 
     </div></div>
     {readingOpen && <ReadingSettingsDialog reading={reading} onClose={() => setReadingOpen(false)} />}
     {kitOpen && plan && <MeetingKit state={state} reference={reference} onClose={() => setKitOpen(false)} />}
-    {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty} onClose={() => setHistoryOpen(false)} />}
+    {historyOpen && <DecisionHistory state={state} reference={reference} unsaved={workspace.dirty}
+      cycleTitle={cycleTitle}
+      onNavigate={step => {
+        if (!canEnterStage(step)) return;
+        setHistoryOpen(false);
+        act({ type: 'go', step });
+        window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+      }}
+      onClose={() => setHistoryOpen(false)} />}
     {examplesOpen && <FollowUpExamples onClose={() => setExamplesOpen(false)} />}
     {resetOpen && <ConfirmationDialog title="Reset this cycle?" confirmLabel="Reset cycle" error={workspace.operationError} onClose={() => setResetOpen(false)} onConfirm={() => { if (workspace.resetCycle(snapshot.activeCycleId)) { setResetOpen(false); setError(''); setErrorField(''); window.requestAnimationFrame(() => title.current?.focus()); } }}><p>This clears this cycle's draft, approvals, and reflection. Other saved cycles stay unchanged.</p></ConfirmationDialog>}
-    {reloadOpen && <ConfirmationDialog title="Reload saved data?" confirmLabel="Reload saved data" error={workspace.saveError || workspace.operationError} onClose={() => setReloadOpen(false)} onConfirm={reloadSaved}><p>This replaces unsaved edits on this page with the latest saved workspace. Copy any work you want to keep before continuing.</p></ConfirmationDialog>}
+    {reloadOpen && <ConfirmationDialog title="Reload saved data?" confirmLabel="Reload saved data" error={workspace.saveError || workspace.operationError} onClose={() => setReloadOpen(false)} onConfirm={reloadSaved}><p>This replaces unsaved edits on this page with the latest saved workspace. Download a draft copy first to keep your current writing as a manual reference. The copy cannot be imported automatically.</p><DraftCopyButton state={state} reference={reference} cycleTitle={cycleTitle} className="btn secondary" /></ConfirmationDialog>}
     {freshOpen && <ConfirmationDialog title="Start a fresh demo?" confirmLabel="Reset all cycles" error={workspace.operationError} onClose={() => setFreshOpen(false)} onConfirm={() => { if (workspace.resetDatabase()) setFreshOpen(false); }}><p>This removes all saved PLC cycles from this browser and starts one fresh cycle.</p></ConfirmationDialog>}
     {guideOpen && <LearningGuide learning={learning} currentStep={state.step} canEnter={canEnterStage}
       onNavigate={step => { if (!canEnterStage(step)) return; setGuideOpen(false); act({ type: 'go', step }); window.requestAnimationFrame(() => { title.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }); }}
-      onClose={() => setGuideOpen(false)} onOpenExamples={() => { setGuideOpen(false); setExamplesOpen(true); }} initialView={guideEntry.view} initialStep={guideEntry.step}
+      onClose={() => { setGuideOpen(false); window.requestAnimationFrame(() => { if (document.activeElement === document.body) title.current?.focus(); }); }} onOpenExamples={() => { setGuideOpen(false); setExamplesOpen(true); }} initialView={guideEntry.view} initialStep={guideEntry.step}
       about={<><section className="pilot-notes"><h4>Who this pilot serves</h4><p>A single-grade math PLC leader examining student work. A guided sequence supports leaders who want help reading data or are new to AI. Multi-grade planning and lesson-planning-first workflows need a later design pass.</p><h4>Assumptions to test</h4><p>Aim to prepare an evidence-grounded plan within 20 minutes for a 50-minute meeting; this target has not been validated with educators. The task, rubric, scores and observation are fictional. Check preparation time, whether leaders can explain their choices, and whether the teaching action was tried.</p><p>Keep selected evidence beside your writing, or use View evidence on a smaller screen without leaving your draft. Six fixed time blocks favor a complete pilot flow; meeting length and data integrations are not configurable yet.</p></section><Notice>All evidence is fictional. Thinking prompts are scripted, with no live AI. Use fictional or non-identifying notes. Drafts save only in this browser and may be visible to other people using this device. This demo is not a secure student-record system. Export an approved plan for a portable copy.</Notice></>} presenterTools={<details className="guide-reset support-disclosure"><summary>Presenter tools</summary><p>Show how a new snapshot is reviewed without replacing an existing plan.</p>{state.evidenceVersion === 'oct28' && <button className="btn secondary" onClick={() => { if (act({ type: 'simulate-evidence-update' })) setGuideOpen(false); }}>Simulate new results</button>}{saveError && <p role="alert">{saveError}</p>}<p>Start the demonstration again with one fresh cycle.</p><button className="btn secondary" onClick={() => { workspace.clearOperationError(); setGuideOpen(false); setFreshOpen(true); }}>Reset all saved cycles</button></details>} />}
 
   </FieldErrorProvider>;

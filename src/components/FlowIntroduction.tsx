@@ -9,13 +9,24 @@ interface FlowIntroductionProps {
   continueLabel?: string;
   headingLevel?: 'h1' | 'h2' | 'h3';
   headingRef?: Ref<HTMLHeadingElement>;
+  compact?: boolean;
+  onOpenOverview?: () => void;
 }
 
-export function FlowIntroduction({ onContinue, continueLabel = 'Start with the evidence', headingLevel = 'h2', headingRef }: FlowIntroductionProps) {
+export function FlowIntroduction({ onContinue, continueLabel = 'Start with the evidence', headingLevel = 'h2', headingRef, compact = false, onOpenOverview }: FlowIntroductionProps) {
   const titleId = useId();
   const Heading = headingLevel;
   const PhaseHeading = headingLevel === 'h1' ? 'h2' : headingLevel === 'h2' ? 'h3' : 'h4';
   const PreviewHeading = PhaseHeading;
+  if (compact) return <section className="flow-introduction flow-introduction-compact" aria-labelledby={titleId}>
+    <Heading className="flow-introduction-title" id={titleId} ref={headingRef} tabIndex={headingRef ? -1 : undefined}>Read the evidence</Heading>
+    <p className="flow-introduction-lead">Turn student work into a focused team meeting and one teaching move to try. Start with the results below.</p>
+    <div className="flow-compact-actions">
+      <button type="button" className="btn secondary compact" onClick={onContinue}>Start review<Icon name="arrow" size={17} /></button>
+      {onOpenOverview && <button type="button" className="textlink" onClick={onOpenOverview}>How it works</button>}
+    </div>
+    <p className="flow-compact-boundary">Fictional Grade 4 math · Scripted prompts · Saves in this browser</p>
+  </section>;
   return <section className={`flow-introduction${headingLevel === 'h1' ? ' flow-introduction-welcome' : ''}`} aria-labelledby={titleId}>
     <div className="flow-introduction-overview">
       <div className="flow-introduction-purpose">

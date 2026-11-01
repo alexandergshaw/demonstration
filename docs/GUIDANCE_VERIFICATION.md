@@ -35,6 +35,14 @@ The compact Evidence pass adds seven source-render regressions for both dated sn
 
 The first-use pass adds 18 eligibility cases and four component-render checks. The overview appears only in an undismissed, unstarted Evidence cycle; retained agenda, owner, check, collection and follow-up work also suppress it. Tests cover that boundary without altering the cycle, the closed structural preview, the real six-activity/50-minute agenda, subordinate Guide headings, and the meeting/teaching interval. Existing learning-storage tests cover preference reload, blocked/full storage and separation from cycle records. They do not verify browser focus or pointer interaction. The explicit continue action changes only the existing `welcomeDismissed` preference; the workspace stays usable without it. Guide → Start here replays the overview independently of that preference.
 
+## Professional-workflow gap pass — October 31, 2026
+
+Verified after the compact entry, narrow-screen evidence context, draft-kit preview, expanded decision record and draft recovery changes: **380 tests across 18 files passed**, and `npm run build` passed TypeScript and Vite compilation. The existing local development server returned HTTP 200 at `http://127.0.0.1:5173/`. These checks establish source/content/state contracts and buildability, not rendered behavior.
+
+New regression coverage checks that draft preview preserves writing without permitting approved exports, labels starter/missing content and escapes markup; recovery copies preserve exact unfinished writing and current evidence without exposing approval signatures; decision records distinguish missing, draft, recorded and unsaved content and gate navigation correctly; narrow-screen task selection has a label and matching panel IDs; and the single reflection recording control precedes optional help.
+
+The user's explicit source-only exception remains in effect. No local visual check was performed because browser access is disabled. Additional hands-on checks are required for desktop and narrow layout, 125/150% text, selector keyboard behavior, source-reader focus, review → draft kit → activity editing → review, Guide focus when first-use controls disappear, and actual file downloads/recovery under failed storage. The first-use overview is now compact; the full structural preview is reached through **How it works**. Approved kit downloads remain gated, while draft preview is available before approval.
+
 ## Verification limits
 
 Browser testing was unavailable because browser use is disabled in the app settings. This pass therefore has no observed browser-rendered layout, keyboard-flow, screen-reader, text-zoom or pointer-interaction results. Source inspection and server-render tests can establish content and state contracts, but cannot demonstrate those interactive behaviors.

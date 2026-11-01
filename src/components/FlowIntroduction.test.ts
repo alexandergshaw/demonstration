@@ -6,6 +6,19 @@ import { FlowIntroduction } from './FlowIntroduction';
 const escapedText = (value: string) => renderToStaticMarkup(createElement('span', null, value)).slice(6, -7);
 
 describe('first-use purpose and structural preview', () => {
+  it('keeps first entry compact while offering the full overview separately', () => {
+    const onContinue = vi.fn(), onOpenOverview = vi.fn();
+    const markup = renderToStaticMarkup(createElement(FlowIntroduction, { compact: true, headingLevel: 'h1', onContinue, onOpenOverview }));
+    expect(markup).toContain('Read the evidence');
+    expect(markup).toContain('Start with the results below.');
+    expect(markup).toContain('Start review');
+    expect(markup).toContain('How it works');
+    expect(markup).toContain('Saves in this browser');
+    expect(markup).not.toContain('flow-introduction-phases');
+    expect(markup).not.toContain('flow-kit-pages');
+    expect(onContinue).not.toHaveBeenCalled();
+    expect(onOpenOverview).not.toHaveBeenCalled();
+  });
   it.each(['h1', 'h2'] as const)('exposes the purpose and outcomes before the closed preview with a %s heading', headingLevel => {
     const onContinue = vi.fn();
     const markup = renderToStaticMarkup(createElement(FlowIntroduction, { onContinue, headingLevel }));

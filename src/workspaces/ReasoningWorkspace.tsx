@@ -103,6 +103,7 @@ function SourceReader({ state, reference, source, onSourceChange, headingLevel =
 
 export function ReasoningWorkspace({ state, reference, dispatch, submit, errorField, errorAttempt, clearError }: ReasoningWorkspaceProps) {
   const [beat, setBeat] = useState<Beat>(() => state.challenged || hasFocus(state) ? 'choose' : 'notice');
+  const beatSelectId = useId();
   const [source, setSource] = useState<Source>(() => reference.responses.find(item => state.selected.includes(item.id))?.id ?? 'assessment');
   const [sourceOpen, setSourceOpen] = useState(false);
   const [focusAttempt, setFocusAttempt] = useState(0);
@@ -110,6 +111,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
   const workspace = useRef<HTMLDivElement>(null);
   const challengeError = useFieldError('challenge', 'reasoning-challenge-help');
   const selectedSource = source === 'task' || source === 'assessment' || state.selected.includes(source) ? source : 'assessment';
+  const selectedResponse = reference.responses.find(item => item.id === selectedSource);
   const challenge = reference.challenges.find(item => item.id === state.lens) ?? reference.challenges[0];
   const interpretationReady = state.interpretation.trim().length >= 30;
   const focusReady = state.focus.trim().length >= 25;
@@ -169,6 +171,18 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
     </aside>
 
     <div className="reasoning-writing">
+      <div className="reasoning-task-picker">
+        <label htmlFor={beatSelectId}>Reasoning task</label>
+        <select id={beatSelectId} value={beat} aria-controls={`reasoning-${beat === 'choose' ? 'focus' : beat}-guide`} onChange={event => {
+          const next = event.target.value;
+          if (!beats.some(item => item.id === next)) return;
+          pendingFocus.current = null;
+          clearError();
+          setBeat(next as Beat);
+        }}>
+          {beats.map((item, index) => <option key={item.id} value={item.id}>{index + 1}. {item.label}</option>)}
+        </select>
+      </div>
       <nav className="reasoning-beats" aria-label="Reasoning sequence">
         {beats.map((item, index) => <button key={item.id} onClick={() => goToBeat(item.id)} aria-current={beat === item.id ? 'step' : undefined}>
           <span className="reasoning-beat-number" aria-hidden="true">{index + 1}</span><span>{item.label}</span>
@@ -181,7 +195,25 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
         onNext={confirmedFocus ? () => dispatch({ type: 'go', step: 2 }) : !nextDraftPart ? () => goToBeat('choose', true) : undefined}
         completion={confirmedFocus ? 'Focus confirmed by you' : undefined} progressLabel="draft parts recorded"
         note="Writing minimums only check that a response is present. You judge its quality and explicitly confirm the focus. Editing evidence or reasoning can require confirmation again; check the save status before leaving." />
-      <button className="btn secondary reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
+      <aside className="reasoning-mobile-evidence" aria-label="Evidence reference while writing">
+        {selectedResponse ? <>
+          <p><strong>{selectedResponse.label} · {reference.assessment.date}</strong></p>
+          <blockquote>“{selectedResponse.quote}”</blockquote>
+          <p>Illustrative work, not a representative sample.</p>
+        </> : selectedSource === 'observation' ? <>
+          <p><strong>Historical observation · {reference.observation.date}</strong></p>
+          <blockquote>“{reference.observation.quote}”</blockquote>
+          <p>{reference.observation.caution}</p>
+        </> : selectedSource === 'task' ? <>
+          <p><strong>Original task</strong></p>
+          <blockquote>{lessonContext.prompt}</blockquote>
+        </> : <>
+          <p><strong>Assessment · {reference.assessment.date}</strong></p>
+          <p>{reference.assessment.correct}/{reference.assessment.total} correct fractions · {reference.assessment.explanations}/{reference.assessment.total} adequate explanations</p>
+          <p>Separate scores; the totals do not identify who met both criteria.</p>
+        </>}
+        <button className="textlink reasoning-mobile-source" onClick={() => setSourceOpen(true)}><Icon name="evidence" />View selected evidence & task</button>
+      </aside>
 
       <section className="reasoning-beat-panel" hidden={beat !== 'notice'} id="reasoning-notice-guide" tabIndex={-1} aria-labelledby="interpretation-label">
         <div className="reasoning-work-area">
@@ -190,7 +222,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
             value={state.interpretation} onChange={value => dispatch({ type: 'text', field: 'interpretation', value })}
             placeholder="I notice… The work suggests… I’m still unsure about…" />
         </div>
-        <TaskExplanation title="Separate what you can see from what you think it means"
+        <TaskExplanation title="Separate what you can see from what you think it means" disclosureLabel="How to write an interpretation"
           why="The team needs a shared starting point before deciding what to teach. A count or quotation is an observation; an explanation of why it happened is a hypothesis to examine."
           steps={[
             { label: 'Point to the evidence', detail: 'Name a count, phrase or drawing, and its source. Include the understanding a student has already shown.' },
@@ -205,7 +237,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
         </StepCoach>
       </section>
 
-      <section className="reasoning-beat-panel" hidden={beat !== 'test'} aria-labelledby="reasoning-test-title">
+      <section className="reasoning-beat-panel" hidden={beat !== 'test'} id="reasoning-test-guide" aria-labelledby="reasoning-test-title">
         <h2 id="reasoning-test-title" tabIndex={-1}>What else could explain it?</h2>
         <div className="reasoning-previous-writing">
           <div><span className="reasoning-eyebrow">Your interpretation</span><button className="textlink" onClick={() => goToBeat('notice', true)}>{state.interpretation.trim() ? 'Edit interpretation' : 'Write interpretation'}<Icon name="pencil" size={14} /></button></div>
@@ -227,7 +259,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           {!interpretationReady && <p className="reasoning-panel-help">Write your interpretation first so you can compare it with this alternative. Use at least 30 characters.</p>}
           <FieldError id="challenge" />
         </div>
-        <TaskExplanation title="Test your account before turning it into a teaching decision"
+        <TaskExplanation title="Test your account before turning it into a teaching decision" disclosureLabel="How to test an alternative"
           why="The same response can have more than one explanation. This prewritten question helps you check a possibility; it does not analyze your writing or decide which explanation is correct."
           steps={[
             { label: 'Compare the question with your evidence', detail: 'Read the scripted question, then inspect the original task or student work. Try another angle if wording, mathematical meaning or class variation deserves a closer look.' },
@@ -261,7 +293,7 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           {state.interpretation.trim() ? <details className="reasoning-interpretation-disclosure"><summary>Read full interpretation</summary><p>{state.interpretation}</p></details> : <p>Your interpretation will appear here.</p>}
           <button className="textlink reasoning-review-question" onClick={() => goToBeat('test')}><Icon name={state.challenged ? 'check' : 'reasoning'} size={15} />{state.challenged ? 'Revisit the alternative' : 'Consider an alternative'}</button>
         </div>
-        <TaskExplanation title="Choose the learning need the meeting will investigate"
+        <TaskExplanation title="Choose the learning need the meeting will investigate" disclosureLabel="How to choose a teaching focus"
           why="A focus narrows the team’s attention to one aspect of student thinking. The next workspace turns that focus into a specific teacher action and meeting plan."
           steps={[
             { label: 'Name one learning focus', detail: 'Describe the reasoning students need to develop, such as explaining why two fractions represent equal amounts of the same whole.' },

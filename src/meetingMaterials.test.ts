@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { createReferenceData } from './data/seed';
-import { buildMeetingKit, exportMeetingHtml, exportMeetingNotes } from './meetingMaterials';
+import { buildDraftMeetingKit, buildMeetingKit, exportMeetingHtml, exportMeetingNotes } from './meetingMaterials';
+import { MeetingKit } from './components/MeetingKit';
 import { lessonContext, selectedSourceBlocks } from './lessonContext';
 import { hasPlan, hasReflection, initialState, parseStoredState, reducer, type Action, type PlanState } from './model';
 
@@ -22,6 +25,44 @@ function approved(): PlanState {
 }
 
 describe('meeting materials preserve educator ownership', () => {
+  it('previews all draft outputs without approving or making incomplete writing exportable', () => {
+    const state = initialState();
+    const before = structuredClone(state);
+    const pages = buildDraftMeetingKit(state, reference);
+    expect(pages).toHaveLength(8);
+    expect(pages.every(page => page.label.startsWith('DRAFT · '))).toBe(true);
+    expect(pages[0].blocks[0].heading).toBe('Starter facilitation text · not yet adapted');
+    expect(pages[3].blocks.find(block => block.heading === 'Teaching action to develop')?.text).toBe('Not written yet.');
+    expect(pages[6].blocks.some(block => block.text === lessonContext.prompt)).toBe(true);
+    expect(pages[7].blocks.find(block => block.heading === 'DRAFT · Follow-up to agree')?.text).toBe('Implementation: Not written yet.\nLearning: Not written yet.');
+    expect(JSON.stringify(pages)).not.toContain('reviewed by the leader');
+    expect(JSON.stringify(pages)).not.toContain('Follow the approved facilitation');
+    for (const build of [buildMeetingKit, exportMeetingHtml, exportMeetingNotes]) expect(() => build(state, reference)).toThrow(/Approve/);
+    expect(state).toEqual(before);
+    expect(state.consent).toBe(false);
+    expect(hasPlan(state)).toBe(false);
+  });
+
+  it('keeps a draft preview read-only, escaped and free of download controls', () => {
+    const writing = 'Ask colleagues to compare <script>unsafe</script> & record their evidence.';
+    const state = reducer(approved(), { type: 'agenda', index: 0, value: writing });
+    const before = structuredClone(state);
+    const html = renderToStaticMarkup(createElement(MeetingKit, { state, reference, mode: 'draft', onClose: () => {}, onEditActivity: () => {} }));
+    expect(html).toContain('Draft meeting kit preview');
+    expect(html).toContain('DRAFT · Preview only');
+    expect(html).toContain('Edit activity 1 directions');
+    expect(html).toContain('&lt;script&gt;unsafe&lt;/script&gt; &amp;');
+    expect(html).not.toContain('<script>');
+    expect(html).not.toContain('Download text plan');
+    expect(html).not.toContain('Download meeting kit');
+    expect(html).not.toContain('Your approved meeting kit');
+    expect(renderToStaticMarkup(createElement(MeetingKit, { state, reference, onClose: () => {} }))).toBe('');
+    expect(state).toEqual(before);
+    expect(hasPlan(state)).toBe(false);
+    expect(() => exportMeetingHtml(state, reference)).toThrow(/Approve/);
+    expect(() => exportMeetingNotes(state, reference)).toThrow(/Approve/);
+  });
+
   it('keeps the shared typeface available offline without allowing external resources', () => {
     const html = exportMeetingHtml(approved(), reference);
     const stylesheet = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';

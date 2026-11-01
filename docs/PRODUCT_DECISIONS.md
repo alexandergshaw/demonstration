@@ -9,7 +9,7 @@ The interface gives each stage a distinct working composition while keeping one 
 | Stage | Primary work | Supporting information |
 | --- | --- | --- |
 | Evidence | Compare two measures beside original student responses and select work | A shared assessment/date/coverage frame supports compact Results, By class and Task & sources views; the historical observation opens separately |
-| Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; a dialog provides the source on smaller screens; earlier writing has summary/Edit controls |
+| Interpret | Notice → Test an alternative → Choose a focus, with one active task | A selected source occupies roughly one third of the desktop workspace; narrow screens keep its dated quotation or counts inline and offer the full source reader; earlier writing has summary/Edit controls |
 | Plan | One teaching move and owner, a six-part outline, and one selected activity editor; after approval, a meeting-ready handoff | Checks expand for editing; source/focus inspection opens on demand; a complete review preview precedes approval; the kit is the next action |
 | Reflect | Report implementation, acknowledge missing follow-up evidence and write the next decision | Planned collection expands when needed; worked cases open in a separate dialog |
 
@@ -42,6 +42,24 @@ Role-based rationale is our design inference:
 | Sabrina Ware — Associate Director, Innovation–AI Strategy | Stable cycle, menu and save controls support return to unfinished work. |
 
 The user's typography requirements take precedence over reference branding: IBM Plex Sans, one non-link text color, 36px page headings, 24px section headings and 16px for every other text role. Panel names explain design decisions here; they are not presented as endorsements in the educator interface.
+
+### Full-flow gap review
+
+This pass compared the actual workflow with the documented professional patterns above. The [IM Grade 4 lesson structure](https://im.kendallhunt.com/k5/teachers/grade-4/unit-2/lesson-4/lesson.html) also separates named, timed activities into launch, student work and synthesis. The consequences below are design judgments; they are not claims about individual interviewers' preferences or measured improvements.
+
+| Gap found | Relevant professional pattern | Change |
+| --- | --- | --- |
+| First use put a long orientation between the user and the evidence. | Playlab opens into an identifiable task; IM gives a purpose beside the work. | A compact purpose, Start review and optional How it works precede the assessment. The full introduction remains in Guide. |
+| On a phone, interpreting required opening a dialog to see any source content; three task buttons consumed vertical space. | Playlab separates reference and editor; EdLight connects student work to instructional decisions. | Keep the current dated quotation, task or counts above the writing. A native Reasoning task selector replaces the stacked buttons on narrow screens. The full reader remains available. |
+| Long explanations separated writing from the next action. | IM separates activity directions from supporting preparation. | Keep field-level prompts visible and move extended interpretation/reflection rationale into optional disclosures. Place Record next step directly after the reflection and optional next question. |
+| Approval was required before inspecting the actual assembled meeting materials. | Playlab's builder offers testing and refinement before explicit publishing. | Preview all eight draft kit sections before approval, including source packet and participant handout. Missing writing and unchanged starters are identified. Activity edit links return to the relevant editor. Only current approved plans expose kit downloads. |
+| The decision record omitted parts of the follow-up and showed a wall of empty sections. | A stable workspace should let a returning educator locate the current work and resume it. | Show the cycle, evidence version, implementation report, owner, collection arrangements and optional access/next-question notes. Consolidate blank sections. Offer stage routes with prerequisite explanations. Explicitly describe this as a current record, not version history. |
+| A save failure left unfinished writing with no portable recovery path. | Return to work and output ownership matter for a professional authoring tool. This is an identified Throughline reliability gap, not a claim about a specific competitor's recovery feature. | Download draft copy is available from Menu, the save-failure notice and the reload confirmation. It preserves unfinished writing and selected dated evidence as a plain-text manual reference. It cannot be imported automatically, does not save the browser workspace and never bypasses approved kit export gates. |
+| The evidence guide said inspection was optional but the nearby action only offered more inspection. | Guided tools need a clear next action and an escape from optional help. | Add a direct Continue to interpretation route beside the suggested inspection when those suggestions remain. |
+
+The incentive is a useful, inspectable output: selected evidence beside writing, a confirmed focus, an actual meeting kit, and a recorded next action. Opening views and reaching writing minimums do not certify review, quality or learning. No points, streaks or automatic approval were added.
+
+Remaining product gaps are substantive: shared accounts and permissions, collaboration, real curriculum and student-work ingestion, revision history, adjustable meeting length, and linked follow-up evidence. The prototype remains one browser-local fictional math workflow with scripted prompts. Adding interface promises for those capabilities would misrepresent the product; they require a separately scoped implementation. Desktop/mobile rendering, real keyboard interaction and screen-reader behavior also remain unverified while browser access is disabled. Source-only review uses the user's existing explicit exception.
 
 ## Guided progress and practical incentives
 
@@ -128,13 +146,13 @@ Saving a reflection records the educator's text and self-reported implementation
 
 ## Meeting materials
 
-From **Your meeting is ready → Open meeting kit**, Throughline assembles six presentation sections, a selected-source packet and an evidence-to-action participant handout. Directions, focus, action and checks come from the exact approved plan. Fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. Kit access remains gated on a current approval; the ready component also checks that approval before offering materials.
+From **Your meeting is ready → Open meeting kit**, Throughline assembles six presentation sections, a selected-source packet and an evidence-to-action participant handout. Directions, focus, action and checks come from the exact approved plan. Fixed discussion prompts and worksheet labels provide structure. This is deterministic document assembly, not AI authorship. Plan also offers a clearly marked draft preview through the same assembly before approval. Approved kit access and downloads remain gated on a current approval; the ready component also checks that approval before offering materials.
 
-Activity 2 and Activity 4 directions carry into the handout. The self-contained HTML works offline and supports printing or saving as PDF through the browser. Exports are snapshots. The HTML meeting kit remains the initial meeting materials; the text export can also carry a current recorded reflection. Plan edits revoke access until reapproval. Existing saved plans and the versioned local database remain compatible.
+Activity 2 and Activity 4 directions carry into the handout. The self-contained HTML works offline and supports printing or saving as PDF through the browser. Exports are snapshots. The HTML meeting kit remains the initial meeting materials; the text export can also carry a current recorded reflection. Plan edits revoke approved kit access and downloads until reapproval; draft preview remains available. The separate draft recovery copy preserves unfinished work as a manual reference, without approval signatures or automatic import. Existing saved plans and the versioned local database remain compatible.
 
 ## Typography, access and learning
 
-At standard reading size, the hierarchy is 36px page titles, 24px section headings, 18px task labels, 16px body/input text and 13px metadata, with 14px supporting instructions. Spacing, restrained borders and distinct working compositions separate source context from authoring. Self-hosted IBM Plex Sans avoids external font requests. Reading preferences provide 100/125/150% text and expanded spacing independently of cycle decisions.
+At standard reading size, the hierarchy is 36px page titles, 24px section headings and 16px for all other text, including task labels, inputs, metadata and instructions. All non-link text uses #242424. Spacing, restrained borders and distinct working compositions separate source context from authoring. Self-hosted IBM Plex Sans avoids external font requests. Reading preferences provide 100/125/150% text and expanded spacing independently of cycle decisions.
 
 Native controls, stage-lock explanations, field-specific errors, focus movement into revealed editors and modal source readers support navigation. These are implementation choices, not a claim of accessibility certification. Browser testing is unavailable because browser use is disabled in the app settings; rendered layout, actual keyboard behavior and assistive-technology coverage still require hands-on verification.
 
