@@ -1,4 +1,4 @@
-/* Four visual sizes: page title, section heading, body and supporting text. */
+/* One type system for the app and portable documents. */
 :root {
   --font-family: 'IBM Plex Sans', Arial, sans-serif;
   --font-regular: 400;
@@ -16,6 +16,7 @@
   --text-meta: var(--text-support);
   --line-body: 1.6;
   --line-heading: 1.35;
+  --heading-gap: .75rem;
   font-family: var(--font-family);
   font-size: 100%;
   font-weight: var(--font-regular);
@@ -26,10 +27,15 @@ body { color: var(--ink); font-family: var(--font-family); font-size: var(--text
 :where(a, a:visited) { color: var(--text-link); }
 button, input, select, textarea { font-family: inherit; }
 h1, h2, h3, h4, h5, h6, strong, b { font-weight: var(--font-semibold); }
-h1, h2, h3, h4, h5, h6 { line-height: var(--line-heading); }
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--heading-gap);
+  color: var(--ink);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
 h1 { font-size: var(--text-title); }
-h2, h3 { font-size: var(--text-section); }
-h4, h5, h6 { font-size: var(--text-body); }
+h2 { font-size: var(--text-section); }
+h3, h4, h5, h6 { font-size: var(--text-body); }
 small { font-size: var(--text-meta); }
 
 @media print { :root { font-size: 12pt; } }

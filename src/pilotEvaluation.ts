@@ -74,10 +74,7 @@ ${portableTypographyCss}
 *{box-sizing:border-box}
 body{margin:0;color:var(--ink);background:#fff;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 main{max-width:1100px;margin:auto;padding:40px 28px}
-h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
-h1{font-size:var(--text-title);}
-h2{margin-top:2rem;font-size:var(--text-section);}
-h3{font-size:var(--text-task)}
+h2{margin-top:2rem}
 p{margin:.6rem 0 1rem}
 .status{font-size:var(--text-support);font-weight:var(--font-semibold);color:var(--ink)}
 .boundary{border-left:3px solid #31578b;padding-left:1rem}

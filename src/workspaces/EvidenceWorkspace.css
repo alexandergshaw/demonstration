@@ -44,14 +44,6 @@
   min-width: 0;
 }
 
-.evidence-workspace h2 {
-  margin: 0;
-  font-size: var(--text-section);
-  font-weight: 600;
-  line-height:var(--line-heading);
-
-}
-
 .evidence-workspace .evidence-included {
   display: inline-flex;
   align-items: center;
@@ -276,13 +268,6 @@
 .evidence-workspace .evidence-class-view .evidence-score-track {
   margin-top: .35rem;
   height: .25rem;
-}
-
-.evidence-workspace .evidence-original-task h3 {
-  margin: 0 0 .5rem;
-  font-size: var(--text-task);
-  font-weight: 600;
-  line-height:var(--line-heading);
 }
 
 .evidence-workspace .evidence-original-task blockquote {

@@ -24,9 +24,6 @@
 
 .flow-introduction .flow-introduction-title {
   max-width: 24ch;
-  font-size: var(--text-title);
-  line-height: var(--line-heading);
-  margin: 0;
 }
 
 .flow-introduction-title:focus {
@@ -66,9 +63,6 @@
 
 .flow-introduction .flow-destination-title {
   max-width: 30ch;
-  margin: 0;
-  font-size: var(--text-section);
-  line-height: var(--line-heading);
 }
 
 .flow-introduction-outcomes {
@@ -115,7 +109,6 @@
 }
 
 .flow-introduction-method{margin:2rem 0 1rem;padding:1.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.flow-introduction .flow-method-title{margin:0 0 1.25rem;font-size:var(--text-section);line-height:var(--line-heading)}
 .flow-introduction-method dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem 2rem;margin:0}
 .flow-introduction-method dt{font-size:var(--text-label);font-weight:600;line-height:var(--line-body)}
 .flow-introduction-controls dt{font-size:var(--text-body);font-weight:600;line-height:var(--line-body)}
@@ -153,12 +146,6 @@
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-}
-
-.flow-introduction .flow-phase-title {
-  margin: 0;
-  font-size: var(--text-task);
-  line-height: var(--line-heading);
 }
 
 .flow-introduction .flow-introduction-phases p {
@@ -207,12 +194,6 @@
 .flow-introduction .flow-kit-page > .icon {
   color: var(--muted);
   margin-bottom: .65rem;
-}
-
-.flow-introduction .flow-kit-title {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: var(--line-heading);
 }
 
 .flow-introduction .flow-kit-page > p {

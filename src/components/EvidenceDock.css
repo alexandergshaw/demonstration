@@ -2,12 +2,10 @@
 .evidence-dock-panel{background:var(--bg);border:1px solid var(--border);border-top:3px solid var(--accent);color:var(--ink);min-width:0}
 .evidence-dock-heading{display:flex;flex-shrink:0;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 18px 0}
 .evidence-dock-eyebrow{font-size:var(--text-meta);line-height:var(--line-body);color:var(--muted);margin-bottom:7px}
-.evidence-dock-heading h2{font-size:var(--text-task);line-height:var(--line-heading);}
 .evidence-dock-scroll{min-height:0;max-height:min(58dvh,34rem);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:16px 18px 20px}
 .evidence-dock-label{display:block;font-size:var(--text-support);font-weight:600;margin-bottom:7px}
 .evidence-dock select{width:100%;min-height:44px;padding:9px 28px 9px 10px;border:1px solid var(--input-border);background:#fff;font-size:var(--text-support);text-overflow:ellipsis}
 .evidence-dock-source{margin-top:18px}
-.evidence-dock-source h3{font-size:var(--text-body);line-height:var(--line-body);margin-bottom:8px}
 .evidence-dock-source p,.evidence-dock-detail p{font-size:var(--text-support);line-height:var(--line-body)}
 .evidence-dock-source .evidence-dock-source-date{color:var(--muted);font-size:var(--text-meta);line-height:var(--line-body);margin-bottom:10px}
 .evidence-dock-source .evidence-dock-scope{font-weight:600;line-height:var(--line-body);margin-bottom:12px}

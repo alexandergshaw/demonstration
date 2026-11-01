@@ -1,14 +1,12 @@
 .meeting-ready{min-width:0;--mr-space:clamp(1.25rem,3vw,2rem)}
 .meeting-ready :is(h2,h3,p,dt,dd,button){overflow-wrap:anywhere}
-.meeting-ready h2{font-size:var(--text-section);line-height:var(--line-heading)}
-.meeting-ready h3{font-size:var(--text-task);line-height:var(--line-heading)}
 .meeting-ready>.task-explanation{margin:1.5rem 0}
 .meeting-ready-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
 .meeting-ready-heading{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem 1.25rem;flex-wrap:wrap}
 .meeting-ready-heading>.textlink{font-size:var(--text-support)}
 .meeting-ready-move{background:var(--bg);border-left:3px solid var(--ink);padding:1.25rem 1.5rem}
 .meeting-ready-status{display:flex;align-items:center;gap:.5rem;font-size:var(--text-meta);color:var(--ink)}
-.meeting-ready-move>h2{font-size:var(--text-label);line-height:var(--line-body);font-weight:600;color:var(--ink);margin-top:1rem}
+.meeting-ready-move>h2{margin-top:1rem}
 .meeting-ready-action{font-size:var(--text-body);line-height:var(--line-body);white-space:pre-wrap;max-width:65ch;margin:.5rem 0 .75rem}
 .meeting-ready-owner{font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);white-space:pre-wrap}
 .meeting-ready-materials{display:flex;align-items:center;justify-content:space-between;gap:var(--mr-space);padding:0 0 1.75rem}

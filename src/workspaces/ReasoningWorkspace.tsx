@@ -28,17 +28,21 @@ const beats: { id: Beat; label: string }[] = [
   { id: 'choose', label: 'Choose a focus' },
 ];
 
-function TaskAndRubric() {
+function TaskAndRubric({ headingLevel = 'h3' }: { headingLevel?: 'h3' | 'h4' }) {
+  const Heading = headingLevel;
   return <div className="reasoning-task-material">
-    <section><h3>Original task</h3><p>{lessonContext.prompt}</p></section>
-    <section><h3>Scoring criteria</h3><p>{lessonContext.selection}</p><p>{lessonContext.rubric}</p></section>
+    <section><Heading>Original task</Heading><p>{lessonContext.prompt}</p></section>
+    <section><Heading>Scoring criteria</Heading><p>{lessonContext.selection}</p><p>{lessonContext.rubric}</p></section>
     <p className="reasoning-source-note">{lessonContext.provenance}</p>
   </div>;
 }
 
-function SourceReader({ state, reference, source, onSourceChange }: {
+function SourceReader({ state, reference, source, onSourceChange, headingLevel = 'h2' }: {
   state: PlanState; reference: ReferenceData; source: Source; onSourceChange: (source: Source) => void;
+  headingLevel?: 'h2' | 'h3';
 }) {
+  const Heading = headingLevel;
+  const taskHeadingLevel = headingLevel === 'h2' ? 'h3' : 'h4';
   const selectId = useId();
   const { assessment, observation, responses } = reference;
   const selectedResponses = responses.filter(response => state.selected.includes(response.id));
@@ -56,22 +60,22 @@ function SourceReader({ state, reference, source, onSourceChange }: {
     <div className="reasoning-source-content">
       {response ? <>
         <p className="reasoning-source-date">Selected student work · {assessment.date}</p>
-        <h2>{response.label}</h2>
+        <Heading>{response.label}</Heading>
         <blockquote>“{response.quote}”</blockquote>
         <p className="reasoning-source-note">An illustrative response, not a representative sample.</p>
       </> : source === 'observation' ? <>
         <p className="reasoning-source-date reasoning-historical"><Icon name="clock" size={15} /> Historical context · {observation.date}</p>
-        <h2>Classroom observation</h2>
+        <Heading>Classroom observation</Heading>
         <blockquote>“{observation.quote}”</blockquote>
         <p className="reasoning-source-note">{observation.scope} · {observation.age}</p>
         <p className="reasoning-source-caution">{observation.caution}</p>
       </> : source === 'task' ? <>
         <p className="reasoning-source-date">Fictional lesson materials</p>
-        <h2>Task & rubric</h2>
-        <TaskAndRubric />
+        <Heading>Task & rubric</Heading>
+        <TaskAndRubric headingLevel={taskHeadingLevel} />
       </> : <>
         <p className="reasoning-source-date">Selected assessment · {assessment.date}</p>
-        <h2>What the work shows</h2>
+        <Heading>What the work shows</Heading>
         <dl className="reasoning-source-totals">
           <div><dt>Correct fraction</dt><dd>{assessment.correct}<span> / {assessment.total}</span></dd></div>
           <div><dt>Adequate explanation</dt><dd>{assessment.explanations}<span> / {assessment.total}</span></dd></div>
@@ -81,7 +85,7 @@ function SourceReader({ state, reference, source, onSourceChange }: {
     </div>
 
     {response && <p className="reasoning-assessment-context"><strong>{assessment.correct}/{assessment.total}</strong> correct fractions<br /><strong>{assessment.explanations}/{assessment.total}</strong> adequate explanations</p>}
-    {source !== 'task' && <details className="reasoning-source-disclosure"><summary>Inspect original task & rubric</summary><TaskAndRubric /></details>}
+    {source !== 'task' && <details className="reasoning-source-disclosure"><summary>Inspect original task & rubric</summary><TaskAndRubric headingLevel={taskHeadingLevel} /></details>}
     <details className="reasoning-source-disclosure">
       <summary>Source scope & collection</summary>
       <div className="reasoning-source-detail"><p>{evidenceSnapshotDescription(state.evidenceVersion)}</p><p>{lessonContext.limits}</p></div>
@@ -269,6 +273,6 @@ export function ReasoningWorkspace({ state, reference, dispatch, submit, errorFi
           : <button className="btn" onClick={() => missingFocusStep ? goToBeat(missingFocusStep) : !focusReady ? goToBeat('choose') : submit('focus')}>{missingFocusStep === 'notice' ? 'Write interpretation first' : missingFocusStep === 'test' ? 'Consider an alternative first' : !focusReady ? state.focus.trim() ? 'Add detail to your focus' : 'Write your teaching focus' : 'Confirm focus & continue'}<Icon name="arrow" size={17} /></button>}
       </footer>
     </div>
-    {sourceOpen && <Modal title="Selected evidence & original task" onClose={() => setSourceOpen(false)}><div className="reasoning-source-modal"><SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} /><button className="btn secondary" onClick={() => setSourceOpen(false)}>Return to my writing</button></div></Modal>}
+    {sourceOpen && <Modal title="Selected evidence & original task" onClose={() => setSourceOpen(false)}><div className="reasoning-source-modal"><SourceReader state={state} reference={reference} source={selectedSource} onSourceChange={setSource} headingLevel="h3" /><button className="btn secondary" onClick={() => setSourceOpen(false)}>Return to my writing</button></div></Modal>}
   </div>;
 }

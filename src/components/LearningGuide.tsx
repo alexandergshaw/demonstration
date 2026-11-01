@@ -83,7 +83,7 @@ export function LearningGuide({ learning, currentStep, canEnter, onNavigate, onC
 
       {view === 'home' && <section className="learning-section">
         <FlowIntroduction headingLevel="h3" headingRef={heading} continueLabel={`Return to ${currentStage}`} onContinue={() => { learning.dispatch({ type: 'dismissWelcome' }); onClose(); }} />
-        <h4 className="learning-support-heading">More support when you need it</h4>
+        <h3 className="learning-support-heading">More support when you need it</h3>
         <p className="learning-lead">Walk through a step, practice a decision, or look up a term. Everything is optional.</p>
         <div className="learning-routes">
           {onOpenExamples && <article><div className="learning-route-copy"><span className="kicker">Separate fictional cases</span><h4>Follow a decision through to reflection</h4><p>Compare a documented follow-up with a case missing key evidence.</p></div><button className="btn secondary" onClick={onOpenExamples}>Explore worked examples</button></article>}

@@ -79,11 +79,8 @@ html{scroll-behavior:smooth}
 body{margin:0;color:var(--ink);background:#f3f5f8;font-family:var(--font-family);font-size:var(--text-body);font-weight:var(--font-regular);line-height:var(--line-body)}
 header,nav,.sheet{max-width:1040px;margin:28px auto;padding:36px}
 header{padding-bottom:0}
-h1,h2,h3,p{margin:0}
-h1,h2,h3{font-weight:var(--font-semibold);line-height:var(--line-heading)}
-h1{font-size:var(--text-title);}
-h2{font-size:var(--text-section);margin:12px 0 28px}
-h3{font-size:var(--text-label);color:var(--ink);margin-bottom:9px}
+p{margin:0}
+h2{margin-top:12px}
 p{white-space:pre-wrap;overflow-wrap:anywhere}
 .eyebrow,footer{font-size:var(--text-meta);line-height:var(--line-body);color:var(--muted)}
 header p{font-size:var(--text-support);color:var(--muted);margin-top:12px}

@@ -1,7 +1,5 @@
 .plan-workspace{min-width:0;--pw-space:clamp(1.25rem,3vw,2rem)}
 .plan-workspace :is(h2,h3,h4,button,span),.pw-plan-review :is(h3,h4,button,span){overflow-wrap:anywhere}
-.plan-workspace h2{font-size:var(--text-section);line-height:var(--line-heading)}
-.plan-workspace h3,.pw-plan-review h3{font-size:var(--text-task);line-height:var(--line-heading)}
 .pw-explanation,.pw-check-explanation{max-width:68ch;font-size:var(--text-body);line-height:var(--line-body);color:var(--ink);margin:.75rem 0;overflow-wrap:anywhere}
 .pw-entry{margin:0 0 1.75rem}
 .pw-entry-explanation{margin:0}
@@ -34,11 +32,9 @@
 .pw-meta,.pw-context-row,.pw-footer>p,.pw-check-dates{font-size:var(--text-meta);color:var(--muted);line-height:var(--line-body)}
 .pw-owner{font-size:var(--text-body);color:var(--ink);line-height:var(--line-body)}
 .pw-focus-context{margin:0 0 1.5rem;padding:0 0 1.25rem;border-bottom:1px solid var(--border)}
-.pw-focus-context .pw-section-heading h2{font-size:var(--text-label);color:var(--ink)}
 .pw-focus-context>.pw-explanation{font-size:var(--text-support)}
 .pw-focus-preview{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;max-width:72ch;margin-top:.5rem;font-size:var(--text-body);line-height:var(--line-body)}
 .pw-teaching-move{background:var(--bg);border-left:3px solid var(--ink);padding:1.25rem 1.5rem;margin-bottom:1.75rem}
-.pw-teaching-move .pw-section-heading h2{font-size:var(--text-section);}
 .pw-teaching-move>.pw-draft-value{font-size:var(--text-body);line-height:var(--line-body);max-width:65ch;margin:.75rem 0;}
 .pw-draft-value{white-space:pre-wrap;line-height:var(--line-body);overflow-wrap:anywhere}
 .pw-empty-value{color:var(--muted)}
@@ -49,7 +45,6 @@
 .pw-action-owner>.btn{margin:.75rem 0 1.5rem}
 .pw-agenda-workspace{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:var(--pw-space);align-items:start}
 .pw-outline,.pw-agenda-editor{min-width:0}
-.pw-outline .pw-section-heading h2{font-size:var(--text-task)}
 .pw-agenda-list{list-style:none;padding:0;margin:1rem 0 0}
 .pw-agenda-list li{margin:0;border-bottom:1px solid var(--border)}
 .pw-agenda-list li:last-child{border-bottom:0}
@@ -65,7 +60,7 @@
 .pw-starter-note strong{font-weight:600;color:var(--ink)}
 .pw-agenda-choice>.icon{color:var(--muted)}
 .pw-agenda-editor{border:1px solid var(--border);border-radius:4px;padding:1.5rem}
-.pw-agenda-editor>h2{margin:.5rem 0 1.25rem;font-size:var(--text-section)}
+.pw-agenda-editor>h2{margin-top:.5rem}
 .pw-agenda-editor>.field-group{margin:0}
 .pw-agenda-editor>.step-coach{margin:0 0 1.25rem}
 .pw-agenda-editor textarea{min-height:10rem;line-height:var(--line-body)}
@@ -78,7 +73,6 @@
 .pw-follow-up{margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem}
 .pw-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pw-space);margin-top:1rem}
 .pw-check{min-width:0;padding-top:1rem;border-top:2px solid var(--border)}
-.pw-check-heading h3{font-size:var(--text-task);line-height:var(--line-heading)}
 .pw-check>.pw-draft-value{font-size:var(--text-body);margin-top:.75rem}
 .pw-check>.field-group{margin:.75rem 0 .25rem}
 .pw-check textarea{min-height:8rem}
@@ -104,7 +98,6 @@ dialog:has(.pw-plan-review){width:min(820px,calc(100% - 32px))}
 .pw-plan-review{min-width:0;font-size:var(--text-body);line-height:var(--line-body)}
 .pw-review-status{font-size:var(--text-meta);color:var(--muted);padding-bottom:1rem;border-bottom:1px solid var(--border)}
 .pw-review-section{padding:1.25rem 0;border-bottom:1px solid var(--border)}
-.pw-review-section>h3{margin-bottom:.75rem}
 .pw-review-section>.pw-draft-value{margin-top:.5rem}
 .pw-review-move>.pw-draft-value{font-size:var(--text-body);margin:.5rem 0}
 .pw-review-section .pw-check-heading{margin-bottom:.5rem}
@@ -112,11 +105,9 @@ dialog:has(.pw-plan-review){width:min(820px,calc(100% - 32px))}
 .pw-review-agenda>li{padding:.875rem 0;border-bottom:1px solid var(--border)}
 .pw-review-agenda>li:last-child{border-bottom:0;padding-bottom:0}
 .pw-review-agenda-title{display:grid;grid-template-columns:3.25rem minmax(0,1fr) auto;gap:.5rem .75rem;align-items:baseline}
-.pw-review-agenda-title h4{font-size:var(--text-label);line-height:var(--line-body)}
 .pw-review-agenda-title .textlink{font-size:var(--text-support)}
 .pw-review-agenda .pw-draft-value{font-size:var(--text-body);margin:.5rem 0 0 4rem}
 .pw-review-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem}
-.pw-review-checks h4{font-size:var(--text-label)}
 .pw-review-checks .pw-draft-value{font-size:var(--text-body)}
 .pw-review-collection{margin:1.25rem 0 0;border-top:1px solid var(--border);padding-top:1rem;font-size:var(--text-support)}
 .pw-review-collection>div{display:grid;grid-template-columns:minmax(8rem,.5fr) minmax(0,1fr);gap:.5rem 1rem;margin:.375rem 0}

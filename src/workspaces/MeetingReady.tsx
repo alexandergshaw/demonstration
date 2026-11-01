@@ -56,6 +56,6 @@ export function MeetingReady({ state, onOpenKit, onEditPlan, onReflect, onEditCo
       <p className="meeting-ready-note">{collectionIncomplete ? 'The meeting plan is approved. Agree the remaining collection details with your team.' : 'These are your team’s planned commitments. Collected follow-up evidence is still needed.'}</p>
     </section>
 
-    <footer className="meeting-ready-next"><div><h3>After the lesson</h3><p>Return to report whether the move was used as planned, partially used or not yet used. Then record the supported next decision, including an action, owner and review point. If the move was not tried or evidence is missing, explain the barrier and what to gather next.</p></div><button className="btn secondary" onClick={onReflect}>Go to reflection<Icon name="arrow" size={17} /></button></footer>
+    <footer className="meeting-ready-next"><div><h2>After the lesson</h2><p>Return to report whether the move was used as planned, partially used or not yet used. Then record the supported next decision, including an action, owner and review point. If the move was not tried or evidence is missing, explain the barrier and what to gather next.</p></div><button className="btn secondary" onClick={onReflect}>Go to reflection<Icon name="arrow" size={17} /></button></footer>
   </div>;
 }

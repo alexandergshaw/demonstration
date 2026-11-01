@@ -8,7 +8,6 @@
 .reasoning-source-help{margin:.75rem 0 0;color:var(--muted);font-size:var(--text-support);line-height:var(--line-body);max-width:55ch}
 .reasoning-source-content{margin-top:30px}
 .reasoning-source-date{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;color:var(--muted);font-size:var(--text-meta);line-height:var(--line-body)}
-.reasoning-source-content h2{font-size:var(--text-task);line-height:var(--line-heading);}
 .reasoning-source-content blockquote{margin:22px 0;font-size:var(--text-body);line-height:var(--line-body);}
 .reasoning-source-note{font-size:var(--text-support);line-height:var(--line-body);color:var(--muted)}
 .reasoning-source-caution{border-left:2px solid #9a641a;padding-left:12px;margin-top:18px;font-size:var(--text-support);line-height:var(--line-body)}
@@ -25,7 +24,6 @@
 .reasoning-source-disclosure summary{padding:13px 0;min-height:44px;font-size:var(--text-support);font-weight:400;line-height:var(--line-body);color:var(--accent-dark);cursor:pointer;overflow-wrap:anywhere}
 .reasoning-task-material{margin:20px 0}
 .reasoning-task-material section+section{margin-top:22px}
-.reasoning-task-material h3{font-size:var(--text-label);margin-bottom:8px}
 .reasoning-task-material section p{font-size:var(--text-body);line-height:var(--line-body);margin:8px 0 16px}
 .reasoning-source-detail p{font-size:var(--text-support);line-height:var(--line-body);margin:8px 0 16px}
 .reasoning-task-material>.reasoning-source-note{margin-top:22px}
@@ -41,7 +39,6 @@
 .reasoning-beat-number{display:flex;align-items:center;justify-content:center;width:23px;height:23px;border:1px solid var(--border);border-radius:50%;flex-shrink:0;font-size:var(--text-meta);font-weight:400}
 .reasoning-beats button[aria-current=step] .reasoning-beat-number{background:var(--accent);border-color:var(--accent);color:#fff}
 .reasoning-beat-panel{padding-top:32px;min-width:0}
-.reasoning-beat-panel h2{font-size:var(--text-section);line-height:var(--line-heading)}
 .reasoning-beat-panel .field-group{margin:0}
 .reasoning-beat-panel .field-heading{margin-bottom:12px}
 .reasoning-beat-panel .field-hint{max-width:52ch;margin-bottom:20px}
